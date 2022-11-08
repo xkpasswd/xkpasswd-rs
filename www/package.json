@@ -7,8 +7,10 @@
     "wasm": "wasm-pack build --target web --out-dir www/xkpasswd/pkg",
     "predev": "npm run wasm",
     "dev": "vite",
-    "preserve": "vite build",
-    "serve": "vite preview"
+    "build": "vite build",
+    "preserve": "npm run build",
+    "serve": "vite preview",
+    "surge": "surge dist xkpasswd.surge.sh"
   },
   "repository": {
     "type": "git",
@@ -26,10 +28,8 @@
     "url": "https://github.com/ethan605/xkpasswd-rs/issues"
   },
   "homepage": "https://github.com/ethan605/xkpasswd-rs",
-  "dependencies": {
-    "xkpasswd-rs": "file:../pkg"
-  },
   "devDependencies": {
+    "surge": "^0.23.1",
     "vite": "^3.2.3",
     "vite-plugin-wasm-pack": "^0.1.12"
   }
