@@ -1,0 +1,32 @@
+on: [pull_request]
+
+name: wasm-pack
+
+jobs:
+  test:
+    name: Test
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Install wasm-pack
+        run: curl https://rustwasm.github.io/wasm-pack/installer/init.sh -sSf | sh
+
+      - name: Test on Chrome
+        run: wasm-pack test --headless --chrome
+      - name: Test on Firefox
+        run: wasm-pack test --headless --firefox
+
+  build-size:
+    name: Build size limit
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Install wasm-pack
+        run: curl https://rustwasm.github.io/wasm-pack/installer/init.sh -sSf | sh
+
+      - name: Build
+        run: wasm-pack build
+      - name: Calculate gzip size
+        run: 'if [[ $(gzip -9 < pkg/xkpasswd_bg.wasm | wc -c) -gt 100000 ]]; then echo "gzipped wasm size exceeds 100KB"; exit 1; fi'
