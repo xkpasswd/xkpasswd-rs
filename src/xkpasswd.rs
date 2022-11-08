@@ -2,7 +2,7 @@ use rand::distributions::{Distribution, Uniform};
 use rand::Rng;
 use std::collections::HashMap;
 
-const PADDING_SYMBOLS: &str = "!@#$%^&*-_=+:|~?/.;";
+const PADDING_SYMBOLS: &str = "!@#$%^&*-_=+:|~?/;";
 
 pub fn gen_passwd(count: u8) -> String {
     let dict_en_bytes = include_bytes!("./assets/dict_en.txt");
