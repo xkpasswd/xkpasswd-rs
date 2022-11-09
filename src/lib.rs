@@ -1,13 +1,15 @@
 //#![feature(test)]
 
 pub mod prelude;
+pub mod settings;
 
+use settings::*;
 use wasm_bindgen::prelude::*;
 
 #[wasm_bindgen]
-pub fn gen_pass(count: u8) -> String {
+pub fn gen_pass(settings: &Settings) -> String {
     set_panic_hook();
-    prelude::gen_passwd(count)
+    prelude::gen_passwd(settings)
 }
 
 fn set_panic_hook() {
@@ -23,6 +25,7 @@ mod tests {
 
     #[wasm_bindgen_test]
     fn test_gen_passwd() {
-        assert_eq!(4, gen_pass(3).split('.').count());
+        let settings = &Settings { words_count: 3 };
+        assert_eq!(4, gen_pass(settings).split('.').count());
     }
 }

@@ -1,10 +1,9 @@
+use super::settings::*;
 use rand::distributions::{Distribution, Uniform};
 use rand::Rng;
 use std::collections::HashMap;
 
-const PADDING_SYMBOLS: &str = "!@#$%^&*-_=+:|~?/;";
-
-pub fn gen_passwd(count: u8) -> String {
+pub fn gen_passwd(settings: &Settings) -> String {
     let dict_en_bytes = include_bytes!("./assets/dict_en.txt");
     let dict_en = load_dict(&dict_en_bytes[..]);
 
@@ -19,7 +18,7 @@ pub fn gen_passwd(count: u8) -> String {
     let mut rng = rand::thread_rng();
     let word_indices = Uniform::from(0..all_words.len());
 
-    let words = (0..count)
+    let words = (0..settings.words_count)
         .map(|_| loop {
             let index: usize = word_indices.sample(&mut rng);
             let word = all_words[index];
@@ -50,7 +49,7 @@ pub fn gen_passwd(count: u8) -> String {
     format!("{}.{}", words, suffix)
 }
 
-fn load_dict(dict_bytes: &[u8]) -> HashMap<u8, Vec<&str>> {
+pub fn load_dict(dict_bytes: &[u8]) -> HashMap<u8, Vec<&str>> {
     let dict_str = std::str::from_utf8(dict_bytes).unwrap_or("");
 
     let mut dict: HashMap<u8, Vec<&str>> = HashMap::new();
