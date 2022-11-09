@@ -7,6 +7,7 @@
     "wasm": "wasm-pack build --target web --out-dir www/xkpasswd/pkg",
     "predev": "npm run wasm",
     "dev": "vite",
+    "prebuild": "npm run wasm",
     "build": "vite build",
     "preserve": "npm run build",
     "serve": "vite preview",
