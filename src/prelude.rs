@@ -3,15 +3,14 @@ use rand::distributions::{Distribution, Uniform};
 use rand::Rng;
 use std::collections::HashMap;
 
-pub fn gen_passwd(settings: &Settings) -> String {
-    let dict_en_bytes = include_bytes!("./assets/dict_en.txt");
-    let dict_en = load_dict(&dict_en_bytes[..]);
+pub type Dict<'a> = HashMap<u8, Vec<&'a str>>;
 
+pub fn gen_passwd(dict: &Dict, settings: &Settings) -> String {
     let mut all_words: Vec<&str> = vec![];
 
     let (min, max) = settings.word_lengths;
     for len in min..(max + 1) {
-        if let Some(words) = dict_en.get(&len) {
+        if let Some(words) = dict.get(&len) {
             all_words.extend(words);
         }
     }
@@ -50,10 +49,9 @@ pub fn gen_passwd(settings: &Settings) -> String {
     format!("{}.{}", words, suffix)
 }
 
-pub fn load_dict(dict_bytes: &[u8]) -> HashMap<u8, Vec<&str>> {
+pub fn load_dict(dict_bytes: &[u8]) -> Dict {
     let dict_str = std::str::from_utf8(dict_bytes).unwrap_or("");
-
-    let mut dict: HashMap<u8, Vec<&str>> = HashMap::new();
+    let mut dict: Dict = HashMap::new();
 
     dict_str.lines().for_each(|line| {
         let mut comps = line.split(':');
@@ -86,6 +84,9 @@ mod tests {
 
     #[bench]
     fn bench_xkpasswd(b: &mut Bencher) {
-        b.iter(|| gen_passwd(3))
+        let dict_en_bytes = include_bytes!("./assets/dict_en.txt");
+        let dict_en = &load_dict(&dict_en_bytes[..]);
+        let settings = &Settings::default().words_count(3).word_lengths(3, 8);
+        b.iter(|| gen_passwd(dict_en, settings));
     }
 }
