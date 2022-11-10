@@ -16,14 +16,28 @@ macro_rules! log {
 }
 
 #[wasm_bindgen]
-pub fn gen_pass(js_settings: JsValue) -> String {
-    set_panic_hook();
+#[derive(Debug, Default)]
+pub struct Xkpasswd {
+    dict: Dict<'static>,
+}
 
-    log!("js_settings: {:?}", js_settings);
-    let settings: Settings = serde_wasm_bindgen::from_value(js_settings).expect("Invalid settings");
-    log!("settings: {:?}", settings);
+#[wasm_bindgen]
+impl Xkpasswd {
+    #[wasm_bindgen(constructor)]
+    pub fn new() -> Xkpasswd {
+        set_panic_hook();
+        let dict_en_bytes = include_bytes!("./assets/dict_en.txt");
+        let dict = load_dict(&dict_en_bytes[..]);
+        Xkpasswd { dict }
+    }
 
-    gen_passwd(&settings)
+    pub fn gen_pass(&self, js_settings: JsValue) -> String {
+        let settings: Settings =
+            serde_wasm_bindgen::from_value(js_settings).expect("Invalid settings");
+
+        log!("Settings: {:?}", settings);
+        gen_passwd(&self.dict, &settings)
+    }
 }
 
 fn set_panic_hook() {
@@ -39,8 +53,10 @@ mod tests {
 
     #[wasm_bindgen_test]
     fn test_gen_passwd() {
+        let pass = Xkpasswd::new();
+
         let settings = &Settings::default().words_count(3).word_lengths(5, 8);
         let js_settings = serde_wasm_bindgen::to_value(settings).unwrap();
-        assert_eq!(4, gen_pass(js_settings).split('.').count());
+        assert_eq!(4, pass.gen_pass(js_settings).split('.').count());
     }
 }
