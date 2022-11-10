@@ -1,19 +1,18 @@
 //#![feature(test)]
 
-mod utils;
-mod xkpasswd;
+pub mod prelude;
 
 use wasm_bindgen::prelude::*;
 
 #[wasm_bindgen]
-extern "C" {
-    fn alert(s: &str);
+pub fn gen_pass(count: u8) -> String {
+    set_panic_hook();
+    prelude::gen_passwd(count)
 }
 
-#[wasm_bindgen]
-pub fn gen_passwd(count: u8) -> String {
-    utils::set_panic_hook();
-    xkpasswd::gen_passwd(count)
+fn set_panic_hook() {
+    #[cfg(feature = "console_error_panic_hook")]
+    console_error_panic_hook::set_once();
 }
 
 #[cfg(test)]
@@ -24,6 +23,6 @@ mod tests {
 
     #[wasm_bindgen_test]
     fn test_gen_passwd() {
-        assert_eq!(4, gen_passwd(3).split('.').count());
+        assert_eq!(4, gen_pass(3).split('.').count());
     }
 }

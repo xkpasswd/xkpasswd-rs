@@ -16,9 +16,11 @@ strip = true        # Strip symbols from binary*
 
 [[bin]]
 name = "xkpasswd"
+path = "src/main.rs"
 
 [lib]
 name = "xkpasswd"
+path = "src/lib.rs"
 crate-type = ["cdylib", "rlib"]
 
 [features]
