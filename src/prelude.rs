@@ -9,7 +9,8 @@ pub fn gen_passwd(settings: &Settings) -> String {
 
     let mut all_words: Vec<&str> = vec![];
 
-    for len in 4..8 {
+    let (min, max) = settings.word_lengths;
+    for len in min..(max + 1) {
         if let Some(words) = dict_en.get(&len) {
             all_words.extend(words);
         }
