@@ -4,8 +4,10 @@ async function run() {
   await init();
 
   const pre = document.createElement('pre');
-  const settings = new xkpasswd.Settings(3);
-  pre.textContent = xkpasswd.gen_pass(settings);
+  pre.textContent = xkpasswd.gen_pass({
+    words_count: 3,
+    word_lengths: [3, 5],
+  });
   document.body.append(pre);
 }
 

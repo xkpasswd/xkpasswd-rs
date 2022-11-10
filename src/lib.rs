@@ -3,13 +3,27 @@
 pub mod prelude;
 pub mod settings;
 
+use prelude::*;
 use settings::*;
 use wasm_bindgen::prelude::*;
 
+extern crate web_sys;
+
+macro_rules! log {
+    ( $( $t:tt )* ) => {
+        web_sys::console::log_1(&format!( $( $t )* ).into());
+    }
+}
+
 #[wasm_bindgen]
-pub fn gen_pass(settings: &Settings) -> String {
+pub fn gen_pass(js_settings: JsValue) -> String {
     set_panic_hook();
-    prelude::gen_passwd(settings)
+
+    log!("js_settings: {:?}", js_settings);
+    let settings: Settings = serde_wasm_bindgen::from_value(js_settings).expect("Invalid settings");
+    log!("settings: {:?}", settings);
+
+    gen_passwd(&settings)
 }
 
 fn set_panic_hook() {
@@ -25,7 +39,8 @@ mod tests {
 
     #[wasm_bindgen_test]
     fn test_gen_passwd() {
-        let settings = &Settings { words_count: 3 };
-        assert_eq!(4, gen_pass(settings).split('.').count());
+        let settings = &Settings::default().words_count(3).word_lengths(5, 8);
+        let js_settings = serde_wasm_bindgen::to_value(settings).unwrap();
+        assert_eq!(4, gen_pass(js_settings).split('.').count());
     }
 }
