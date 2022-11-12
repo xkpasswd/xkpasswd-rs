@@ -1,48 +1,36 @@
 //#![feature(test)]
 
-pub mod prelude;
+mod prelude;
 pub mod settings;
+mod wasm_utils;
 
 use prelude::*;
 use settings::*;
 use wasm_bindgen::prelude::*;
+use wasm_utils::*;
 
-extern crate web_sys;
-
-macro_rules! log {
-    ( $( $t:tt )* ) => {
-        web_sys::console::log_1(&format!( $( $t )* ).into());
-    }
-}
-
-#[wasm_bindgen]
+#[wasm_bindgen(js_name = "Xkpasswd")]
 #[derive(Debug, Default)]
-pub struct Xkpasswd {
-    dict: Dict<'static>,
+pub struct XkpasswdWasm {
+    pass_generator: Xkpasswd,
 }
 
-#[wasm_bindgen]
-impl Xkpasswd {
+#[wasm_bindgen(js_class = "Xkpasswd")]
+impl XkpasswdWasm {
     #[wasm_bindgen(constructor)]
-    pub fn new() -> Xkpasswd {
+    pub fn new() -> XkpasswdWasm {
         set_panic_hook();
-        let dict_en_bytes = include_bytes!("./assets/dict_en.txt");
-        let dict = load_dict(&dict_en_bytes[..]);
-        Xkpasswd { dict }
+        let pass_generator = Xkpasswd::new();
+        XkpasswdWasm { pass_generator }
     }
 
     pub fn gen_pass(&self, js_settings: JsValue) -> String {
         let settings: Settings =
             serde_wasm_bindgen::from_value(js_settings).expect("Invalid settings");
 
-        log!("Settings: {:?}", settings);
-        gen_passwd(&self.dict, &settings)
+        console_log!("Settings: {:?}", settings);
+        self.pass_generator.gen_pass(&settings)
     }
-}
-
-fn set_panic_hook() {
-    #[cfg(feature = "console_error_panic_hook")]
-    console_error_panic_hook::set_once();
 }
 
 #[cfg(test)]
@@ -53,7 +41,7 @@ mod tests {
 
     #[wasm_bindgen_test]
     fn test_gen_passwd() {
-        let pass = Xkpasswd::new();
+        let pass = XkpasswdWasm::new();
 
         let settings = &Settings::default().words_count(3).word_lengths(5, 8);
         let js_settings = serde_wasm_bindgen::to_value(settings).unwrap();
