@@ -84,8 +84,7 @@ fn load_dict(dict_bytes: &[u8]) -> Dict {
     dict
 }
 
-#[cfg(feature = "benchmarks")]
-#[cfg(test)]
+#[cfg(all(feature = "benchmarks", test))]
 mod tests {
     extern crate test;
     use super::*;

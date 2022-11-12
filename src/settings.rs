@@ -29,3 +29,38 @@ impl Settings {
         }
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_default_settings() {
+        let settings = Settings::default();
+        assert_eq!(0, settings.words_count);
+        assert_eq!((0, 0), settings.word_lengths);
+    }
+
+    #[test]
+    fn test_words_count_builder() {
+        let settings = Settings::default().words_count(1);
+        assert_eq!(1, settings.words_count); // only words_count updated
+        assert_eq!((0, 0), settings.word_lengths); // other fields remain unchanged
+
+        let settings = Settings::default().words_count(123);
+        assert_eq!(123, settings.words_count);
+    }
+
+    #[test]
+    fn test_word_lengths_builder() {
+        let settings = Settings::default().word_lengths(2, 3);
+        assert_eq!((2, 3), settings.word_lengths); // other fields remain unchanged
+        assert_eq!(0, settings.words_count); // other fields remain unchanged
+
+        let settings = Settings::default().word_lengths(5, 5);
+        assert_eq!((5, 5), settings.word_lengths); // equal values
+
+        let settings = Settings::default().word_lengths(6, 4);
+        assert_eq!((4, 6), settings.word_lengths); // min/max corrected
+    }
+}
