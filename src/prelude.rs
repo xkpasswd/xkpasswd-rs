@@ -5,7 +5,24 @@ use std::collections::HashMap;
 
 pub type Dict<'a> = HashMap<u8, Vec<&'a str>>;
 
-pub fn gen_passwd(dict: &Dict, settings: &Settings) -> String {
+#[derive(Debug, Default)]
+pub struct Xkpasswd {
+    dict: Dict<'static>,
+}
+
+impl Xkpasswd {
+    pub fn new() -> Xkpasswd {
+        let dict_en_bytes = include_bytes!("./assets/dict_en.txt");
+        let dict = load_dict(&dict_en_bytes[..]);
+        Xkpasswd { dict }
+    }
+
+    pub fn gen_pass(&self, settings: &Settings) -> String {
+        gen_passwd(&self.dict, settings)
+    }
+}
+
+fn gen_passwd(dict: &Dict, settings: &Settings) -> String {
     let mut all_words: Vec<&str> = vec![];
 
     let (min, max) = settings.word_lengths;
@@ -49,7 +66,7 @@ pub fn gen_passwd(dict: &Dict, settings: &Settings) -> String {
     format!("{}.{}", words, suffix)
 }
 
-pub fn load_dict(dict_bytes: &[u8]) -> Dict {
+fn load_dict(dict_bytes: &[u8]) -> Dict {
     let dict_str = std::str::from_utf8(dict_bytes).unwrap_or("");
     let mut dict: Dict = HashMap::new();
 
