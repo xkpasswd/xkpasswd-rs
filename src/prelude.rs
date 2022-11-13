@@ -34,8 +34,9 @@ fn gen_passwd(dict: &Dict, settings: &Settings) -> String {
 
     let mut rng = rand::thread_rng();
     let word_indices = Uniform::from(0..all_words.len());
+    let separator = &settings.rand_separator().to_string();
 
-    let words = (0..settings.words_count)
+    let words: Vec<String> = (0..settings.words_count)
         .map(|_| loop {
             let index: usize = word_indices.sample(&mut rng);
             let word = all_words[index];
@@ -52,18 +53,33 @@ fn gen_passwd(dict: &Dict, settings: &Settings) -> String {
                 break display_word;
             }
         })
-        .collect::<Vec<String>>()
-        .join(&settings.rand_separator().to_string());
+        .collect();
 
-    let suffix = {
-        let padding_digits: u8 = Uniform::from(10..100).sample(&mut rng);
-        let padding_symbols: Vec<char> = DEFAULT_SYMBOLS.chars().collect();
-        let padding_symbol = padding_symbols[rng.gen_range(0..DEFAULT_SYMBOLS.len())];
-
-        format!("{}{}{}", padding_digits, padding_symbol, padding_symbol)
+    let rand_prefix = settings.rand_prefix();
+    let prefix = if rand_prefix.is_empty() {
+        rand_prefix
+    } else {
+        format!("{}{}", rand_prefix, separator)
     };
 
-    format!("{}.{}", words, suffix)
+    let rand_suffix = settings.rand_suffix();
+    let suffix = if rand_suffix.is_empty() {
+        rand_suffix
+    } else {
+        format!("{}{}", separator, rand_suffix)
+    };
+
+    let symbols: Vec<char> = DEFAULT_SYMBOLS.chars().collect();
+    let rand_symbol = symbols[rng.gen_range(0..DEFAULT_SYMBOLS.len())];
+    let padding_symbols = format!("{}{}", rand_symbol, rand_symbol);
+
+    format!(
+        "{}{}{}{}",
+        prefix,
+        words.join(separator),
+        suffix,
+        padding_symbols
+    )
 }
 
 fn load_dict(dict_bytes: &[u8]) -> Dict {

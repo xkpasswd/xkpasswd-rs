@@ -12,6 +12,7 @@ async function run() {
         words_count: 3,
         word_lengths: [4, 8],
         separators: '._~'.split(''),
+        padding_digits: [0, 2],
       });
 
       const pre = document.createElement('pre');
