@@ -4,19 +4,17 @@ async function run() {
   await init();
 
   const pass = new xkpasswd.Xkpasswd();
+  const settings = xkpasswd.Settings.default()
+    .setWordsCount(3)
+    .setWordLengths(4, 8)
+    .setSeparators('._~')
+    .setPaddingDigits(0, 2);
 
   Array(10)
     .fill(0)
     .forEach((_) => {
-      const passwd = pass.gen_pass({
-        words_count: 3,
-        word_lengths: [4, 8],
-        separators: '._~'.split(''),
-        padding_digits: [0, 2],
-      });
-
       const pre = document.createElement('pre');
-      pre.textContent = passwd;
+      pre.textContent = pass.genPass(settings);
       document.body.append(pre);
     });
 }

@@ -1,13 +1,12 @@
 use rand::distributions::{Distribution, Uniform};
 use rand::Rng;
-use serde::{Deserialize, Serialize};
 
 pub const DEFAULT_WORDS_COUNT: u8 = 3;
-pub const DEFAULT_DIGITS_COUNT: u8 = 3;
+pub const DEFAULT_DIGITS_COUNT: u8 = 2;
 pub const DEFAULT_WORD_LENGTHS: (u8, u8) = (4, 10);
 pub const DEFAULT_SYMBOLS: &str = "!@#$%^&*-_=+:|~?/;";
 
-#[derive(Clone, Debug, Serialize, Deserialize)]
+#[derive(Clone, Debug)]
 pub struct Settings {
     pub words_count: u8,
     pub word_lengths: (u8, u8),
