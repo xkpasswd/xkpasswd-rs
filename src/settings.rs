@@ -1,7 +1,9 @@
+use rand::distributions::{Distribution, Uniform};
 use rand::Rng;
 use serde::{Deserialize, Serialize};
 
 pub const DEFAULT_WORDS_COUNT: u8 = 3;
+pub const DEFAULT_DIGITS_COUNT: u8 = 3;
 pub const DEFAULT_WORD_LENGTHS: (u8, u8) = (4, 10);
 pub const DEFAULT_SYMBOLS: &str = "!@#$%^&*-_=+:|~?/;";
 
@@ -9,7 +11,8 @@ pub const DEFAULT_SYMBOLS: &str = "!@#$%^&*-_=+:|~?/;";
 pub struct Settings {
     pub words_count: u8,
     pub word_lengths: (u8, u8),
-    pub separators: Vec<char>,
+    separators: Vec<char>,
+    padding_digits: (u8, u8),
 }
 
 impl Default for Settings {
@@ -18,6 +21,7 @@ impl Default for Settings {
             words_count: DEFAULT_WORDS_COUNT,
             word_lengths: DEFAULT_WORD_LENGTHS,
             separators: DEFAULT_SYMBOLS.chars().collect(),
+            padding_digits: (0, DEFAULT_DIGITS_COUNT),
         }
     }
 }
@@ -52,6 +56,14 @@ impl Settings {
         }
     }
 
+    pub fn padding_digits(&self, prefix: u8, suffix: u8) -> Settings {
+        Settings {
+            separators: self.separators.clone(),
+            padding_digits: (prefix, suffix),
+            ..(*self)
+        }
+    }
+
     pub fn rand_separator(&self) -> char {
         if self.separators.is_empty() {
             return '\0';
@@ -60,6 +72,26 @@ impl Settings {
         let len = self.separators.len();
         let mut rng = rand::thread_rng();
         self.separators[rng.gen_range(0..len)]
+    }
+
+    pub fn rand_prefix(&self) -> String {
+        let (prefix, _) = self.padding_digits;
+        self.rand_digits(prefix)
+    }
+
+    pub fn rand_suffix(&self) -> String {
+        let (_, suffix) = self.padding_digits;
+        self.rand_digits(suffix)
+    }
+
+    fn rand_digits(&self, count: u8) -> String {
+        if count == 0 {
+            return "".to_string();
+        }
+
+        let mut rng = rand::thread_rng();
+        let padding_digits: u8 = Uniform::from(10..100).sample(&mut rng);
+        padding_digits.to_string()
     }
 }
 
@@ -70,12 +102,14 @@ mod tests {
     #[test]
     fn test_default_settings() {
         let settings = Settings::default();
+
         assert_eq!(DEFAULT_WORDS_COUNT, settings.words_count);
         assert_eq!(DEFAULT_WORD_LENGTHS, settings.word_lengths);
         assert_eq!(
             DEFAULT_SYMBOLS.chars().collect::<Vec<char>>(),
             settings.separators
         );
+        assert_eq!((0, DEFAULT_DIGITS_COUNT), settings.padding_digits);
     }
 
     #[test]
@@ -90,6 +124,7 @@ mod tests {
             DEFAULT_SYMBOLS.chars().collect::<Vec<char>>(),
             settings.separators
         );
+        assert_eq!((0, DEFAULT_DIGITS_COUNT), settings.padding_digits);
 
         let settings = Settings::default().words_count(123);
         assert_eq!(123, settings.words_count);
@@ -107,6 +142,7 @@ mod tests {
             DEFAULT_SYMBOLS.chars().collect::<Vec<char>>(),
             settings.separators
         );
+        assert_eq!((0, DEFAULT_DIGITS_COUNT), settings.padding_digits);
 
         let settings = Settings::default().word_lengths(5, 5);
         assert_eq!((5, 5), settings.word_lengths); // equal values
@@ -124,9 +160,9 @@ mod tests {
         // other fields remain unchanged
         assert_eq!(DEFAULT_WORDS_COUNT, settings.words_count);
         assert_eq!(DEFAULT_WORD_LENGTHS, settings.word_lengths);
+        assert_eq!((0, DEFAULT_DIGITS_COUNT), settings.padding_digits);
 
         let settings = Settings::default().separators("");
-        // only separators updated
         assert_eq!(vec![] as Vec<char>, settings.separators);
     }
 
@@ -148,5 +184,23 @@ mod tests {
             let separator = settings.rand_separator();
             assert_eq!('\0', separator);
         }
+    }
+
+    #[test]
+    fn test_padding_digits_builder() {
+        let settings = Settings::default().padding_digits(1, 3);
+        // only padding_digits updated
+        assert_eq!((1, 3), settings.padding_digits);
+
+        // other fields remain unchanged
+        assert_eq!(DEFAULT_WORDS_COUNT, settings.words_count);
+        assert_eq!(DEFAULT_WORD_LENGTHS, settings.word_lengths);
+        assert_eq!(
+            DEFAULT_SYMBOLS.chars().collect::<Vec<char>>(),
+            settings.separators
+        );
+
+        let settings = Settings::default().padding_digits(0, 0);
+        assert_eq!((0, 0), settings.padding_digits);
     }
 }
