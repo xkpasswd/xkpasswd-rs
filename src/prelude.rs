@@ -68,17 +68,7 @@ fn gen_passwd(dict: &Dict, settings: &Settings) -> String {
         format!("{}{}", separator, rand_suffix)
     };
 
-    let symbols: Vec<char> = DEFAULT_SYMBOLS.chars().collect();
-    let rand_symbol = symbols[rng.gen_range(0..DEFAULT_SYMBOLS.len())];
-    let padding_symbols = format!("{}{}", rand_symbol, rand_symbol);
-
-    format!(
-        "{}{}{}{}",
-        prefix,
-        words.join(separator),
-        suffix,
-        padding_symbols
-    )
+    format!("{}{}{}", prefix, words.join(separator), suffix)
 }
 
 fn load_dict(dict_bytes: &[u8]) -> Dict {
