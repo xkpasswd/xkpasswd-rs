@@ -23,27 +23,39 @@ impl WasmSettings {
         WasmSettings { settings }
     }
 
-    #[wasm_bindgen(js_name = "setWordsCount")]
-    pub fn set_words_count(&self, words_count: u8) -> WasmSettings {
-        let settings = self.settings.words_count(words_count);
+    #[wasm_bindgen(js_name = "withWordsCount")]
+    pub fn with_words_count(&self, words_count: u8) -> WasmSettings {
+        let settings = self.settings.with_words_count(words_count);
         WasmSettings { settings }
     }
 
-    #[wasm_bindgen(js_name = "setWordLengths")]
-    pub fn set_word_length(&self, min: u8, max: u8) -> WasmSettings {
-        let settings = self.settings.word_lengths(min, max);
+    #[wasm_bindgen(js_name = "withWordLengths")]
+    pub fn with_word_length(&self, min: u8, max: u8) -> WasmSettings {
+        let settings = self.settings.with_word_lengths(min, max);
         WasmSettings { settings }
     }
 
-    #[wasm_bindgen(js_name = "setSeparators")]
-    pub fn set_separators(&self, separators: &str) -> WasmSettings {
-        let settings = self.settings.separators(separators);
+    #[wasm_bindgen(js_name = "withSeparators")]
+    pub fn with_separators(&self, separators: &str) -> WasmSettings {
+        let settings = self.settings.with_separators(separators);
         WasmSettings { settings }
     }
 
-    #[wasm_bindgen(js_name = "setPaddingDigits")]
-    pub fn set_padding_digits(&self, prefix: u8, suffix: u8) -> WasmSettings {
-        let settings = self.settings.padding_digits(prefix, suffix);
+    #[wasm_bindgen(js_name = "withPaddingDigits")]
+    pub fn with_padding_digits(&self, prefix: u8, suffix: u8) -> WasmSettings {
+        let settings = self.settings.with_padding_digits(prefix, suffix);
+        WasmSettings { settings }
+    }
+
+    #[wasm_bindgen(js_name = "withPaddingSymbols")]
+    pub fn with_padding_symbols(&self, symbols: &str) -> WasmSettings {
+        let settings = self.settings.with_padding_symbols(symbols);
+        WasmSettings { settings }
+    }
+
+    #[wasm_bindgen(js_name = "withPaddingSymbolLengths")]
+    pub fn with_padding_symbols_length(&self, prefix: u8, suffix: u8) -> WasmSettings {
+        let settings = self.settings.with_padding_symbol_lengths(prefix, suffix);
         WasmSettings { settings }
     }
 }
@@ -83,10 +95,10 @@ mod tests {
         let pass = WasmXkpasswd::new();
 
         let settings = Settings::default()
-            .words_count(3)
-            .word_lengths(5, 8)
-            .separators(".")
-            .padding_digits(0, 2);
+            .with_words_count(3)
+            .with_word_lengths(5, 8)
+            .with_separators(".")
+            .with_padding_digits(0, 2);
         let js_settings = &WasmSettings { settings };
         assert_eq!(4, pass.gen_pass(js_settings).split('.').count());
     }
