@@ -5,10 +5,12 @@ async function run() {
 
   const pass = new xkpasswd.Xkpasswd();
   const settings = xkpasswd.Settings.default()
-    .setWordsCount(3)
-    .setWordLengths(4, 8)
-    .setSeparators('._~')
-    .setPaddingDigits(0, 2);
+    .withWordsCount(3)
+    .withWordLengths(4, 8)
+    .withSeparators('._~')
+    .withPaddingDigits(0, 2)
+    .withPaddingSymbols('')
+    .withPaddingSymbolLengths(0, 2);
 
   Array(10)
     .fill(0)

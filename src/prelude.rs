@@ -3,7 +3,7 @@ use rand::distributions::{Distribution, Uniform};
 use rand::Rng;
 use std::collections::HashMap;
 
-pub type Dict<'a> = HashMap<u8, Vec<&'a str>>;
+type Dict<'a> = HashMap<u8, Vec<&'a str>>;
 
 #[derive(Debug, Default)]
 pub struct Xkpasswd {
@@ -25,8 +25,7 @@ impl Xkpasswd {
 fn gen_passwd(dict: &Dict, settings: &Settings) -> String {
     let mut all_words: Vec<&str> = vec![];
 
-    let (min, max) = settings.word_lengths;
-    for len in min..(max + 1) {
+    for len in settings.word_lengths() {
         if let Some(words) = dict.get(&len) {
             all_words.extend(words);
         }
@@ -36,7 +35,7 @@ fn gen_passwd(dict: &Dict, settings: &Settings) -> String {
     let word_indices = Uniform::from(0..all_words.len());
     let separator = &settings.rand_separator().to_string();
 
-    let words: Vec<String> = (0..settings.words_count)
+    let words: Vec<String> = (0..settings.words_count())
         .map(|_| loop {
             let index: usize = word_indices.sample(&mut rng);
             let word = all_words[index];
