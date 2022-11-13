@@ -86,15 +86,8 @@ impl Settings {
         cloned
     }
 
-    pub fn rand_separator(&self) -> char {
-        if self.separators.is_empty() {
-            return '\0';
-        }
-
-        let len = self.separators.len();
-        let mut rng = rand::thread_rng();
-        let idx = rng.gen_range(0..len);
-        self.separators.chars().nth(idx).unwrap()
+    pub fn rand_separator(&self) -> String {
+        rand_chars(&self.separators, 1)
     }
 
     pub fn rand_prefix(&self) -> String {
@@ -125,6 +118,20 @@ fn rand_digits(count: u8) -> String {
     let mut rng = rand::thread_rng();
     let padding_digits: u64 = Uniform::from(lower_bound..upper_bound).sample(&mut rng);
     padding_digits.to_string()
+}
+
+fn rand_chars(pool: &str, count: u8) -> String {
+    if pool.is_empty() {
+        return "".to_string();
+    }
+
+    let mut rng = rand::thread_rng();
+    let idx = rng.gen_range(0..pool.len());
+    pool.chars()
+        .nth(idx)
+        .unwrap()
+        .to_string()
+        .repeat(count as _)
 }
 
 #[cfg(test)]
@@ -236,26 +243,6 @@ mod tests {
     }
 
     #[test]
-    fn test_rand_separator() {
-        let symbols = "abc123";
-        let settings = Settings::default().with_separators(symbols);
-        let separator_chars = symbols.chars().collect::<Vec<char>>();
-
-        for _ in 1..10 {
-            let separator = settings.rand_separator();
-            assert_eq!(true, separator_chars.contains(&separator));
-        }
-
-        // empty separators list
-        let other_settings = settings.with_separators("");
-
-        for _ in 1..10 {
-            let separator = other_settings.rand_separator();
-            assert_eq!('\0', separator);
-        }
-    }
-
-    #[test]
     fn test_rand_digits() {
         assert_eq!("", rand_digits(0));
 
@@ -270,6 +257,31 @@ mod tests {
             for _ in 0..100 {
                 let digits = rand_digits(count);
                 assert_eq!(20, digits.len());
+            }
+        }
+    }
+
+    #[test]
+    fn test_rand_chars() {
+        assert_eq!("".to_string(), rand_chars("", 1));
+
+        // single char randomize
+        for _ in 1..10 {
+            let result = rand_chars(DEFAULT_SYMBOLS, 1);
+            assert_eq!(true, DEFAULT_SYMBOLS.contains(&result));
+        }
+
+        // multi char randomize
+        for _ in 1..10 {
+            for count in 2..5 {
+                let result = rand_chars(DEFAULT_SYMBOLS, count);
+
+                // randomized char was duplicated
+                let mut chars: Vec<char> = result.chars().collect();
+                chars.dedup();
+                assert_eq!(1, chars.len());
+
+                assert_eq!(true, DEFAULT_SYMBOLS.contains(&chars[0].to_string()));
             }
         }
     }
