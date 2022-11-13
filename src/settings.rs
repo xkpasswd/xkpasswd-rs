@@ -13,9 +13,9 @@ const DEFAULT_WORD_LENGTHS: (u8, u8) = (4, 10);
 pub struct Settings {
     words_count: u8,
     word_lengths: (u8, u8),
-    separators: Vec<char>,
+    separators: String,
     padding_digits: (u8, u8),
-    padding_symbols: Vec<char>,
+    padding_symbols: String,
     padding_symbol_lengths: (u8, u8),
 }
 
@@ -24,9 +24,9 @@ impl Default for Settings {
         Settings {
             words_count: DEFAULT_WORDS_COUNT,
             word_lengths: DEFAULT_WORD_LENGTHS,
-            separators: DEFAULT_SEPARATORS.chars().collect(),
+            separators: DEFAULT_SEPARATORS.to_string(),
             padding_digits: (0, DEFAULT_PADDING_LENGTH),
-            padding_symbols: DEFAULT_SYMBOLS.chars().collect(),
+            padding_symbols: DEFAULT_SYMBOLS.to_string(),
             padding_symbol_lengths: (0, DEFAULT_PADDING_LENGTH),
         }
     }
@@ -64,7 +64,7 @@ impl Settings {
 
     pub fn with_separators(&self, separators: &str) -> Settings {
         let mut cloned = self.clone();
-        cloned.separators = separators.chars().collect();
+        cloned.separators = separators.to_string();
         cloned
     }
 
@@ -76,7 +76,7 @@ impl Settings {
 
     pub fn with_padding_symbols(&self, symbols: &str) -> Settings {
         let mut cloned = self.clone();
-        cloned.padding_symbols = symbols.chars().collect();
+        cloned.padding_symbols = symbols.to_string();
         cloned
     }
 
@@ -93,7 +93,8 @@ impl Settings {
 
         let len = self.separators.len();
         let mut rng = rand::thread_rng();
-        self.separators[rng.gen_range(0..len)]
+        let idx = rng.gen_range(0..len);
+        self.separators.chars().nth(idx).unwrap()
     }
 
     pub fn rand_prefix(&self) -> String {
@@ -136,15 +137,9 @@ mod tests {
 
         assert_eq!(DEFAULT_WORDS_COUNT, settings.words_count);
         assert_eq!(DEFAULT_WORD_LENGTHS, settings.word_lengths);
-        assert_eq!(
-            DEFAULT_SEPARATORS.chars().collect::<Vec<char>>(),
-            settings.separators
-        );
+        assert_eq!(DEFAULT_SEPARATORS.to_string(), settings.separators);
         assert_eq!((0, DEFAULT_PADDING_LENGTH), settings.padding_digits);
-        assert_eq!(
-            DEFAULT_SYMBOLS.chars().collect::<Vec<char>>(),
-            settings.padding_symbols
-        );
+        assert_eq!(DEFAULT_SYMBOLS.to_string(), settings.padding_symbols);
         assert_eq!((0, DEFAULT_PADDING_LENGTH), settings.padding_symbol_lengths);
     }
 
@@ -156,15 +151,9 @@ mod tests {
 
         // other fields remain unchanged
         assert_eq!(DEFAULT_WORD_LENGTHS, settings.word_lengths);
-        assert_eq!(
-            DEFAULT_SEPARATORS.chars().collect::<Vec<char>>(),
-            settings.separators
-        );
+        assert_eq!(DEFAULT_SEPARATORS.to_string(), settings.separators);
         assert_eq!((0, DEFAULT_PADDING_LENGTH), settings.padding_digits);
-        assert_eq!(
-            DEFAULT_SYMBOLS.chars().collect::<Vec<char>>(),
-            settings.padding_symbols
-        );
+        assert_eq!(DEFAULT_SYMBOLS.to_string(), settings.padding_symbols);
         assert_eq!((0, DEFAULT_PADDING_LENGTH), settings.padding_symbol_lengths);
 
         // overriding with multiple calls
@@ -180,14 +169,8 @@ mod tests {
 
         // other fields remain unchanged
         assert_eq!(DEFAULT_WORDS_COUNT, settings.words_count);
-        assert_eq!(
-            DEFAULT_SEPARATORS.chars().collect::<Vec<char>>(),
-            settings.separators
-        );
-        assert_eq!(
-            DEFAULT_SYMBOLS.chars().collect::<Vec<char>>(),
-            settings.padding_symbols
-        );
+        assert_eq!(DEFAULT_SEPARATORS.to_string(), settings.separators);
+        assert_eq!(DEFAULT_SYMBOLS.to_string(), settings.padding_symbols);
         assert_eq!((0, DEFAULT_PADDING_LENGTH), settings.padding_symbol_lengths);
 
         // overriding with multiple calls
@@ -202,21 +185,18 @@ mod tests {
     fn test_with_separators() {
         let settings = Settings::default().with_separators("abc123");
         // only separators updated
-        assert_eq!(vec!['a', 'b', 'c', '1', '2', '3'], settings.separators);
+        assert_eq!("abc123".to_string(), settings.separators);
 
         // other fields remain unchanged
         assert_eq!(DEFAULT_WORDS_COUNT, settings.words_count);
         assert_eq!(DEFAULT_WORD_LENGTHS, settings.word_lengths);
         assert_eq!((0, DEFAULT_PADDING_LENGTH), settings.padding_digits);
-        assert_eq!(
-            DEFAULT_SYMBOLS.chars().collect::<Vec<char>>(),
-            settings.padding_symbols
-        );
+        assert_eq!(DEFAULT_SYMBOLS.to_string(), settings.padding_symbols);
         assert_eq!((0, DEFAULT_PADDING_LENGTH), settings.padding_symbol_lengths);
 
         // overriding with multiple calls
         let other_settings = settings.with_separators("");
-        assert_eq!(vec![] as Vec<char>, other_settings.separators);
+        assert_eq!("".to_string(), other_settings.separators);
     }
 
     #[test]
@@ -228,14 +208,8 @@ mod tests {
         // other fields remain unchanged
         assert_eq!(DEFAULT_WORDS_COUNT, settings.words_count);
         assert_eq!(DEFAULT_WORD_LENGTHS, settings.word_lengths);
-        assert_eq!(
-            DEFAULT_SEPARATORS.chars().collect::<Vec<char>>(),
-            settings.separators
-        );
-        assert_eq!(
-            DEFAULT_SYMBOLS.chars().collect::<Vec<char>>(),
-            settings.padding_symbols
-        );
+        assert_eq!(DEFAULT_SEPARATORS.to_string(), settings.separators);
+        assert_eq!(DEFAULT_SYMBOLS.to_string(), settings.padding_symbols);
         assert_eq!((0, DEFAULT_PADDING_LENGTH), settings.padding_symbol_lengths);
 
         // overriding with multiple calls
@@ -247,15 +221,12 @@ mod tests {
     fn test_with_padding_symbols() {
         let settings = Settings::default().with_padding_symbols("456xyz");
         // only padding_symbols updated
-        assert_eq!(vec!['4', '5', '6', 'x', 'y', 'z'], settings.padding_symbols);
+        assert_eq!("456xyz".to_string(), settings.padding_symbols);
 
         // other fields remain unchanged
         assert_eq!(DEFAULT_WORDS_COUNT, settings.words_count);
         assert_eq!(DEFAULT_WORD_LENGTHS, settings.word_lengths);
-        assert_eq!(
-            DEFAULT_SEPARATORS.chars().collect::<Vec<char>>(),
-            settings.separators
-        );
+        assert_eq!(DEFAULT_SEPARATORS.to_string(), settings.separators);
         assert_eq!((0, DEFAULT_PADDING_LENGTH), settings.padding_digits);
         assert_eq!((0, DEFAULT_PADDING_LENGTH), settings.padding_symbol_lengths);
 
