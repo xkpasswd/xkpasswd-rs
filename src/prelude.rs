@@ -33,7 +33,7 @@ fn gen_passwd(dict: &Dict, settings: &Settings) -> String {
 
     let mut rng = rand::thread_rng();
     let word_indices = Uniform::from(0..all_words.len());
-    let separator = &settings.rand_separator().to_string();
+    let separator = &settings.rand_separator();
 
     let words: Vec<String> = (0..settings.words_count())
         .map(|_| loop {
