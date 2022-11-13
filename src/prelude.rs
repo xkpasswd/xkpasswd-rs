@@ -53,12 +53,12 @@ fn gen_passwd(dict: &Dict, settings: &Settings) -> String {
             }
         })
         .collect::<Vec<String>>()
-        .join(".");
+        .join(&settings.rand_separator().to_string());
 
     let suffix = {
         let padding_digits: u8 = Uniform::from(10..100).sample(&mut rng);
-        let padding_symbols: Vec<char> = PADDING_SYMBOLS.chars().collect();
-        let padding_symbol = padding_symbols[rng.gen_range(0..PADDING_SYMBOLS.len())];
+        let padding_symbols: Vec<char> = DEFAULT_SYMBOLS.chars().collect();
+        let padding_symbol = padding_symbols[rng.gen_range(0..DEFAULT_SYMBOLS.len())];
 
         format!("{}{}{}", padding_digits, padding_symbol, padding_symbol)
     };
