@@ -112,8 +112,17 @@ fn rand_digits(count: u8) -> String {
         return "".to_string();
     }
 
+    let affordable_count = 20u32.min(count as u32);
+
+    let lower_bound = 10u64.pow(affordable_count - 1);
+    let upper_bound = if affordable_count == 20 {
+        u64::MAX
+    } else {
+        10u64.pow(affordable_count)
+    };
+
     let mut rng = rand::thread_rng();
-    let padding_digits: u8 = Uniform::from(10..100).sample(&mut rng);
+    let padding_digits: u64 = Uniform::from(lower_bound..upper_bound).sample(&mut rng);
     padding_digits.to_string()
 }
 
@@ -272,6 +281,25 @@ mod tests {
         for _ in 1..10 {
             let separator = other_settings.rand_separator();
             assert_eq!('\0', separator);
+        }
+    }
+
+    #[test]
+    fn test_rand_digits() {
+        assert_eq!("", rand_digits(0));
+
+        for count in 1..21 {
+            for _ in 0..100 {
+                let digits = rand_digits(count);
+                assert_eq!(count as usize, digits.len());
+            }
+        }
+
+        for count in 21..100 {
+            for _ in 0..100 {
+                let digits = rand_digits(count);
+                assert_eq!(20, digits.len());
+            }
         }
     }
 }
