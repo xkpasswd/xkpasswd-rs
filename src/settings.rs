@@ -5,7 +5,7 @@ use rand::Rng;
 
 const DEFAULT_PADDING_LENGTH: u8 = 2;
 const DEFAULT_SEPARATORS: &str = " .-_~";
-pub const DEFAULT_SYMBOLS: &str = "!@#$%^&*-_=+:|~?/;";
+const DEFAULT_SYMBOLS: &str = "!@#$%^&*-_=+:|~?/;";
 const DEFAULT_WORDS_COUNT: u8 = 3;
 const DEFAULT_WORD_LENGTHS: (u8, u8) = (4, 10);
 
@@ -91,13 +91,23 @@ impl Settings {
     }
 
     pub fn rand_prefix(&self) -> String {
-        let (prefix, _) = self.padding_digits;
-        rand_digits(prefix)
+        let (prefix_digits, _) = self.padding_digits;
+        let (prefix_symbols, _) = self.padding_symbol_lengths;
+        format!(
+            "{}{}",
+            rand_chars(&self.padding_symbols, prefix_symbols),
+            rand_digits(prefix_digits)
+        )
     }
 
     pub fn rand_suffix(&self) -> String {
-        let (_, suffix) = self.padding_digits;
-        rand_digits(suffix)
+        let (_, suffix_digits) = self.padding_digits;
+        let (_, suffix_symbols) = self.padding_symbol_lengths;
+        format!(
+            "{}{}",
+            rand_digits(suffix_digits),
+            rand_chars(&self.padding_symbols, suffix_symbols)
+        )
     }
 }
 
