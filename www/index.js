@@ -10,7 +10,8 @@ async function run() {
     .forEach((_) => {
       const passwd = pass.gen_pass({
         words_count: 3,
-        word_lengths: [3, 5],
+        word_lengths: [4, 8],
+        separators: '._~'.split(''),
       });
 
       const pre = document.createElement('pre');

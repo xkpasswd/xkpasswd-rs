@@ -43,7 +43,7 @@ mod tests {
     fn test_gen_passwd() {
         let pass = XkpasswdWasm::new();
 
-        let settings = &Settings::default().words_count(3).word_lengths(5, 8);
+        let settings = &Settings::default().words_count(3).word_lengths(5, 8).separators(".");
         let js_settings = serde_wasm_bindgen::to_value(settings).unwrap();
         assert_eq!(4, pass.gen_pass(js_settings).split('.').count());
     }
