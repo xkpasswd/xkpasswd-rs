@@ -1,10 +1,10 @@
 use rand::distributions::{Distribution, Uniform};
 use rand::Rng;
 
-pub const DEFAULT_WORDS_COUNT: u8 = 3;
-pub const DEFAULT_DIGITS_COUNT: u8 = 2;
-pub const DEFAULT_WORD_LENGTHS: (u8, u8) = (4, 10);
+pub const DEFAULT_PADDING_LENGTH: u8 = 2;
 pub const DEFAULT_SYMBOLS: &str = "!@#$%^&*-_=+:|~?/;";
+pub const DEFAULT_WORDS_COUNT: u8 = 3;
+pub const DEFAULT_WORD_LENGTHS: (u8, u8) = (4, 10);
 
 #[derive(Clone, Debug)]
 pub struct Settings {
@@ -12,6 +12,8 @@ pub struct Settings {
     pub word_lengths: (u8, u8),
     separators: Vec<char>,
     padding_digits: (u8, u8),
+    padding_symbols: Vec<char>,
+    padding_symbol_lengths: (u8, u8),
 }
 
 impl Default for Settings {
@@ -20,7 +22,9 @@ impl Default for Settings {
             words_count: DEFAULT_WORDS_COUNT,
             word_lengths: DEFAULT_WORD_LENGTHS,
             separators: DEFAULT_SYMBOLS.chars().collect(),
-            padding_digits: (0, DEFAULT_DIGITS_COUNT),
+            padding_digits: (0, DEFAULT_PADDING_LENGTH),
+            padding_symbols: DEFAULT_SYMBOLS.chars().collect(),
+            padding_symbol_lengths: (0, DEFAULT_PADDING_LENGTH),
         }
     }
 }
@@ -53,6 +57,18 @@ impl Settings {
     pub fn padding_digits(&self, prefix: u8, suffix: u8) -> Settings {
         let mut cloned = self.clone();
         cloned.padding_digits = (prefix, suffix);
+        cloned
+    }
+
+    pub fn padding_symbols(&self, symbols: &str) -> Settings {
+        let mut cloned = self.clone();
+        cloned.padding_symbols = symbols.chars().collect();
+        cloned
+    }
+
+    pub fn padding_symbol_lengths(&self, prefix: u8, suffix: u8) -> Settings {
+        let mut cloned = self.clone();
+        cloned.padding_symbol_lengths = (prefix, suffix);
         cloned
     }
 
@@ -101,7 +117,12 @@ mod tests {
             DEFAULT_SYMBOLS.chars().collect::<Vec<char>>(),
             settings.separators
         );
-        assert_eq!((0, DEFAULT_DIGITS_COUNT), settings.padding_digits);
+        assert_eq!((0, DEFAULT_PADDING_LENGTH), settings.padding_digits);
+        assert_eq!(
+            DEFAULT_SYMBOLS.chars().collect::<Vec<char>>(),
+            settings.padding_symbols
+        );
+        assert_eq!((0, DEFAULT_PADDING_LENGTH), settings.padding_symbol_lengths);
     }
 
     #[test]
@@ -116,7 +137,12 @@ mod tests {
             DEFAULT_SYMBOLS.chars().collect::<Vec<char>>(),
             settings.separators
         );
-        assert_eq!((0, DEFAULT_DIGITS_COUNT), settings.padding_digits);
+        assert_eq!((0, DEFAULT_PADDING_LENGTH), settings.padding_digits);
+        assert_eq!(
+            DEFAULT_SYMBOLS.chars().collect::<Vec<char>>(),
+            settings.padding_symbols
+        );
+        assert_eq!((0, DEFAULT_PADDING_LENGTH), settings.padding_symbol_lengths);
 
         // overriding with multiple calls
         let other_settings = settings.words_count(123);
@@ -135,7 +161,11 @@ mod tests {
             DEFAULT_SYMBOLS.chars().collect::<Vec<char>>(),
             settings.separators
         );
-        assert_eq!((0, DEFAULT_DIGITS_COUNT), settings.padding_digits);
+        assert_eq!(
+            DEFAULT_SYMBOLS.chars().collect::<Vec<char>>(),
+            settings.padding_symbols
+        );
+        assert_eq!((0, DEFAULT_PADDING_LENGTH), settings.padding_symbol_lengths);
 
         // overriding with multiple calls
         let other_settings = settings.word_lengths(5, 5);
@@ -154,7 +184,12 @@ mod tests {
         // other fields remain unchanged
         assert_eq!(DEFAULT_WORDS_COUNT, settings.words_count);
         assert_eq!(DEFAULT_WORD_LENGTHS, settings.word_lengths);
-        assert_eq!((0, DEFAULT_DIGITS_COUNT), settings.padding_digits);
+        assert_eq!((0, DEFAULT_PADDING_LENGTH), settings.padding_digits);
+        assert_eq!(
+            DEFAULT_SYMBOLS.chars().collect::<Vec<char>>(),
+            settings.padding_symbols
+        );
+        assert_eq!((0, DEFAULT_PADDING_LENGTH), settings.padding_symbol_lengths);
 
         // overriding with multiple calls
         let other_settings = settings.separators("");
@@ -174,6 +209,32 @@ mod tests {
             DEFAULT_SYMBOLS.chars().collect::<Vec<char>>(),
             settings.separators
         );
+        assert_eq!(
+            DEFAULT_SYMBOLS.chars().collect::<Vec<char>>(),
+            settings.padding_symbols
+        );
+        assert_eq!((0, DEFAULT_PADDING_LENGTH), settings.padding_symbol_lengths);
+
+        // overriding with multiple calls
+        let other_settings = settings.padding_digits(0, 0);
+        assert_eq!((0, 0), other_settings.padding_digits);
+    }
+
+    #[test]
+    fn test_padding_symbols_builder() {
+        let settings = Settings::default().padding_symbols("456xyz");
+        // only padding_symbols updated
+        assert_eq!(vec!['4', '5', '6', 'x', 'y', 'z'], settings.padding_symbols);
+
+        // other fields remain unchanged
+        assert_eq!(DEFAULT_WORDS_COUNT, settings.words_count);
+        assert_eq!(DEFAULT_WORD_LENGTHS, settings.word_lengths);
+        assert_eq!(
+            DEFAULT_SYMBOLS.chars().collect::<Vec<char>>(),
+            settings.separators
+        );
+        assert_eq!((0, DEFAULT_PADDING_LENGTH), settings.padding_digits);
+        assert_eq!((0, DEFAULT_PADDING_LENGTH), settings.padding_symbol_lengths);
 
         // overriding with multiple calls
         let other_settings = settings.padding_digits(0, 0);
