@@ -7,10 +7,14 @@ async function run() {
   const settings = xkpasswd.Settings.default()
     .withWordsCount(3)
     .withWordLengths(4, 8)
-    .withSeparators('._-')
+    .withSeparators('.')
     .withPaddingDigits(0, 2)
     .withPaddingSymbols('!@#$%^&*-_=+:|~?/;')
-    .withPaddingSymbolLengths(0, 2);
+    .withPaddingSymbolLengths(0, 2)
+    .withWordTransforms(
+      xkpasswd.WordTransform.Lowercase,
+      xkpasswd.WordTransform.Uppercase
+    );
 
   Array(10)
     .fill(0)

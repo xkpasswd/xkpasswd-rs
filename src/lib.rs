@@ -9,6 +9,13 @@ use settings::*;
 use wasm_bindgen::prelude::*;
 use wasm_utils::*;
 
+#[wasm_bindgen(js_name = "WordTransform")]
+pub enum WasmWordTransform {
+    Lowercase = 0b001,
+    Titlecase = 0b010,
+    Uppercase = 0b100,
+}
+
 #[wasm_bindgen(js_name = "Settings")]
 #[derive(Debug, Default)]
 pub struct WasmSettings {
@@ -58,6 +65,16 @@ impl WasmSettings {
         let settings = self.settings.with_padding_symbol_lengths(prefix, suffix);
         WasmSettings { settings }
     }
+
+    #[wasm_bindgen(variadic, js_name = "withWordTransforms")]
+    pub fn with_word_transforms(&self, transforms: &[u8]) -> WasmSettings {
+        let reduced = transforms.iter().fold(0, |acc, cur| acc | cur);
+        let settings = self
+            .settings
+            .with_word_transforms(reduced)
+            .expect("Invalid settings");
+        WasmSettings { settings }
+    }
 }
 
 #[wasm_bindgen(js_name = "Xkpasswd")]
@@ -96,9 +113,13 @@ mod tests {
 
         let settings = Settings::default()
             .with_words_count(3)
-            .with_word_lengths(5, 8)
+            .with_word_lengths(4, 8)
             .with_separators(".")
-            .with_padding_digits(0, 2);
+            .with_padding_digits(0, 2)
+            .with_padding_symbols("!@#$%^&*-_=+:|~?/;")
+            .with_padding_symbol_lengths(0, 2)
+            .with_word_transforms(WordTransform::LOWERCASE | WordTransform::UPPERCASE)
+            .expect("Invalid settings");
         let js_settings = &WasmSettings { settings };
         assert_eq!(4, pass.gen_pass(js_settings).split('.').count());
     }
