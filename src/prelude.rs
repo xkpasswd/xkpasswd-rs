@@ -1,6 +1,4 @@
 use super::settings::*;
-use rand::distributions::{Distribution, Uniform};
-use rand::Rng;
 use std::collections::HashMap;
 
 type Dict<'a> = HashMap<u8, Vec<&'a str>>;
@@ -17,58 +15,34 @@ impl Xkpasswd {
         Xkpasswd { dict }
     }
 
-    pub fn gen_pass(&self, settings: &Settings) -> String {
-        gen_passwd(&self.dict, settings)
+    pub fn gen_pass<S: Randomizer>(&self, settings: &S) -> String {
+        let mut all_words: Vec<&str> = vec![];
+
+        settings.iter_word_lengths(|len| {
+            if let Some(words) = self.dict.get(&len) {
+                all_words.extend(words);
+            };
+        });
+
+        let separator = &settings.rand_separator();
+        let words = settings.rand_words(&all_words).join(separator);
+
+        let rand_prefix = settings.rand_prefix();
+        let prefix = if rand_prefix.is_empty() {
+            rand_prefix
+        } else {
+            format!("{}{}", rand_prefix, separator)
+        };
+
+        let rand_suffix = settings.rand_suffix();
+        let suffix = if rand_suffix.is_empty() {
+            rand_suffix
+        } else {
+            format!("{}{}", separator, rand_suffix)
+        };
+
+        format!("{}{}{}", prefix, words, suffix)
     }
-}
-
-fn gen_passwd(dict: &Dict, settings: &Settings) -> String {
-    let mut all_words: Vec<&str> = vec![];
-
-    for len in settings.word_lengths() {
-        if let Some(words) = dict.get(&len) {
-            all_words.extend(words);
-        }
-    }
-
-    let mut rng = rand::thread_rng();
-    let word_indices = Uniform::from(0..all_words.len());
-    let separator = &settings.rand_separator();
-
-    let words: Vec<String> = (0..settings.words_count())
-        .map(|_| loop {
-            let index: usize = word_indices.sample(&mut rng);
-            let word = all_words[index];
-
-            if !word.is_empty() {
-                all_words[index] = "";
-
-                let display_word = if rng.gen::<bool>() {
-                    word.to_uppercase()
-                } else {
-                    word.to_string()
-                };
-
-                break display_word;
-            }
-        })
-        .collect();
-
-    let rand_prefix = settings.rand_prefix();
-    let prefix = if rand_prefix.is_empty() {
-        rand_prefix
-    } else {
-        format!("{}{}", rand_prefix, separator)
-    };
-
-    let rand_suffix = settings.rand_suffix();
-    let suffix = if rand_suffix.is_empty() {
-        rand_suffix
-    } else {
-        format!("{}{}", separator, rand_suffix)
-    };
-
-    format!("{}{}{}", prefix, words.join(separator), suffix)
 }
 
 fn load_dict(dict_bytes: &[u8]) -> Dict {
