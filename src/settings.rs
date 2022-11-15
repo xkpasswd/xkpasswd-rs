@@ -253,6 +253,86 @@ mod tests {
     }
 
     #[test]
+    fn test_rand_prefix() {
+        let empty_cases = [
+            ((0, 0), (0, 0)),
+            ((0, 1), (0, 0)),
+            ((0, 0), (0, 2)),
+            ((0, 3), (0, 4)),
+        ];
+
+        for ((prefix_digits, suffix_digits), (prefix_symbols, suffix_symbols)) in empty_cases {
+            let settings = Settings::default()
+                .with_padding_digits(prefix_digits, suffix_digits)
+                .with_padding_symbol_lengths(prefix_symbols, suffix_symbols);
+            assert_eq!("", settings.rand_prefix());
+        }
+
+        for prefix_symbols in 1usize..10 {
+            for prefix_digits in 1usize..10 {
+                let settings = Settings::default()
+                    .with_padding_digits(prefix_digits as u8, 2)
+                    .with_padding_symbols("#")
+                    .with_padding_symbol_lengths(prefix_symbols as u8, 3);
+                let prefix = settings.rand_prefix();
+
+                // total length of prefix
+                assert_eq!(prefix_symbols + prefix_digits, prefix.len());
+
+                // first partition [0..prefix_symbols] is the repeated symbol
+                assert_eq!(
+                    "#".to_string().repeat(prefix_symbols),
+                    &prefix[..prefix_symbols]
+                );
+
+                // second partition [prefix_symbols..prefix_symbols+prefix_digits]
+                // is the stringified digits
+                let _ = &prefix[prefix_symbols..].parse::<u64>().unwrap();
+            }
+        }
+    }
+
+    #[test]
+    fn test_rand_suffix() {
+        let empty_cases = [
+            ((0, 0), (0, 0)),
+            ((1, 0), (0, 0)),
+            ((0, 0), (2, 0)),
+            ((3, 0), (4, 0)),
+        ];
+
+        for ((prefix_digits, suffix_digits), (prefix_symbols, suffix_symbols)) in empty_cases {
+            let settings = Settings::default()
+                .with_padding_digits(prefix_digits, suffix_digits)
+                .with_padding_symbol_lengths(prefix_symbols, suffix_symbols);
+            assert_eq!("", settings.rand_suffix());
+        }
+
+        for suffix_symbols in 1usize..10 {
+            for suffix_digits in 1usize..10 {
+                let settings = Settings::default()
+                    .with_padding_digits(2, suffix_digits as u8)
+                    .with_padding_symbols("~")
+                    .with_padding_symbol_lengths(3, suffix_symbols as u8);
+                let suffix = settings.rand_suffix();
+
+                // total length of suffix
+                assert_eq!(suffix_digits + suffix_symbols, suffix.len());
+
+                // first partition [0..suffix_digits] is the stringified digits
+                let _ = &suffix[..suffix_digits].parse::<u64>().unwrap();
+
+                // second partition [suffix_digits..suffix_digits+suffix_symbols]
+                // is repeated symbols
+                assert_eq!(
+                    "~".to_string().repeat(suffix_symbols),
+                    &suffix[suffix_digits..]
+                );
+            }
+        }
+    }
+
+    #[test]
     fn test_rand_digits() {
         assert_eq!("", rand_digits(0));
 
@@ -276,22 +356,17 @@ mod tests {
         assert_eq!("".to_string(), rand_chars("", 1));
 
         // single char randomize
-        for _ in 1..10 {
+        for _ in 0..10 {
             let result = rand_chars(DEFAULT_SYMBOLS, 1);
-            assert_eq!(true, DEFAULT_SYMBOLS.contains(&result));
+            assert!(DEFAULT_SYMBOLS.contains(&result));
         }
 
         // multi char randomize
-        for _ in 1..10 {
+        for _ in 0..10 {
             for count in 2..5 {
-                let result = rand_chars(DEFAULT_SYMBOLS, count);
-
-                // randomized char was duplicated
-                let mut chars: Vec<char> = result.chars().collect();
-                chars.dedup();
-                assert_eq!(1, chars.len());
-
-                assert_eq!(true, DEFAULT_SYMBOLS.contains(&chars[0].to_string()));
+                let result = rand_chars("$", count);
+                assert_eq!(count as usize, result.len());
+                assert_eq!("$".to_string().repeat(count as usize), result);
             }
         }
     }
