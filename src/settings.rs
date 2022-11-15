@@ -1,4 +1,4 @@
-use std::ops::Range;
+use std::collections::HashMap;
 
 use rand::distributions::{Distribution, Uniform};
 use rand::Rng;
@@ -19,6 +19,24 @@ pub struct Settings {
     padding_symbol_lengths: (u8, u8),
 }
 
+pub trait Builder {
+    fn with_words_count(&self, words_count: u8) -> Self;
+    fn with_word_lengths(&self, min_length: u8, max_length: u8) -> Self;
+    fn with_separators(&self, separators: &str) -> Self;
+    fn with_padding_digits(&self, prefix: u8, suffix: u8) -> Self;
+    fn with_padding_symbols(&self, symbols: &str) -> Self;
+    fn with_padding_symbol_lengths(&self, prefix: u8, suffix: u8) -> Self;
+}
+
+pub trait Randomizer {
+    fn iter_word_lengths<F: FnMut(u8)>(&self, callback: F);
+    fn rand_words(&self, words: &[&str]) -> Vec<String>;
+    fn rand_separator(&self) -> String;
+    fn rand_prefix(&self) -> String;
+    fn rand_suffix(&self) -> String;
+    fn transform_word(&self, word: &str) -> String;
+}
+
 impl Default for Settings {
     fn default() -> Settings {
         Settings {
@@ -32,25 +50,14 @@ impl Default for Settings {
     }
 }
 
-impl Settings {
-    // Getters
-    pub fn words_count(&self) -> u8 {
-        self.words_count
-    }
-
-    pub fn word_lengths(&self) -> Range<u8> {
-        let (min, max) = self.word_lengths;
-        min..(max + 1)
-    }
-
-    // Setters
-    pub fn with_words_count(&self, words_count: u8) -> Settings {
+impl Builder for Settings {
+    fn with_words_count(&self, words_count: u8) -> Settings {
         let mut cloned = self.clone();
         cloned.words_count = words_count;
         cloned
     }
 
-    pub fn with_word_lengths(&self, min_length: u8, max_length: u8) -> Settings {
+    fn with_word_lengths(&self, min_length: u8, max_length: u8) -> Settings {
         let word_lengths = if min_length > max_length {
             (max_length, min_length)
         } else {
@@ -62,35 +69,54 @@ impl Settings {
         cloned
     }
 
-    pub fn with_separators(&self, separators: &str) -> Settings {
+    fn with_separators(&self, separators: &str) -> Settings {
         let mut cloned = self.clone();
         cloned.separators = separators.to_string();
         cloned
     }
 
-    pub fn with_padding_digits(&self, prefix: u8, suffix: u8) -> Settings {
+    fn with_padding_digits(&self, prefix: u8, suffix: u8) -> Settings {
         let mut cloned = self.clone();
         cloned.padding_digits = (prefix, suffix);
         cloned
     }
 
-    pub fn with_padding_symbols(&self, symbols: &str) -> Settings {
+    fn with_padding_symbols(&self, symbols: &str) -> Settings {
         let mut cloned = self.clone();
         cloned.padding_symbols = symbols.to_string();
         cloned
     }
 
-    pub fn with_padding_symbol_lengths(&self, prefix: u8, suffix: u8) -> Settings {
+    fn with_padding_symbol_lengths(&self, prefix: u8, suffix: u8) -> Settings {
         let mut cloned = self.clone();
         cloned.padding_symbol_lengths = (prefix, suffix);
         cloned
     }
+}
 
-    pub fn rand_separator(&self) -> String {
+impl Randomizer for Settings {
+    fn rand_words(&self, words: &[&str]) -> Vec<String> {
+        let mut rng = rand::thread_rng();
+        let mut index_marker: HashMap<usize, bool> = HashMap::new();
+        let word_indices = Uniform::from(0..words.len());
+        (0..self.words_count)
+            .map(|_| loop {
+                let index: usize = word_indices.sample(&mut rng);
+                let word = words[index];
+
+                if index_marker.get(&index).is_none() {
+                    index_marker.insert(index, true);
+                    break self.transform_word(word);
+                }
+            })
+            .collect()
+    }
+
+    fn rand_separator(&self) -> String {
         rand_chars(&self.separators, 1)
     }
 
-    pub fn rand_prefix(&self) -> String {
+    fn rand_prefix(&self) -> String {
         let (prefix_digits, _) = self.padding_digits;
         let (prefix_symbols, _) = self.padding_symbol_lengths;
         format!(
@@ -100,7 +126,7 @@ impl Settings {
         )
     }
 
-    pub fn rand_suffix(&self) -> String {
+    fn rand_suffix(&self) -> String {
         let (_, suffix_digits) = self.padding_digits;
         let (_, suffix_symbols) = self.padding_symbol_lengths;
         format!(
@@ -109,6 +135,27 @@ impl Settings {
             rand_chars(&self.padding_symbols, suffix_symbols)
         )
     }
+
+    fn iter_word_lengths<F: FnMut(u8)>(&self, callback: F) {
+        let (min, max) = self.word_lengths;
+        (min..(max + 1)).for_each(callback);
+    }
+
+    fn transform_word(&self, word: &str) -> String {
+        let mut rng = rand::thread_rng();
+
+        if rng.gen::<bool>() {
+            word.to_uppercase()
+        } else {
+            word.to_string()
+        }
+    }
+}
+
+impl Settings {
+    pub const WORD_TRANSFORM_LOWERCASE: u8 = 0b001;
+    pub const WORD_TRANSFORM_TITLECASE: u8 = 0b010;
+    pub const WORD_TRANSFORM_UPPERCASE: u8 = 0b100;
 }
 
 fn rand_digits(count: u8) -> String {
