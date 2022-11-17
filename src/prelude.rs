@@ -41,7 +41,8 @@ impl Xkpasswd {
             format!("{}{}", separator, rand_suffix)
         };
 
-        format!("{}{}{}", prefix, words, suffix)
+        let passwd = format!("{}{}{}", prefix, words, suffix);
+        settings.adjust_for_padding_strategy(passwd)
     }
 }
 

@@ -37,7 +37,7 @@ impl WasmSettings {
     }
 
     #[wasm_bindgen(js_name = "withWordLengths")]
-    pub fn with_word_length(&self, min: u8, max: u8) -> WasmSettings {
+    pub fn with_word_lengths(&self, min: u8, max: u8) -> WasmSettings {
         let settings = self.settings.with_word_lengths(min, max);
         WasmSettings { settings }
     }
@@ -61,8 +61,22 @@ impl WasmSettings {
     }
 
     #[wasm_bindgen(js_name = "withPaddingSymbolLengths")]
-    pub fn with_padding_symbols_length(&self, prefix: u8, suffix: u8) -> WasmSettings {
+    pub fn with_padding_symbol_lengths(&self, prefix: u8, suffix: u8) -> WasmSettings {
         let settings = self.settings.with_padding_symbol_lengths(prefix, suffix);
+        WasmSettings { settings }
+    }
+
+    #[wasm_bindgen(js_name = "withFixedPadding")]
+    pub fn with_fixed_padding(&self) -> WasmSettings {
+        let settings = self.settings.with_padding_strategy(PaddingStrategy::Fixed);
+        WasmSettings { settings }
+    }
+
+    #[wasm_bindgen(js_name = "withAdaptivePadding")]
+    pub fn with_adaptive_padding(&self, length: u8) -> WasmSettings {
+        let settings = self
+            .settings
+            .with_padding_strategy(PaddingStrategy::Adaptive(length));
         WasmSettings { settings }
     }
 
@@ -111,16 +125,15 @@ mod tests {
     fn test_gen_passwd() {
         let pass = WasmXkpasswd::new();
 
-        let settings = Settings::default()
+        let settings = WasmSettings::default()
             .with_words_count(3)
             .with_word_lengths(4, 8)
             .with_separators(".")
             .with_padding_digits(0, 2)
             .with_padding_symbols("!@#$%^&*-_=+:|~?/;")
             .with_padding_symbol_lengths(0, 2)
-            .with_word_transforms(WordTransform::LOWERCASE | WordTransform::UPPERCASE)
-            .expect("Invalid settings");
-        let js_settings = &WasmSettings { settings };
-        assert_eq!(4, pass.gen_pass(js_settings).split('.').count());
+            .with_word_transforms(&[WordTransform::LOWERCASE, WordTransform::UPPERCASE])
+            .with_fixed_padding();
+        assert_eq!(4, pass.gen_pass(&settings).split('.').count());
     }
 }
