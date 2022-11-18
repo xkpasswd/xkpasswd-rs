@@ -27,21 +27,24 @@ impl Xkpasswd {
         let separator = &settings.rand_separator();
         let words = settings.rand_words(&all_words).join(separator);
 
-        let rand_prefix = settings.rand_prefix();
-        let prefix = if rand_prefix.is_empty() {
-            rand_prefix
+        let (prefix_symbols, prefix_digits) = settings.rand_prefix();
+        let padded_prefix_digits = if prefix_digits.is_empty() {
+            prefix_digits
         } else {
-            format!("{}{}", rand_prefix, separator)
+            format!("{}{}", prefix_digits, separator)
         };
 
-        let rand_suffix = settings.rand_suffix();
-        let suffix = if rand_suffix.is_empty() {
-            rand_suffix
+        let (suffix_digits, suffix_symbols) = settings.rand_suffix();
+        let padded_suffix_digits = if suffix_digits.is_empty() {
+            suffix_digits
         } else {
-            format!("{}{}", separator, rand_suffix)
+            format!("{}{}", separator, suffix_digits)
         };
 
-        let passwd = format!("{}{}{}", prefix, words, suffix);
+        let passwd = format!(
+            "{}{}{}{}{}",
+            prefix_symbols, padded_prefix_digits, words, padded_suffix_digits, suffix_symbols
+        );
         settings.adjust_for_padding_strategy(&passwd)
     }
 }
