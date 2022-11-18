@@ -1,9 +1,9 @@
+use super::prelude::{Builder, Randomizer};
+use rand::distributions::{Distribution, Uniform};
+use rand::Rng;
 use std::cmp;
 use std::collections::HashMap;
 use std::result::Result;
-
-use rand::distributions::{Distribution, Uniform};
-use rand::Rng;
 use wasm_bindgen::prelude::*;
 
 const MIN_WORD_LENGTH: u8 = 4;
@@ -73,38 +73,6 @@ pub struct Settings {
     padding_symbols: String,
     padding_symbol_lengths: (u8, u8),
     padding_strategy: PaddingStrategy,
-}
-
-pub trait Builder {
-    fn with_words_count(&self, words_count: u8) -> Result<Self, &'static str>
-    where
-        Self: Sized;
-    fn with_word_lengths(&self, min_length: u8, max_length: u8) -> Result<Self, &'static str>
-    where
-        Self: Sized;
-    fn with_separators(&self, separators: &str) -> Self;
-    fn with_padding_digits(&self, prefix: u8, suffix: u8) -> Self;
-    fn with_padding_symbols(&self, symbols: &str) -> Self;
-    fn with_padding_symbol_lengths(&self, prefix: u8, suffix: u8) -> Self;
-    fn with_padding_strategy(
-        &self,
-        padding_strategy: PaddingStrategy,
-    ) -> Result<Self, &'static str>
-    where
-        Self: Sized;
-    fn with_word_transforms(&self, transform: u8) -> Result<Self, &'static str>
-    where
-        Self: Sized;
-    fn from_preset(preset: Preset) -> Self;
-}
-
-pub trait Randomizer {
-    fn rand_words(&self, pool: &[&str]) -> Vec<String>;
-    fn rand_separator(&self) -> String;
-    fn rand_prefix(&self) -> (String, String);
-    fn rand_suffix(&self) -> (String, String);
-    fn iter_word_lengths<F: FnMut(u8)>(&self, callback: F);
-    fn adjust_for_padding_strategy(&self, passwd: &str) -> String;
 }
 
 impl Default for Settings {
@@ -741,10 +709,6 @@ mod tests {
         // not enough pool
         let words = settings.rand_words(&["foo", "bar"]);
         assert_eq!(3, words.len());
-        assert_eq!(
-            HashSet::from([&"FOO".to_string(), &"BAR".to_string()]),
-            words.iter().collect::<HashSet<&String>>()
-        );
 
         // enough pool
         let words = settings.rand_words(&["foo", "bar", "barz"]);
