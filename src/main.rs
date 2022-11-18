@@ -18,5 +18,6 @@ fn build_settings() -> Result<Settings, &'static str> {
         .with_padding_digits(0, 2)
         .with_padding_symbols("!@#$%^&*-_=+:|~?/;")
         .with_padding_symbol_lengths(0, 2)
+        .with_padding_strategy(PaddingStrategy::Fixed)?
         .with_word_transforms(WordTransform::LOWERCASE | WordTransform::UPPERCASE)
 }

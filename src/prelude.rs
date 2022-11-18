@@ -42,7 +42,7 @@ impl Xkpasswd {
         };
 
         let passwd = format!("{}{}{}", prefix, words, suffix);
-        settings.adjust_for_padding_strategy(passwd)
+        settings.adjust_for_padding_strategy(&passwd)
     }
 }
 
