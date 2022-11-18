@@ -15,6 +15,7 @@ const DEFAULT_SEPARATORS: &str = ".-_~";
 const DEFAULT_SYMBOLS: &str = "~@$%^&*-_+=:|~?/.;";
 const DEFAULT_WORDS_COUNT: u8 = 3;
 const DEFAULT_WORD_LENGTHS: (u8, u8) = (MIN_WORD_LENGTH, MAX_WORD_LENGTH);
+const DEFAULT_WORD_TRANSFORMS: u8 = WordTransform::LOWERCASE | WordTransform::UPPERCASE;
 
 #[derive(Clone, Debug)]
 pub enum PaddingStrategy {
@@ -37,17 +38,29 @@ pub enum Preset {
 
 #[wasm_bindgen(js_name = "WordTransform")]
 pub enum WasmWordTransform {
-    Lowercase = 0b001,
-    Titlecase = 0b010,
-    Uppercase = 0b100,
+    // single transforms - possible to combine with each other
+    Lowercase = 0b00000001,
+    Titlecase = 0b00000010,
+    Uppercase = 0b00000100,
+    InversedTitlecase = 0b00001000,
+
+    // group transforms - overriding other single ones
+    AlternatingCaseLowerFirst = 0b01000000,
+    AlternatingCaseUpperFirst = 0b10000000,
 }
 
 pub struct WordTransform;
 
 impl WordTransform {
-    pub const LOWERCASE: u8 = 0b001;
-    pub const TITLECASE: u8 = 0b010;
-    pub const UPPERCASE: u8 = 0b100;
+    // single transforms - possible to combine with each other
+    pub const LOWERCASE: u8 = 1;
+    pub const TITLECASE: u8 = 1 << 1;
+    pub const UPPERCASE: u8 = 1 << 2;
+    pub const INVERSED_TITLECASE: u8 = 1 << 3;
+
+    // group transforms - overriding other single ones
+    pub const ALTERNATING_CASE_LOWER_FIRST: u8 = 1 << 6;
+    pub const ALTERNATING_CASE_UPPER_FIRST: u8 = 1 << 7;
 }
 
 #[derive(Clone, Debug)]
@@ -99,9 +112,7 @@ impl Default for Settings {
         Settings {
             words_count: DEFAULT_WORDS_COUNT,
             word_lengths: DEFAULT_WORD_LENGTHS,
-            word_transforms: WordTransform::LOWERCASE
-                | WordTransform::TITLECASE
-                | WordTransform::UPPERCASE,
+            word_transforms: DEFAULT_WORD_TRANSFORMS,
             separators: DEFAULT_SEPARATORS.to_string(),
             padding_digits: (0, DEFAULT_PADDING_LENGTH),
             padding_symbols: DEFAULT_SYMBOLS.to_string(),
@@ -178,10 +189,24 @@ impl Builder for Settings {
     }
 
     fn with_word_transforms(&self, transforms: u8) -> Result<Self, &'static str> {
+        let mut cloned = self.clone();
+
+        // handle group transforms first
+        if transforms & WordTransform::ALTERNATING_CASE_LOWER_FIRST > 0 {
+            cloned.word_transforms = WordTransform::ALTERNATING_CASE_LOWER_FIRST;
+            return Ok(cloned);
+        }
+
+        if transforms & WordTransform::ALTERNATING_CASE_UPPER_FIRST > 0 {
+            cloned.word_transforms = WordTransform::ALTERNATING_CASE_UPPER_FIRST;
+            return Ok(cloned);
+        }
+
         // no transform matched
         if transforms & WordTransform::LOWERCASE == 0
             && transforms & WordTransform::TITLECASE == 0
             && transforms & WordTransform::UPPERCASE == 0
+            && transforms & WordTransform::INVERSED_TITLECASE == 0
         {
             return Err("invalid transform");
         }
@@ -206,7 +231,7 @@ impl Builder for Settings {
             Preset::Default => Settings {
                 words_count: 3,
                 word_lengths: (4, 8),
-                word_transforms: WordTransform::LOWERCASE | WordTransform::UPPERCASE,
+                word_transforms: WordTransform::ALTERNATING_CASE_LOWER_FIRST,
                 separators: DEFAULT_SYMBOLS.to_string(),
                 padding_digits: (2, 2),
                 padding_symbols: DEFAULT_SYMBOLS.to_string(),
@@ -216,7 +241,7 @@ impl Builder for Settings {
             Preset::WindowsNTLMv1 => Settings {
                 words_count: 2,
                 word_lengths: (5, 5),
-                word_transforms: WordTransform::LOWERCASE | WordTransform::UPPERCASE,
+                word_transforms: WordTransform::INVERSED_TITLECASE,
                 separators: "-+=.*_|~,".to_string(),
                 padding_digits: (1, 0),
                 padding_symbols: "!@$%^&*+=:|~?".to_string(),
@@ -246,7 +271,7 @@ impl Builder for Settings {
             Preset::Web32 => Settings {
                 words_count: 4,
                 word_lengths: (4, 5),
-                word_transforms: WordTransform::LOWERCASE | WordTransform::UPPERCASE,
+                word_transforms: WordTransform::ALTERNATING_CASE_UPPER_FIRST,
                 separators: "-+=.*_|~,".to_string(),
                 padding_digits: (2, 2),
                 padding_symbols: "!@$%^&*+=:|~?".to_string(),
@@ -279,36 +304,13 @@ impl Builder for Settings {
 
 impl Randomizer for Settings {
     fn rand_words(&self, pool: &[&str]) -> Vec<String> {
-        if pool.is_empty() {
-            return vec![];
-        }
+        let words_list = self.build_words_list(pool);
+        let transforms_list = self.build_transforms_list();
 
-        let mut rng = rand::thread_rng();
-        let word_indices = Uniform::from(0..pool.len());
-
-        // not enough words to distinguishably randomize
-        if pool.len() < self.words_count as usize {
-            return (0..self.words_count)
-                .map(|_| {
-                    let index: usize = word_indices.sample(&mut rng);
-                    let word = pool[index];
-                    self.transform_word(word)
-                })
-                .collect();
-        }
-
-        // enough words, ensure no duplicates
-        let mut index_marker: HashMap<usize, bool> = HashMap::new();
-        (0..self.words_count)
-            .map(|_| loop {
-                let index: usize = word_indices.sample(&mut rng);
-                let word = pool[index];
-
-                if index_marker.get(&index).is_none() {
-                    index_marker.insert(index, true);
-                    break self.transform_word(word);
-                }
-            })
+        words_list
+            .iter()
+            .zip(transforms_list.iter())
+            .map(|(word, transform)| transform_word(word, *transform))
             .collect()
     }
 
@@ -358,28 +360,85 @@ impl Randomizer for Settings {
 }
 
 impl Settings {
-    const WORD_TRANSFORMS: [u8; 3] = [
+    const ALL_SINGLE_WORD_TRANSFORMS: [u8; 4] = [
         WordTransform::LOWERCASE,
         WordTransform::TITLECASE,
         WordTransform::UPPERCASE,
+        WordTransform::INVERSED_TITLECASE,
     ];
 
-    fn transform_word(&self, word: &str) -> String {
-        let whitelisted_transforms: Vec<&u8> = Self::WORD_TRANSFORMS
+    fn build_words_list<'a>(&self, pool: &[&'a str]) -> Vec<&'a str> {
+        if pool.is_empty() {
+            return vec![];
+        }
+
+        let mut rng = rand::thread_rng();
+        let word_indices = Uniform::from(0..pool.len());
+
+        // not enough words to distinguishably randomize
+        if pool.len() < self.words_count as usize {
+            return (0..self.words_count)
+                .map(|_| {
+                    let index: usize = word_indices.sample(&mut rng);
+                    pool[index]
+                })
+                .collect();
+        }
+
+        // enough words, ensure no duplicates
+        let mut index_marker: HashMap<usize, bool> = HashMap::new();
+        (0..self.words_count)
+            .map(|_| loop {
+                let index: usize = word_indices.sample(&mut rng);
+                let word = pool[index];
+
+                if index_marker.get(&index).is_none() {
+                    index_marker.insert(index, true);
+                    break word;
+                }
+            })
+            .collect()
+    }
+
+    fn build_transforms_list(&self) -> Vec<u8> {
+        if self.word_transforms & WordTransform::ALTERNATING_CASE_LOWER_FIRST > 0 {
+            return (0..self.words_count)
+                .map(|idx| {
+                    if idx % 2 == 0 {
+                        WordTransform::LOWERCASE
+                    } else {
+                        WordTransform::UPPERCASE
+                    }
+                })
+                .collect();
+        }
+
+        if self.word_transforms & WordTransform::ALTERNATING_CASE_UPPER_FIRST > 0 {
+            return (0..self.words_count)
+                .map(|idx| {
+                    if idx % 2 == 0 {
+                        WordTransform::UPPERCASE
+                    } else {
+                        WordTransform::LOWERCASE
+                    }
+                })
+                .collect();
+        }
+
+        let whitelisted_transforms: Vec<&u8> = Self::ALL_SINGLE_WORD_TRANSFORMS
             .iter()
             .filter(|transform| self.word_transforms & *transform != 0)
             .collect();
 
         let mut rng = rand::thread_rng();
-        let index = rng.gen_range(0..whitelisted_transforms.len());
-        let transform = whitelisted_transforms[index];
+        let transform_indices = Uniform::from(0..whitelisted_transforms.len());
 
-        match *transform {
-            WordTransform::TITLECASE => word[..1].to_uppercase() + &word[1..],
-            WordTransform::UPPERCASE => word.to_uppercase(),
-            // lowercase by default
-            _ => word.to_lowercase(),
-        }
+        (0..self.words_count)
+            .map(|_| {
+                let index: usize = transform_indices.sample(&mut rng);
+                *whitelisted_transforms[index]
+            })
+            .collect()
     }
 }
 
@@ -416,14 +475,21 @@ fn rand_chars(pool: &str, count: u8) -> String {
         .repeat(count as _)
 }
 
+fn transform_word(word: &str, transform: u8) -> String {
+    match transform {
+        WordTransform::TITLECASE => word[..1].to_uppercase() + &word[1..],
+        WordTransform::UPPERCASE => word.to_uppercase(),
+        WordTransform::INVERSED_TITLECASE => word[..1].to_lowercase() + &word[1..].to_uppercase(),
+        // lowercase by default
+        _ => word.to_lowercase(),
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use std::collections::HashSet;
 
     use super::*;
-
-    const DEFAULT_WORDS_TRANSFORM: u8 =
-        WordTransform::LOWERCASE | WordTransform::TITLECASE | WordTransform::UPPERCASE;
 
     #[test]
     fn test_default_settings() {
@@ -431,7 +497,7 @@ mod tests {
 
         assert_eq!(DEFAULT_WORDS_COUNT, settings.words_count);
         assert_eq!(DEFAULT_WORD_LENGTHS, settings.word_lengths);
-        assert_eq!(DEFAULT_WORDS_TRANSFORM, settings.word_transforms);
+        assert_eq!(DEFAULT_WORD_TRANSFORMS, settings.word_transforms);
         assert_eq!(DEFAULT_SEPARATORS.to_string(), settings.separators);
         assert_eq!((0, DEFAULT_PADDING_LENGTH), settings.padding_digits);
         assert_eq!(DEFAULT_SYMBOLS.to_string(), settings.padding_symbols);
@@ -453,7 +519,7 @@ mod tests {
 
         // other fields remain unchanged
         assert_eq!(DEFAULT_WORD_LENGTHS, settings.word_lengths);
-        assert_eq!(DEFAULT_WORDS_TRANSFORM, settings.word_transforms);
+        assert_eq!(DEFAULT_WORD_TRANSFORMS, settings.word_transforms);
         assert_eq!(DEFAULT_SEPARATORS.to_string(), settings.separators);
         assert_eq!((0, DEFAULT_PADDING_LENGTH), settings.padding_digits);
         assert_eq!(DEFAULT_SYMBOLS.to_string(), settings.padding_symbols);
@@ -485,7 +551,7 @@ mod tests {
 
         // other fields remain unchanged
         assert_eq!(DEFAULT_WORDS_COUNT, settings.words_count);
-        assert_eq!(DEFAULT_WORDS_TRANSFORM, settings.word_transforms);
+        assert_eq!(DEFAULT_WORD_TRANSFORMS, settings.word_transforms);
         assert_eq!(DEFAULT_SEPARATORS.to_string(), settings.separators);
         assert_eq!(DEFAULT_SYMBOLS.to_string(), settings.padding_symbols);
         assert_eq!((0, DEFAULT_PADDING_LENGTH), settings.padding_symbol_lengths);
@@ -508,7 +574,7 @@ mod tests {
         // other fields remain unchanged
         assert_eq!(DEFAULT_WORDS_COUNT, settings.words_count);
         assert_eq!(DEFAULT_WORD_LENGTHS, settings.word_lengths);
-        assert_eq!(DEFAULT_WORDS_TRANSFORM, settings.word_transforms);
+        assert_eq!(DEFAULT_WORD_TRANSFORMS, settings.word_transforms);
         assert_eq!((0, DEFAULT_PADDING_LENGTH), settings.padding_digits);
         assert_eq!(DEFAULT_SYMBOLS.to_string(), settings.padding_symbols);
         assert_eq!((0, DEFAULT_PADDING_LENGTH), settings.padding_symbol_lengths);
@@ -528,7 +594,7 @@ mod tests {
         // other fields remain unchanged
         assert_eq!(DEFAULT_WORDS_COUNT, settings.words_count);
         assert_eq!(DEFAULT_WORD_LENGTHS, settings.word_lengths);
-        assert_eq!(DEFAULT_WORDS_TRANSFORM, settings.word_transforms);
+        assert_eq!(DEFAULT_WORD_TRANSFORMS, settings.word_transforms);
         assert_eq!(DEFAULT_SEPARATORS.to_string(), settings.separators);
         assert_eq!(DEFAULT_SYMBOLS.to_string(), settings.padding_symbols);
         assert_eq!((0, DEFAULT_PADDING_LENGTH), settings.padding_symbol_lengths);
@@ -548,7 +614,7 @@ mod tests {
         // other fields remain unchanged
         assert_eq!(DEFAULT_WORDS_COUNT, settings.words_count);
         assert_eq!(DEFAULT_WORD_LENGTHS, settings.word_lengths);
-        assert_eq!(DEFAULT_WORDS_TRANSFORM, settings.word_transforms);
+        assert_eq!(DEFAULT_WORD_TRANSFORMS, settings.word_transforms);
         assert_eq!(DEFAULT_SEPARATORS.to_string(), settings.separators);
         assert_eq!((0, DEFAULT_PADDING_LENGTH), settings.padding_digits);
         assert_eq!((0, DEFAULT_PADDING_LENGTH), settings.padding_symbol_lengths);
@@ -579,7 +645,7 @@ mod tests {
         // other fields remain unchanged
         assert_eq!(DEFAULT_WORDS_COUNT, settings.words_count);
         assert_eq!(DEFAULT_WORD_LENGTHS, settings.word_lengths);
-        assert_eq!(DEFAULT_WORDS_TRANSFORM, settings.word_transforms);
+        assert_eq!(DEFAULT_WORD_TRANSFORMS, settings.word_transforms);
         assert_eq!(DEFAULT_SEPARATORS.to_string(), settings.separators);
         assert_eq!((0, DEFAULT_PADDING_LENGTH), settings.padding_digits);
         assert_eq!(DEFAULT_SYMBOLS.to_string(), settings.padding_symbols);
@@ -604,7 +670,17 @@ mod tests {
     }
 
     #[test]
-    fn test_with_word_transforms() {
+    fn test_with_word_transforms_single() {
+        // invalid transform
+        let table = [0b00010000, 0b00100000];
+
+        for transform in table {
+            match Settings::default().with_word_transforms(transform) {
+                Ok(_) => panic!("unexpected result"),
+                Err(msg) => assert_eq!("invalid transform", msg),
+            }
+        }
+
         let settings = Settings::default()
             .with_word_transforms(WordTransform::LOWERCASE)
             .unwrap();
@@ -620,43 +696,63 @@ mod tests {
         assert_eq!((0, DEFAULT_PADDING_LENGTH), settings.padding_symbol_lengths);
         assert!(matches!(settings.padding_strategy, PaddingStrategy::Fixed));
 
-        // invalid transform
-        match Settings::default().with_word_transforms(DEFAULT_WORDS_TRANSFORM + 1) {
-            Ok(_) => panic!("unexpected result"),
-            Err(msg) => assert_eq!("invalid transform", msg),
+        for transform in [
+            WordTransform::TITLECASE,
+            WordTransform::UPPERCASE,
+            WordTransform::INVERSED_TITLECASE,
+        ] {
+            let other_settings = settings.with_word_transforms(transform).unwrap();
+            assert_eq!(transform, other_settings.word_transforms);
+        }
+    }
+
+    #[test]
+    fn test_with_word_transforms_group() {
+        for group_transform in [
+            WordTransform::ALTERNATING_CASE_LOWER_FIRST,
+            WordTransform::ALTERNATING_CASE_UPPER_FIRST,
+        ] {
+            for single_transform in [
+                WordTransform::LOWERCASE,
+                WordTransform::TITLECASE,
+                WordTransform::UPPERCASE,
+                WordTransform::INVERSED_TITLECASE,
+            ] {
+                let settings = Settings::default()
+                    .with_word_transforms(group_transform | single_transform)
+                    .unwrap();
+                // only words_transform updated
+                assert_eq!(group_transform, settings.word_transforms);
+            }
         }
     }
 
     #[test]
     fn test_rand_words() {
-        let settings = Settings::default().with_words_count(3).unwrap();
+        let settings = Settings::default()
+            .with_words_count(3)
+            .unwrap()
+            .with_word_transforms(WordTransform::UPPERCASE)
+            .unwrap();
 
         // empty pool
         assert!(settings.rand_words(&vec![] as &Vec<&str>).is_empty());
 
-        // pool size smaller than words count
-        let pool = &["foo", "bar"];
-
-        for _ in 0..10 {
-            let words = settings.rand_words(pool);
-            assert_eq!(3, words.len());
-
-            let unique_words: HashSet<String> =
-                words.iter().map(|word| word.to_lowercase()).collect();
-            assert!(unique_words.len() < 3);
-        }
+        // not enough pool
+        let words = settings.rand_words(&["foo", "bar"]);
+        assert_eq!(3, words.len());
+        assert_eq!(
+            HashSet::from([&"FOO".to_string(), &"BAR".to_string()]),
+            words.iter().collect::<HashSet<&String>>()
+        );
 
         // enough pool
-        let pool = &["foo", "bar", "fooz", "barz"];
-
-        for _ in 0..10 {
-            let words = settings.rand_words(pool);
-            assert_eq!(3, words.len());
-
-            let unique_words: HashSet<String> =
-                words.iter().map(|word| word.to_lowercase()).collect();
-            assert_eq!(3, unique_words.len());
-        }
+        let words = settings.rand_words(&["foo", "bar", "barz"]);
+        assert_eq!(3, words.len());
+        assert_eq!(
+            HashSet::from([&"FOO".to_string(), &"BAR".to_string(), &"BARZ".to_string()]),
+            words.iter().collect::<HashSet<&String>>()
+        );
     }
 
     #[test]
@@ -782,61 +878,80 @@ mod tests {
     }
 
     #[test]
-    fn test_transform_word() {
+    fn test_build_words_list() {
+        let settings = Settings::default().with_words_count(3).unwrap();
+
+        // empty pool
+        assert!(settings.build_words_list(&vec![] as &Vec<&str>).is_empty());
+
+        // pool size smaller than words count
+        let pool = &["foo", "bar"];
+
+        for _ in 0..10 {
+            let words = settings.build_words_list(pool);
+            assert_eq!(3, words.len());
+
+            let unique_words: HashSet<String> =
+                words.iter().map(|word| word.to_lowercase()).collect();
+            assert!(unique_words.len() < 3);
+        }
+
+        // enough pool
+        let pool = &["foo", "bar", "fooz", "barz"];
+
+        for _ in 0..10 {
+            let words = settings.build_words_list(pool);
+            assert_eq!(3, words.len());
+
+            let unique_words: HashSet<String> =
+                words.iter().map(|word| word.to_lowercase()).collect();
+            assert_eq!(3, unique_words.len());
+        }
+    }
+
+    #[test]
+    fn test_build_transforms_list() {
+        let all_transforms = WordTransform::LOWERCASE
+            | WordTransform::TITLECASE
+            | WordTransform::UPPERCASE
+            | WordTransform::INVERSED_TITLECASE;
+
+        let settings = Settings::default()
+            .with_words_count(3)
+            .unwrap()
+            .with_word_transforms(all_transforms)
+            .unwrap();
+
+        let transforms_list = settings.build_transforms_list();
+        assert_eq!(3, transforms_list.len());
+
         let table = [
             (
-                WordTransform::LOWERCASE,
-                [
-                    ("foo", "foo"),
-                    ("Bar", "bar"),
-                    ("1Fooz", "1fooz"),
-                    ("123", "123"),
+                WordTransform::ALTERNATING_CASE_LOWER_FIRST,
+                vec![
+                    WordTransform::LOWERCASE,
+                    WordTransform::UPPERCASE,
+                    WordTransform::LOWERCASE,
                 ],
             ),
             (
-                WordTransform::TITLECASE,
-                [
-                    ("foo", "Foo"),
-                    ("Bar", "Bar"),
-                    ("1Fooz", "1Fooz"),
-                    ("123", "123"),
-                ],
-            ),
-            (
-                WordTransform::UPPERCASE,
-                [
-                    ("foo", "FOO"),
-                    ("Bar", "BAR"),
-                    ("1Fooz", "1FOOZ"),
-                    ("123", "123"),
+                WordTransform::ALTERNATING_CASE_UPPER_FIRST,
+                vec![
+                    WordTransform::UPPERCASE,
+                    WordTransform::LOWERCASE,
+                    WordTransform::UPPERCASE,
                 ],
             ),
         ];
 
-        for (transform, cases) in table {
-            let settings = Settings::default().with_word_transforms(transform).unwrap();
-
-            for (word, expected) in cases {
-                assert_eq!(expected, settings.transform_word(word));
-            }
-        }
-
-        let settings = Settings::default()
-            .with_word_transforms(WordTransform::LOWERCASE | WordTransform::UPPERCASE)
-            .unwrap();
-
-        for _ in 0..10 {
-            let word = settings.transform_word("foo");
-            assert!(word == "foo" || word == "FOO");
-        }
-
-        let settings = Settings::default()
-            .with_word_transforms(WordTransform::TITLECASE | WordTransform::UPPERCASE)
-            .unwrap();
-
-        for _ in 0..10 {
-            let word = settings.transform_word("foo");
-            assert!(word == "Foo" || word == "FOO");
+        for (group_transform, expected) in table {
+            let settings = Settings::default()
+                .with_words_count(3)
+                .unwrap()
+                .with_word_transforms(all_transforms | group_transform)
+                .unwrap();
+            let transforms_list = settings.build_transforms_list();
+            assert_eq!(expected, transforms_list);
         }
     }
 
@@ -883,6 +998,54 @@ mod tests {
                         .repeat(count as usize),
                     result
                 );
+            }
+        }
+    }
+
+    #[test]
+    fn test_transform_word() {
+        let table = [
+            (
+                WordTransform::LOWERCASE,
+                [
+                    ("foo", "foo"),
+                    ("Bar", "bar"),
+                    ("1Fooz", "1fooz"),
+                    ("123", "123"),
+                ],
+            ),
+            (
+                WordTransform::TITLECASE,
+                [
+                    ("foo", "Foo"),
+                    ("Bar", "Bar"),
+                    ("1Fooz", "1Fooz"),
+                    ("123", "123"),
+                ],
+            ),
+            (
+                WordTransform::UPPERCASE,
+                [
+                    ("foo", "FOO"),
+                    ("Bar", "BAR"),
+                    ("1Fooz", "1FOOZ"),
+                    ("123", "123"),
+                ],
+            ),
+            (
+                WordTransform::INVERSED_TITLECASE,
+                [
+                    ("foo", "fOO"),
+                    ("Bar", "bAR"),
+                    ("1Fooz", "1FOOZ"),
+                    ("123", "123"),
+                ],
+            ),
+        ];
+
+        for (transform, cases) in table {
+            for (word, expected) in cases {
+                assert_eq!(expected, transform_word(word, transform));
             }
         }
     }
