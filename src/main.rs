@@ -13,7 +13,7 @@ fn main() {
 fn build_settings() -> Result<Settings, &'static str> {
     Settings::default()
         .with_words_count(3)?
-        .with_word_lengths(4, 8)
+        .with_word_lengths(4, 8)?
         .with_separators(".")
         .with_padding_digits(0, 2)
         .with_padding_symbols("!@#$%^&*-_=+:|~?/;")

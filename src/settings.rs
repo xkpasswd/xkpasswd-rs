@@ -1,14 +1,19 @@
+use std::cmp;
 use std::collections::HashMap;
 use std::result::Result;
 
 use rand::distributions::{Distribution, Uniform};
 use rand::Rng;
 
+const MIN_WORD_LENGTH: u8 = 4;
+const MIN_WORD_LENGTH_ERR: &str = "min word length must be 4 or higher";
+const MAX_WORD_LENGTH: u8 = 10;
+const MAX_WORD_LENGTH_ERR: &str = "max word length must be 10 or lower";
 const DEFAULT_PADDING_LENGTH: u8 = 2;
 const DEFAULT_SEPARATORS: &str = " .-_~";
 const DEFAULT_SYMBOLS: &str = "!@#$%^&*-_=+:|~?/;";
 const DEFAULT_WORDS_COUNT: u8 = 3;
-const DEFAULT_WORD_LENGTHS: (u8, u8) = (4, 10);
+const DEFAULT_WORD_LENGTHS: (u8, u8) = (MIN_WORD_LENGTH, MAX_WORD_LENGTH);
 
 pub struct WordTransform;
 
@@ -40,7 +45,9 @@ pub trait Builder {
     fn with_words_count(&self, words_count: u8) -> Result<Self, &'static str>
     where
         Self: Sized;
-    fn with_word_lengths(&self, min_length: u8, max_length: u8) -> Self;
+    fn with_word_lengths(&self, min_length: u8, max_length: u8) -> Result<Self, &'static str>
+    where
+        Self: Sized;
     fn with_separators(&self, separators: &str) -> Self;
     fn with_padding_digits(&self, prefix: u8, suffix: u8) -> Self;
     fn with_padding_symbols(&self, symbols: &str) -> Self;
@@ -78,10 +85,7 @@ impl Default for Settings {
 }
 
 impl Builder for Settings {
-    fn with_words_count(&self, words_count: u8) -> Result<Self, &'static str>
-    where
-        Self: Sized,
-    {
+    fn with_words_count(&self, words_count: u8) -> Result<Self, &'static str> {
         if words_count == 0 {
             return Err("only positive integer is allowed for words count");
         }
@@ -91,16 +95,21 @@ impl Builder for Settings {
         Ok(cloned)
     }
 
-    fn with_word_lengths(&self, min_length: u8, max_length: u8) -> Self {
-        let word_lengths = if min_length > max_length {
-            (max_length, min_length)
-        } else {
-            (min_length, max_length)
-        };
+    fn with_word_lengths(&self, min_length: u8, max_length: u8) -> Result<Settings, &'static str> {
+        let min = cmp::min(min_length, max_length);
+        let max = cmp::max(min_length, max_length);
+
+        if min < MIN_WORD_LENGTH {
+            return Err(MIN_WORD_LENGTH_ERR);
+        }
+
+        if max > MAX_WORD_LENGTH {
+            return Err(MAX_WORD_LENGTH_ERR);
+        }
 
         let mut cloned = self.clone();
-        cloned.word_lengths = word_lengths;
-        cloned
+        cloned.word_lengths = (min, max);
+        Ok(cloned)
     }
 
     fn with_separators(&self, separators: &str) -> Self {
@@ -340,9 +349,21 @@ mod tests {
 
     #[test]
     fn test_with_word_lengths() {
-        let settings = Settings::default().with_word_lengths(2, 3);
+        // invalid lengths
+        assert!(matches!(
+            Settings::default().with_word_lengths(MIN_WORD_LENGTH - 1, MAX_WORD_LENGTH + 1),
+            Err(MIN_WORD_LENGTH_ERR)
+        ));
+
+        // max word length has lower priority
+        assert!(matches!(
+            Settings::default().with_word_lengths(MIN_WORD_LENGTH, MAX_WORD_LENGTH + 1),
+            Err(MAX_WORD_LENGTH_ERR)
+        ));
+
+        let settings = Settings::default().with_word_lengths(4, 6).unwrap();
         // only word_lengths updated
-        assert_eq!((2, 3), settings.word_lengths);
+        assert_eq!((4, 6), settings.word_lengths);
 
         // other fields remain unchanged
         assert_eq!(DEFAULT_WORDS_COUNT, settings.words_count);
@@ -353,10 +374,10 @@ mod tests {
         assert!(matches!(settings.padding_strategy, PaddingStrategy::Fixed));
 
         // overriding with multiple calls
-        let other_settings = settings.with_word_lengths(5, 5);
+        let other_settings = settings.with_word_lengths(5, 5).unwrap();
         assert_eq!((5, 5), other_settings.word_lengths); // equal values
 
-        let other_settings = settings.with_word_lengths(6, 4);
+        let other_settings = settings.with_word_lengths(6, 4).unwrap();
         assert_eq!((4, 6), other_settings.word_lengths); // min/max corrected
     }
 
