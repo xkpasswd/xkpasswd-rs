@@ -50,11 +50,11 @@ pub trait Builder {
 }
 
 pub trait Randomizer {
-    fn iter_word_lengths<F: FnMut(u8)>(&self, callback: F);
-    fn rand_words(&self, words: &[&str]) -> Vec<String>;
+    fn rand_words(&self, pool: &[&str]) -> Vec<String>;
     fn rand_separator(&self) -> String;
     fn rand_prefix(&self) -> String;
     fn rand_suffix(&self) -> String;
+    fn iter_word_lengths<F: FnMut(u8)>(&self, callback: F);
     fn adjust_for_padding_strategy(&self, passwd: String) -> String;
 }
 
@@ -140,19 +140,31 @@ impl Builder for Settings {
 }
 
 impl Randomizer for Settings {
-    fn iter_word_lengths<F: FnMut(u8)>(&self, callback: F) {
-        let (min, max) = self.word_lengths;
-        (min..(max + 1)).for_each(callback);
-    }
+    fn rand_words(&self, pool: &[&str]) -> Vec<String> {
+        if pool.is_empty() {
+            return vec![];
+        }
 
-    fn rand_words(&self, words: &[&str]) -> Vec<String> {
         let mut rng = rand::thread_rng();
+        let word_indices = Uniform::from(0..pool.len());
+
+        // not enough words to distinguishably randomize
+        if pool.len() < self.words_count as usize {
+            return (0..self.words_count)
+                .map(|_| {
+                    let index: usize = word_indices.sample(&mut rng);
+                    let word = pool[index];
+                    self.transform_word(word)
+                })
+                .collect();
+        }
+
+        // enough words, ensure no duplicates
         let mut index_marker: HashMap<usize, bool> = HashMap::new();
-        let word_indices = Uniform::from(0..words.len());
         (0..self.words_count)
             .map(|_| loop {
                 let index: usize = word_indices.sample(&mut rng);
-                let word = words[index];
+                let word = pool[index];
 
                 if index_marker.get(&index).is_none() {
                     index_marker.insert(index, true);
@@ -184,6 +196,11 @@ impl Randomizer for Settings {
             rand_digits(suffix_digits),
             rand_chars(&self.padding_symbols, suffix_symbols)
         )
+    }
+
+    fn iter_word_lengths<F: FnMut(u8)>(&self, callback: F) {
+        let (min, max) = self.word_lengths;
+        (min..(max + 1)).for_each(callback);
     }
 
     fn adjust_for_padding_strategy(&self, passwd: String) -> String {
@@ -265,6 +282,8 @@ fn rand_chars(pool: &str, count: u8) -> String {
 
 #[cfg(test)]
 mod tests {
+    use std::collections::HashSet;
+
     use super::*;
 
     const DEFAULT_WORDS_TRANSFORM: u8 =
@@ -443,6 +462,38 @@ mod tests {
     }
 
     #[test]
+    fn test_rand_words() {
+        let settings = Settings::default().with_words_count(3);
+
+        // empty pool
+        assert!(settings.rand_words(&vec![] as &Vec<&str>).is_empty());
+
+        // pool size smaller than words count
+        let pool = &["foo", "bar"];
+
+        for _ in 0..10 {
+            let words = settings.rand_words(pool);
+            assert_eq!(3, words.len());
+
+            let unique_words: HashSet<String> =
+                words.iter().map(|word| word.to_lowercase()).collect();
+            assert!(unique_words.len() < 3);
+        }
+
+        // enough pool
+        let pool = &["foo", "bar", "fooz", "barz"];
+
+        for _ in 0..10 {
+            let words = settings.rand_words(pool);
+            assert_eq!(3, words.len());
+
+            let unique_words: HashSet<String> =
+                words.iter().map(|word| word.to_lowercase()).collect();
+            assert_eq!(3, unique_words.len());
+        }
+    }
+
+    #[test]
     fn test_rand_prefix() {
         let empty_cases = [
             ((0, 0), (0, 0)),
@@ -521,6 +572,12 @@ mod tests {
             }
         }
     }
+
+    #[test]
+    fn test_iter_word_lengths() {}
+
+    #[test]
+    fn test_adjust_for_padding_strategy() {}
 
     #[test]
     fn test_transform_word() {
