@@ -88,8 +88,8 @@ pub trait Builder {
 pub trait Randomizer {
     fn rand_words(&self, pool: &[&str]) -> Vec<String>;
     fn rand_separator(&self) -> String;
-    fn rand_prefix(&self) -> String;
-    fn rand_suffix(&self) -> String;
+    fn rand_prefix(&self) -> (String, String);
+    fn rand_suffix(&self) -> (String, String);
     fn iter_word_lengths<F: FnMut(u8)>(&self, callback: F);
     fn adjust_for_padding_strategy(&self, passwd: &str) -> String;
 }
@@ -316,23 +316,21 @@ impl Randomizer for Settings {
         rand_chars(&self.separators, 1)
     }
 
-    fn rand_prefix(&self) -> String {
+    fn rand_prefix(&self) -> (String, String) {
         let (prefix_digits, _) = self.padding_digits;
         let (prefix_symbols, _) = self.padding_symbol_lengths;
-        format!(
-            "{}{}",
+        (
             rand_chars(&self.padding_symbols, prefix_symbols),
-            rand_digits(prefix_digits)
+            rand_digits(prefix_digits),
         )
     }
 
-    fn rand_suffix(&self) -> String {
+    fn rand_suffix(&self) -> (String, String) {
         let (_, suffix_digits) = self.padding_digits;
         let (_, suffix_symbols) = self.padding_symbol_lengths;
-        format!(
-            "{}{}",
+        (
             rand_digits(suffix_digits),
-            rand_chars(&self.padding_symbols, suffix_symbols)
+            rand_chars(&self.padding_symbols, suffix_symbols),
         )
     }
 
@@ -674,7 +672,9 @@ mod tests {
             let settings = Settings::default()
                 .with_padding_digits(prefix_digits, suffix_digits)
                 .with_padding_symbol_lengths(prefix_symbols, suffix_symbols);
-            assert_eq!("", settings.rand_prefix());
+            let (symbols, digits) = settings.rand_prefix();
+            assert_eq!("", symbols);
+            assert_eq!("", digits);
         }
 
         for prefix_symbols in 1usize..10 {
@@ -683,20 +683,17 @@ mod tests {
                     .with_padding_digits(prefix_digits as u8, 2)
                     .with_padding_symbols("#")
                     .with_padding_symbol_lengths(prefix_symbols as u8, 3);
-                let prefix = settings.rand_prefix();
+                let (symbols, digits) = settings.rand_prefix();
 
                 // total length of prefix
-                assert_eq!(prefix_symbols + prefix_digits, prefix.len());
+                assert_eq!(prefix_symbols, symbols.len());
+                assert_eq!(prefix_digits, digits.len());
 
-                // first partition [0..prefix_symbols] is the repeated symbol
-                assert_eq!(
-                    "#".to_string().repeat(prefix_symbols),
-                    &prefix[..prefix_symbols]
-                );
+                // first part is the repeated symbol
+                assert_eq!("#".to_string().repeat(prefix_symbols), symbols);
 
-                // second partition [prefix_symbols..prefix_symbols+prefix_digits]
-                // is the stringified digits
-                let _ = &prefix[prefix_symbols..].parse::<u64>().unwrap();
+                // second part is the stringified digits
+                let _ = digits.parse::<u64>().unwrap();
             }
         }
     }
@@ -714,7 +711,9 @@ mod tests {
             let settings = Settings::default()
                 .with_padding_digits(prefix_digits, suffix_digits)
                 .with_padding_symbol_lengths(prefix_symbols, suffix_symbols);
-            assert_eq!("", settings.rand_suffix());
+            let (digits, symbols) = settings.rand_suffix();
+            assert_eq!("", digits);
+            assert_eq!("", symbols);
         }
 
         for suffix_symbols in 1usize..10 {
@@ -723,20 +722,17 @@ mod tests {
                     .with_padding_digits(2, suffix_digits as u8)
                     .with_padding_symbols("~")
                     .with_padding_symbol_lengths(3, suffix_symbols as u8);
-                let suffix = settings.rand_suffix();
+                let (digits, symbols) = settings.rand_suffix();
 
                 // total length of suffix
-                assert_eq!(suffix_digits + suffix_symbols, suffix.len());
+                assert_eq!(suffix_digits, digits.len());
+                assert_eq!(suffix_symbols, symbols.len());
 
-                // first partition [0..suffix_digits] is the stringified digits
-                let _ = &suffix[..suffix_digits].parse::<u64>().unwrap();
+                // first part is the stringified digits
+                let _ = digits.parse::<u64>().unwrap();
 
-                // second partition [suffix_digits..suffix_digits+suffix_symbols]
-                // is repeated symbols
-                assert_eq!(
-                    "~".to_string().repeat(suffix_symbols),
-                    &suffix[suffix_digits..]
-                );
+                // second part is repeated symbols
+                assert_eq!("~".to_string().repeat(suffix_symbols), symbols);
             }
         }
     }
