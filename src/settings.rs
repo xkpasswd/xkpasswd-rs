@@ -610,7 +610,20 @@ mod tests {
     }
 
     #[test]
-    fn test_iter_word_lengths() {}
+    fn test_iter_word_lengths() {
+        let table = [
+            ((4, 6), vec![4, 5, 6]),
+            ((5, 5), vec![5]),
+            ((6, 10), vec![6, 7, 8, 9, 10]),
+        ];
+
+        for ((min, max), expected_lengths) in table {
+            let settings = Settings::default().with_word_lengths(min, max).unwrap();
+            let mut lengths: Vec<u8> = vec![];
+            settings.iter_word_lengths(|len| lengths.push(len));
+            assert_eq!(expected_lengths, lengths);
+        }
+    }
 
     #[test]
     fn test_adjust_for_padding_strategy() {}
