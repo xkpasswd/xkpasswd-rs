@@ -9,6 +9,8 @@ use settings::*;
 use wasm_bindgen::prelude::*;
 use wasm_utils::*;
 
+const DEFAULT_SETTING_BUILDER_ERR: &str = "Invalid settings";
+
 #[wasm_bindgen(js_name = "WordTransform")]
 pub enum WasmWordTransform {
     Lowercase = 0b001,
@@ -32,7 +34,10 @@ impl WasmSettings {
 
     #[wasm_bindgen(js_name = "withWordsCount")]
     pub fn with_words_count(&self, words_count: u8) -> WasmSettings {
-        let settings = self.settings.with_words_count(words_count);
+        let settings = self
+            .settings
+            .with_words_count(words_count)
+            .expect(DEFAULT_SETTING_BUILDER_ERR);
         WasmSettings { settings }
     }
 
@@ -86,7 +91,7 @@ impl WasmSettings {
         let settings = self
             .settings
             .with_word_transforms(reduced)
-            .expect("Invalid settings");
+            .expect(DEFAULT_SETTING_BUILDER_ERR);
         WasmSettings { settings }
     }
 }

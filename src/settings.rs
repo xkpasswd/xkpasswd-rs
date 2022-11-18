@@ -37,7 +37,9 @@ pub struct Settings {
 }
 
 pub trait Builder {
-    fn with_words_count(&self, words_count: u8) -> Self;
+    fn with_words_count(&self, words_count: u8) -> Result<Self, &'static str>
+    where
+        Self: Sized;
     fn with_word_lengths(&self, min_length: u8, max_length: u8) -> Self;
     fn with_separators(&self, separators: &str) -> Self;
     fn with_padding_digits(&self, prefix: u8, suffix: u8) -> Self;
@@ -76,10 +78,17 @@ impl Default for Settings {
 }
 
 impl Builder for Settings {
-    fn with_words_count(&self, words_count: u8) -> Self {
+    fn with_words_count(&self, words_count: u8) -> Result<Self, &'static str>
+    where
+        Self: Sized,
+    {
+        if words_count == 0 {
+            return Err("only positive integer is allowed for words count");
+        }
+
         let mut cloned = self.clone();
         cloned.words_count = words_count;
-        cloned
+        Ok(cloned)
     }
 
     fn with_word_lengths(&self, min_length: u8, max_length: u8) -> Self {
@@ -305,7 +314,13 @@ mod tests {
 
     #[test]
     fn test_with_words_count() {
-        let settings = Settings::default().with_words_count(1);
+        // invalid value
+        assert!(matches!(
+            Settings::default().with_words_count(0),
+            Err("only positive integer is allowed for words count")
+        ));
+
+        let settings = Settings::default().with_words_count(1).unwrap();
         // only words_count updated
         assert_eq!(1, settings.words_count);
 
@@ -319,7 +334,7 @@ mod tests {
         assert!(matches!(settings.padding_strategy, PaddingStrategy::Fixed));
 
         // overriding with multiple calls
-        let other_settings = settings.with_words_count(123);
+        let other_settings = settings.with_words_count(123).unwrap();
         assert_eq!(123, other_settings.words_count);
     }
 
@@ -463,7 +478,7 @@ mod tests {
 
     #[test]
     fn test_rand_words() {
-        let settings = Settings::default().with_words_count(3);
+        let settings = Settings::default().with_words_count(3).unwrap();
 
         // empty pool
         assert!(settings.rand_words(&vec![] as &Vec<&str>).is_empty());
