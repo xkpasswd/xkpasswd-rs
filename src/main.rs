@@ -1,4 +1,4 @@
-mod prelude;
+pub mod prelude;
 pub mod settings;
 
 use prelude::*;

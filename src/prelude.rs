@@ -3,6 +3,38 @@ use std::collections::HashMap;
 
 type Dict<'a> = HashMap<u8, Vec<&'a str>>;
 
+pub trait Builder {
+    fn with_words_count(&self, words_count: u8) -> Result<Self, &'static str>
+    where
+        Self: Sized;
+    fn with_word_lengths(&self, min_length: u8, max_length: u8) -> Result<Self, &'static str>
+    where
+        Self: Sized;
+    fn with_separators(&self, separators: &str) -> Self;
+    fn with_padding_digits(&self, prefix: u8, suffix: u8) -> Self;
+    fn with_padding_symbols(&self, symbols: &str) -> Self;
+    fn with_padding_symbol_lengths(&self, prefix: u8, suffix: u8) -> Self;
+    fn with_padding_strategy(
+        &self,
+        padding_strategy: PaddingStrategy,
+    ) -> Result<Self, &'static str>
+    where
+        Self: Sized;
+    fn with_word_transforms(&self, transform: u8) -> Result<Self, &'static str>
+    where
+        Self: Sized;
+    fn from_preset(preset: Preset) -> Self;
+}
+
+pub trait Randomizer {
+    fn rand_words(&self, pool: &[&str]) -> Vec<String>;
+    fn rand_separator(&self) -> String;
+    fn rand_prefix(&self) -> (String, String);
+    fn rand_suffix(&self) -> (String, String);
+    fn iter_word_lengths<F: FnMut(u8)>(&self, callback: F);
+    fn adjust_for_padding_strategy(&self, passwd: &str) -> String;
+}
+
 #[derive(Debug, Default)]
 pub struct Xkpasswd {
     dict: Dict<'static>,
@@ -25,25 +57,25 @@ impl Xkpasswd {
         });
 
         let separator = &settings.rand_separator();
-        let words = settings.rand_words(&all_words).join(separator);
+        let mut words: Vec<String> = vec![];
 
         let (prefix_symbols, prefix_digits) = settings.rand_prefix();
-        let padded_prefix_digits = if prefix_digits.is_empty() {
-            prefix_digits
-        } else {
-            format!("{}{}", prefix_digits, separator)
-        };
+        if !prefix_digits.is_empty() {
+            words.push(prefix_digits);
+        }
+
+        words.extend(settings.rand_words(&all_words));
 
         let (suffix_digits, suffix_symbols) = settings.rand_suffix();
-        let padded_suffix_digits = if suffix_digits.is_empty() {
-            suffix_digits
-        } else {
-            format!("{}{}", separator, suffix_digits)
-        };
+        if !suffix_digits.is_empty() {
+            words.push(suffix_digits);
+        }
 
         let passwd = format!(
-            "{}{}{}{}{}",
-            prefix_symbols, padded_prefix_digits, words, padded_suffix_digits, suffix_symbols
+            "{}{}{}",
+            prefix_symbols,
+            words.join(separator),
+            suffix_symbols
         );
         settings.adjust_for_padding_strategy(&passwd)
     }
