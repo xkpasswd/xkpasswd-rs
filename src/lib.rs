@@ -76,7 +76,10 @@ impl WasmSettings {
 
     #[wasm_bindgen(js_name = "withFixedPadding")]
     pub fn with_fixed_padding(&self) -> WasmSettings {
-        let settings = self.settings.with_padding_strategy(PaddingStrategy::Fixed);
+        let settings = self
+            .settings
+            .with_padding_strategy(PaddingStrategy::Fixed)
+            .expect(DEFAULT_SETTING_BUILDER_ERR);
         WasmSettings { settings }
     }
 
@@ -84,7 +87,8 @@ impl WasmSettings {
     pub fn with_adaptive_padding(&self, length: u8) -> WasmSettings {
         let settings = self
             .settings
-            .with_padding_strategy(PaddingStrategy::Adaptive(length));
+            .with_padding_strategy(PaddingStrategy::Adaptive(length))
+            .expect(DEFAULT_SETTING_BUILDER_ERR);
         WasmSettings { settings }
     }
 

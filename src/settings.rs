@@ -52,7 +52,12 @@ pub trait Builder {
     fn with_padding_digits(&self, prefix: u8, suffix: u8) -> Self;
     fn with_padding_symbols(&self, symbols: &str) -> Self;
     fn with_padding_symbol_lengths(&self, prefix: u8, suffix: u8) -> Self;
-    fn with_padding_strategy(&self, padding_strategy: PaddingStrategy) -> Self;
+    fn with_padding_strategy(
+        &self,
+        padding_strategy: PaddingStrategy,
+    ) -> Result<Self, &'static str>
+    where
+        Self: Sized;
     fn with_word_transforms(&self, transform: u8) -> Result<Self, &'static str>
     where
         Self: Sized;
@@ -64,7 +69,7 @@ pub trait Randomizer {
     fn rand_prefix(&self) -> String;
     fn rand_suffix(&self) -> String;
     fn iter_word_lengths<F: FnMut(u8)>(&self, callback: F);
-    fn adjust_for_padding_strategy(&self, passwd: String) -> String;
+    fn adjust_for_padding_strategy(&self, passwd: &str) -> String;
 }
 
 impl Default for Settings {
@@ -136,10 +141,18 @@ impl Builder for Settings {
         cloned
     }
 
-    fn with_padding_strategy(&self, padding_strategy: PaddingStrategy) -> Self {
-        let mut cloned = self.clone();
-        cloned.padding_strategy = padding_strategy;
-        cloned
+    fn with_padding_strategy(
+        &self,
+        padding_strategy: PaddingStrategy,
+    ) -> Result<Settings, &'static str> {
+        match padding_strategy {
+            PaddingStrategy::Adaptive(0) => Err("invalid adaptive padding number"),
+            _ => {
+                let mut cloned = self.clone();
+                cloned.padding_strategy = padding_strategy;
+                Ok(cloned)
+            }
+        }
     }
 
     fn with_word_transforms(&self, transforms: u8) -> Result<Self, &'static str> {
@@ -221,16 +234,16 @@ impl Randomizer for Settings {
         (min..(max + 1)).for_each(callback);
     }
 
-    fn adjust_for_padding_strategy(&self, passwd: String) -> String {
+    fn adjust_for_padding_strategy(&self, passwd: &str) -> String {
         match self.padding_strategy {
-            PaddingStrategy::Fixed => passwd,
+            PaddingStrategy::Fixed => passwd.to_string(),
             PaddingStrategy::Adaptive(len) => {
                 let length = len as usize;
 
                 if length > passwd.len() {
                     let padded_symbols =
                         rand_chars(&self.padding_symbols, (length - passwd.len()) as u8);
-                    passwd + &padded_symbols
+                    passwd.to_string() + &padded_symbols
                 } else {
                     passwd[..length].to_string()
                 }
@@ -443,7 +456,15 @@ mod tests {
 
     #[test]
     fn test_with_padding_strategy() {
-        let settings = Settings::default().with_padding_strategy(PaddingStrategy::Adaptive(16));
+        // invalid adaptive padding
+        assert!(matches!(
+            Settings::default().with_padding_strategy(PaddingStrategy::Adaptive(0)),
+            Err("invalid adaptive padding number")
+        ));
+
+        let settings = Settings::default()
+            .with_padding_strategy(PaddingStrategy::Adaptive(16))
+            .unwrap();
         // only padding_symbols updated
         assert!(matches!(
             settings.padding_strategy,
@@ -460,13 +481,17 @@ mod tests {
         assert_eq!((0, DEFAULT_PADDING_LENGTH), settings.padding_symbol_lengths);
 
         // overriding
-        let other_settings = settings.with_padding_strategy(PaddingStrategy::Adaptive(32));
+        let other_settings = settings
+            .with_padding_strategy(PaddingStrategy::Adaptive(32))
+            .unwrap();
         assert!(matches!(
             other_settings.padding_strategy,
             PaddingStrategy::Adaptive(32)
         ));
 
-        let other_settings = settings.with_padding_strategy(PaddingStrategy::Fixed);
+        let other_settings = settings
+            .with_padding_strategy(PaddingStrategy::Fixed)
+            .unwrap();
         assert!(matches!(
             other_settings.padding_strategy,
             PaddingStrategy::Fixed
@@ -626,7 +651,32 @@ mod tests {
     }
 
     #[test]
-    fn test_adjust_for_padding_strategy() {}
+    fn test_adjust_for_padding_strategy() {
+        let passwd = "foo.bar.68!!".to_string();
+
+        // fixed padding
+        let settings = Settings::default()
+            .with_padding_strategy(PaddingStrategy::Fixed)
+            .unwrap();
+        assert_eq!(passwd, settings.adjust_for_padding_strategy(&passwd));
+
+        // adaptive padding: add symbols
+        let settings = Settings::default()
+            .with_padding_symbols("@")
+            .with_padding_strategy(PaddingStrategy::Adaptive(15))
+            .unwrap();
+        assert_eq!(
+            format!("{}@@@", passwd),
+            settings.adjust_for_padding_strategy(&passwd)
+        );
+
+        // adaptive padding: cut length
+        let settings = Settings::default()
+            .with_padding_symbols("@")
+            .with_padding_strategy(PaddingStrategy::Adaptive(10))
+            .unwrap();
+        assert_eq!("foo.bar.68", settings.adjust_for_padding_strategy(&passwd));
+    }
 
     #[test]
     fn test_transform_word() {
