@@ -4,16 +4,43 @@ use std::result::Result;
 
 use rand::distributions::{Distribution, Uniform};
 use rand::Rng;
+use wasm_bindgen::prelude::*;
 
 const MIN_WORD_LENGTH: u8 = 4;
 const MIN_WORD_LENGTH_ERR: &str = "min word length must be 4 or higher";
 const MAX_WORD_LENGTH: u8 = 10;
 const MAX_WORD_LENGTH_ERR: &str = "max word length must be 10 or lower";
 const DEFAULT_PADDING_LENGTH: u8 = 2;
-const DEFAULT_SEPARATORS: &str = " .-_~";
-const DEFAULT_SYMBOLS: &str = "!@#$%^&*-_=+:|~?/;";
+const DEFAULT_SEPARATORS: &str = ".-_~";
+const DEFAULT_SYMBOLS: &str = "~@$%^&*-_+=:|~?/.;";
 const DEFAULT_WORDS_COUNT: u8 = 3;
 const DEFAULT_WORD_LENGTHS: (u8, u8) = (MIN_WORD_LENGTH, MAX_WORD_LENGTH);
+
+#[derive(Clone, Debug)]
+pub enum PaddingStrategy {
+    Fixed,
+    Adaptive(u8),
+}
+
+#[wasm_bindgen]
+#[derive(Clone, Copy, Debug)]
+pub enum Preset {
+    AppleID,
+    Default,
+    WindowsNTLMv1,
+    SecurityQuestions,
+    Web16,
+    Web32,
+    Wifi,
+    XKCD,
+}
+
+#[wasm_bindgen(js_name = "WordTransform")]
+pub enum WasmWordTransform {
+    Lowercase = 0b001,
+    Titlecase = 0b010,
+    Uppercase = 0b100,
+}
 
 pub struct WordTransform;
 
@@ -21,12 +48,6 @@ impl WordTransform {
     pub const LOWERCASE: u8 = 0b001;
     pub const TITLECASE: u8 = 0b010;
     pub const UPPERCASE: u8 = 0b100;
-}
-
-#[derive(Clone, Debug)]
-pub enum PaddingStrategy {
-    Fixed,
-    Adaptive(u8),
 }
 
 #[derive(Clone, Debug)]
@@ -61,6 +82,7 @@ pub trait Builder {
     fn with_word_transforms(&self, transform: u8) -> Result<Self, &'static str>
     where
         Self: Sized;
+    fn from_preset(preset: Preset) -> Self;
 }
 
 pub trait Randomizer {
@@ -167,6 +189,91 @@ impl Builder for Settings {
         let mut cloned = self.clone();
         cloned.word_transforms = transforms;
         Ok(cloned)
+    }
+
+    fn from_preset(preset: Preset) -> Self {
+        match preset {
+            Preset::AppleID => Settings {
+                words_count: 3,
+                word_lengths: (5, 7),
+                word_transforms: WordTransform::LOWERCASE | WordTransform::UPPERCASE,
+                separators: "-:.,".to_string(),
+                padding_digits: (2, 2),
+                padding_symbols: "!?@&".to_string(),
+                padding_symbol_lengths: (1, 1),
+                padding_strategy: PaddingStrategy::Fixed,
+            },
+            Preset::Default => Settings {
+                words_count: 3,
+                word_lengths: (4, 8),
+                word_transforms: WordTransform::LOWERCASE | WordTransform::UPPERCASE,
+                separators: DEFAULT_SYMBOLS.to_string(),
+                padding_digits: (2, 2),
+                padding_symbols: DEFAULT_SYMBOLS.to_string(),
+                padding_symbol_lengths: (2, 2),
+                padding_strategy: PaddingStrategy::Fixed,
+            },
+            Preset::WindowsNTLMv1 => Settings {
+                words_count: 2,
+                word_lengths: (5, 5),
+                word_transforms: WordTransform::LOWERCASE | WordTransform::UPPERCASE,
+                separators: "-+=.*_|~,".to_string(),
+                padding_digits: (1, 0),
+                padding_symbols: "!@$%^&*+=:|~?".to_string(),
+                padding_symbol_lengths: (0, 1),
+                padding_strategy: PaddingStrategy::Fixed,
+            },
+            Preset::SecurityQuestions => Settings {
+                words_count: 6,
+                word_lengths: (4, 8),
+                word_transforms: WordTransform::LOWERCASE,
+                separators: " ".to_string(),
+                padding_digits: (0, 0),
+                padding_symbols: ".!?".to_string(),
+                padding_symbol_lengths: (0, 1),
+                padding_strategy: PaddingStrategy::Fixed,
+            },
+            Preset::Web16 => Settings {
+                words_count: 3,
+                word_lengths: (4, 4),
+                word_transforms: WordTransform::LOWERCASE | WordTransform::UPPERCASE,
+                separators: "-+=.*_|~,".to_string(),
+                padding_digits: (0, 0),
+                padding_symbols: "!@$%^&*+=:|~?".to_string(),
+                padding_symbol_lengths: (1, 1),
+                padding_strategy: PaddingStrategy::Fixed,
+            },
+            Preset::Web32 => Settings {
+                words_count: 4,
+                word_lengths: (4, 5),
+                word_transforms: WordTransform::LOWERCASE | WordTransform::UPPERCASE,
+                separators: "-+=.*_|~,".to_string(),
+                padding_digits: (2, 2),
+                padding_symbols: "!@$%^&*+=:|~?".to_string(),
+                padding_symbol_lengths: (1, 1),
+                padding_strategy: PaddingStrategy::Fixed,
+            },
+            Preset::Wifi => Settings {
+                words_count: 6,
+                word_lengths: (4, 8),
+                word_transforms: WordTransform::LOWERCASE | WordTransform::UPPERCASE,
+                separators: "-+=.*_|~,".to_string(),
+                padding_digits: (4, 4),
+                padding_symbols: "!@$%^&*+=:|~?".to_string(),
+                padding_symbol_lengths: (0, 0),
+                padding_strategy: PaddingStrategy::Adaptive(63),
+            },
+            Preset::XKCD => Settings {
+                words_count: 4,
+                word_lengths: (4, 8),
+                word_transforms: WordTransform::LOWERCASE | WordTransform::UPPERCASE,
+                separators: "-".to_string(),
+                padding_digits: (0, 0),
+                padding_symbols: "".to_string(),
+                padding_symbol_lengths: (0, 0),
+                padding_strategy: PaddingStrategy::Fixed,
+            },
+        }
     }
 }
 

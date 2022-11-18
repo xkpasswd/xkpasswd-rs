@@ -1,6 +1,6 @@
 //#![feature(test)]
 
-mod prelude;
+pub mod prelude;
 pub mod settings;
 mod wasm_utils;
 
@@ -10,13 +10,6 @@ use wasm_bindgen::prelude::*;
 use wasm_utils::*;
 
 const DEFAULT_SETTING_BUILDER_ERR: &str = "Invalid settings";
-
-#[wasm_bindgen(js_name = "WordTransform")]
-pub enum WasmWordTransform {
-    Lowercase = 0b001,
-    Titlecase = 0b010,
-    Uppercase = 0b100,
-}
 
 #[wasm_bindgen(js_name = "Settings")]
 #[derive(Debug, Default)]
@@ -100,6 +93,13 @@ impl WasmSettings {
             .with_word_transforms(reduced)
             .expect(DEFAULT_SETTING_BUILDER_ERR);
         WasmSettings { settings }
+    }
+
+    #[wasm_bindgen(js_name = "fromPreset")]
+    pub fn from_preset(preset: Preset) -> WasmSettings {
+        WasmSettings {
+            settings: Settings::from_preset(preset),
+        }
     }
 }
 
