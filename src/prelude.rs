@@ -1,5 +1,5 @@
 use super::settings::*;
-use std::collections::HashMap;
+use std::{collections::HashMap, ops::Range};
 
 type Dict<'a> = HashMap<u8, Vec<&'a str>>;
 
@@ -27,11 +27,11 @@ pub trait Builder: Default {
 }
 
 pub trait Randomizer {
+    fn word_lengths(&self) -> Range<u8>;
     fn rand_words(&self, pool: &[&str]) -> Vec<String>;
     fn rand_separator(&self) -> String;
     fn rand_prefix(&self) -> (String, String);
     fn rand_suffix(&self) -> (String, String);
-    fn iter_word_lengths<F: FnMut(u8)>(&self, callback: F);
     fn adjust_for_padding_strategy(&self, passwd: &str) -> String;
 }
 
@@ -50,7 +50,7 @@ impl Xkpasswd {
     pub fn gen_pass<S: Randomizer>(&self, settings: &S) -> String {
         let mut all_words: Vec<&str> = vec![];
 
-        settings.iter_word_lengths(|len| {
+        settings.word_lengths().for_each(|len| {
             if let Some(words) = self.dict.get(&len) {
                 all_words.extend(words);
             };
