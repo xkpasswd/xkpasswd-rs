@@ -125,15 +125,12 @@ impl Builder for Settings {
         cloned
     }
 
-    fn with_padding_strategy(
-        &self,
-        padding_strategy: PaddingStrategy,
-    ) -> Result<Settings, &'static str> {
-        match padding_strategy {
+    fn with_padding_strategy(&self, strategy: PaddingStrategy) -> Result<Settings, &'static str> {
+        match strategy {
             PaddingStrategy::Adaptive(0) => Err("invalid adaptive padding number"),
             _ => {
                 let mut cloned = self.clone();
-                cloned.padding_strategy = padding_strategy;
+                cloned.padding_strategy = strategy;
                 cloned.padding_symbol_lengths = (0, 0);
                 Ok(cloned)
             }
