@@ -25,6 +25,13 @@ pub enum PaddingStrategy {
     Adaptive(u8),
 }
 
+#[derive(Debug)]
+pub enum PaddingResult {
+    Unchanged,
+    Trim(u8),
+    Pad(String),
+}
+
 #[wasm_bindgen]
 #[derive(Clone, Copy, Debug)]
 pub enum Preset {
@@ -260,7 +267,7 @@ impl Randomizer for Settings {
         words_list
             .iter()
             .zip(transforms_list.iter())
-            .map(|(word, transform)| transform_word(word, *transform))
+            .map(|(word, &transform)| transform_word(word, transform))
             .collect()
     }
 
@@ -286,18 +293,18 @@ impl Randomizer for Settings {
         )
     }
 
-    fn adjust_for_padding_strategy(&self, passwd: &str) -> String {
+    fn adjust_padding(&self, pass_length: usize) -> PaddingResult {
         match self.padding_strategy {
-            PaddingStrategy::Fixed => passwd.to_string(),
+            PaddingStrategy::Fixed => PaddingResult::Unchanged,
             PaddingStrategy::Adaptive(len) => {
                 let length = len as usize;
 
-                if length > passwd.len() {
+                if length > pass_length {
                     let padded_symbols =
-                        rand_chars(&self.padding_symbols, (length - passwd.len()) as u8);
-                    passwd.to_string() + &padded_symbols
+                        rand_chars(&self.padding_symbols, (length - pass_length) as u8);
+                    PaddingResult::Pad(padded_symbols)
                 } else {
-                    passwd[..length].to_string()
+                    PaddingResult::Trim((pass_length - length) as u8)
                 }
             }
         }
@@ -378,7 +385,7 @@ impl Settings {
 
         let whitelisted_transforms: Vec<&WordTransform> = Self::ALL_SINGLE_WORD_TRANSFORMS
             .iter()
-            .filter(|&transform| self.word_transforms & *transform)
+            .filter(|&&transform| self.word_transforms & transform)
             .collect();
 
         let mut rng = rand::thread_rng();
@@ -819,31 +826,36 @@ mod tests {
     }
 
     #[test]
-    fn test_adjust_for_padding_strategy() {
-        let passwd = "foo.bar.68!!".to_string();
+    fn test_adjust_padding() {
+        let pass_length = 12;
 
         // fixed padding
         let settings = Settings::default()
             .with_padding_strategy(PaddingStrategy::Fixed)
             .unwrap();
-        assert_eq!(passwd, settings.adjust_for_padding_strategy(&passwd));
+        assert!(matches!(
+            settings.adjust_padding(pass_length),
+            PaddingResult::Unchanged
+        ));
 
         // adaptive padding: add symbols
         let settings = Settings::default()
             .with_padding_symbols("@")
             .with_padding_strategy(PaddingStrategy::Adaptive(15))
             .unwrap();
-        assert_eq!(
-            format!("{}@@@", passwd),
-            settings.adjust_for_padding_strategy(&passwd)
-        );
+        match settings.adjust_padding(pass_length) {
+            PaddingResult::Pad(padded_symbols) => assert_eq!("@@@", padded_symbols),
+            _ => panic!("invalid padding result"),
+        }
 
         // adaptive padding: cut length
         let settings = Settings::default()
-            .with_padding_symbols("@")
             .with_padding_strategy(PaddingStrategy::Adaptive(10))
             .unwrap();
-        assert_eq!("foo.bar.68", settings.adjust_for_padding_strategy(&passwd));
+        assert!(matches!(
+            settings.adjust_padding(pass_length),
+            PaddingResult::Trim(2)
+        ));
     }
 
     #[test]

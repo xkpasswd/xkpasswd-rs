@@ -32,7 +32,7 @@ pub trait Randomizer {
     fn rand_separator(&self) -> String;
     fn rand_prefix(&self) -> (String, String);
     fn rand_suffix(&self) -> (String, String);
-    fn adjust_for_padding_strategy(&self, passwd: &str) -> String;
+    fn adjust_padding(&self, pass_length: usize) -> PaddingResult;
 }
 
 #[derive(Debug, Default)]
@@ -77,7 +77,12 @@ impl Xkpasswd {
             words.join(separator),
             suffix_symbols
         );
-        settings.adjust_for_padding_strategy(&passwd)
+
+        match settings.adjust_padding(passwd.len()) {
+            PaddingResult::Unchanged => passwd,
+            PaddingResult::Trim(len) => passwd[..len as usize].to_string(),
+            PaddingResult::Pad(padded_symbols) => passwd + &padded_symbols,
+        }
     }
 }
 
