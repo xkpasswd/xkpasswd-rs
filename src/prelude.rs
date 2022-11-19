@@ -3,26 +3,15 @@ use std::{collections::HashMap, ops::Range};
 
 type Dict<'a> = HashMap<u8, Vec<&'a str>>;
 
-pub trait Builder: Default {
-    fn with_words_count(&self, words_count: u8) -> Result<Self, &'static str>
-    where
-        Self: Sized;
-    fn with_word_lengths(&self, min_length: u8, max_length: u8) -> Result<Self, &'static str>
-    where
-        Self: Sized;
+pub trait Builder: Default + Sized {
+    fn with_words_count(&self, words_count: u8) -> Result<Self, &'static str>;
+    fn with_word_lengths(&self, min_length: u8, max_length: u8) -> Result<Self, &'static str>;
     fn with_separators(&self, separators: &str) -> Self;
     fn with_padding_digits(&self, prefix: u8, suffix: u8) -> Self;
     fn with_padding_symbols(&self, symbols: &str) -> Self;
     fn with_padding_symbol_lengths(&self, prefix: u8, suffix: u8) -> Self;
-    fn with_padding_strategy(
-        &self,
-        padding_strategy: PaddingStrategy,
-    ) -> Result<Self, &'static str>
-    where
-        Self: Sized;
-    fn with_word_transforms(&self, transform: u8) -> Result<Self, &'static str>
-    where
-        Self: Sized;
+    fn with_padding_strategy(&self, strategy: PaddingStrategy) -> Result<Self, &'static str>;
+    fn with_word_transforms(&self, transform: u8) -> Result<Self, &'static str>;
     fn from_preset(preset: Preset) -> Self;
 }
 
