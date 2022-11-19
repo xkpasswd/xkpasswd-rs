@@ -4,6 +4,7 @@ use rand::distributions::{Distribution, Uniform};
 use rand::Rng;
 use std::cmp;
 use std::collections::HashMap;
+use std::ops::Range;
 use std::result::Result;
 use wasm_bindgen::prelude::*;
 
@@ -247,6 +248,11 @@ impl Builder for Settings {
 }
 
 impl Randomizer for Settings {
+    fn word_lengths(&self) -> Range<u8> {
+        let (min, max) = self.word_lengths;
+        min..(max + 1)
+    }
+
     fn rand_words(&self, pool: &[&str]) -> Vec<String> {
         let words_list = self.build_words_list(pool);
         let transforms_list = self.build_transforms_list();
@@ -278,11 +284,6 @@ impl Randomizer for Settings {
             rand_digits(suffix_digits),
             rand_chars(&self.padding_symbols, suffix_symbols),
         )
-    }
-
-    fn iter_word_lengths<F: FnMut(u8)>(&self, callback: F) {
-        let (min, max) = self.word_lengths;
-        (min..(max + 1)).for_each(callback);
     }
 
     fn adjust_for_padding_strategy(&self, passwd: &str) -> String {
@@ -706,6 +707,16 @@ mod tests {
     }
 
     #[test]
+    fn test_get_word_lengths() {
+        let table = [((4, 6), 4..7), ((5, 5), 5..6), ((6, 10), 6..11)];
+
+        for ((min, max), expected_lengths) in table {
+            let settings = Settings::default().with_word_lengths(min, max).unwrap();
+            assert_eq!(expected_lengths, settings.word_lengths());
+        }
+    }
+
+    #[test]
     fn test_rand_words() {
         let settings = Settings::default()
             .with_words_count(3)
@@ -804,22 +815,6 @@ mod tests {
                 // second part is repeated symbols
                 assert_eq!("~".to_string().repeat(suffix_symbols), symbols);
             }
-        }
-    }
-
-    #[test]
-    fn test_iter_word_lengths() {
-        let table = [
-            ((4, 6), vec![4, 5, 6]),
-            ((5, 5), vec![5]),
-            ((6, 10), vec![6, 7, 8, 9, 10]),
-        ];
-
-        for ((min, max), expected_lengths) in table {
-            let settings = Settings::default().with_word_lengths(min, max).unwrap();
-            let mut lengths: Vec<u8> = vec![];
-            settings.iter_word_lengths(|len| lengths.push(len));
-            assert_eq!(expected_lengths, lengths);
         }
     }
 
