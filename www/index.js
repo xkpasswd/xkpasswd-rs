@@ -4,7 +4,7 @@ async function run() {
   await init();
 
   const pass = new xkpasswd.Xkpasswd();
-  const customSettings = xkpasswd.Settings.default()
+  const customSettings = new xkpasswd.Settings()
     .withWordsCount(3)
     .withWordLengths(4, 8)
     .withSeparators('.')

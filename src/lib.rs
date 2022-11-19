@@ -1,5 +1,3 @@
-//#![feature(test)]
-
 pub mod bit_flags;
 pub mod prelude;
 pub mod settings;
@@ -20,8 +18,8 @@ pub struct WasmSettings {
 
 #[wasm_bindgen(js_class = "Settings")]
 impl WasmSettings {
-    #[wasm_bindgen]
-    pub fn default() -> WasmSettings {
+    #[wasm_bindgen(constructor)]
+    pub fn new() -> WasmSettings {
         let settings = Settings::default();
         WasmSettings { settings }
     }

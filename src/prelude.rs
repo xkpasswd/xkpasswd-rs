@@ -98,26 +98,3 @@ fn load_dict(dict_bytes: &[u8]) -> Dict {
 
     dict
 }
-
-#[cfg(all(feature = "benchmarks", test))]
-mod tests {
-    extern crate test;
-    use super::*;
-    use test::Bencher;
-
-    #[bench]
-    fn bench_load_dict(b: &mut Bencher) {
-        b.iter(|| {
-            let dict_en_bytes = include_bytes!("./assets/dict_en.txt");
-            load_dict(&dict_en_bytes[..]);
-        })
-    }
-
-    #[bench]
-    fn bench_xkpasswd(b: &mut Bencher) {
-        let dict_en_bytes = include_bytes!("./assets/dict_en.txt");
-        let dict_en = &load_dict(&dict_en_bytes[..]);
-        let settings = &Settings::default().words_count(3).word_lengths(3, 8);
-        b.iter(|| gen_passwd(dict_en, settings));
-    }
-}
