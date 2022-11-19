@@ -3,7 +3,7 @@ use std::collections::HashMap;
 
 type Dict<'a> = HashMap<u8, Vec<&'a str>>;
 
-pub trait Builder {
+pub trait Builder: Default {
     fn with_words_count(&self, words_count: u8) -> Result<Self, &'static str>
     where
         Self: Sized;

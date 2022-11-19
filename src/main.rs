@@ -8,7 +8,7 @@ use settings::*;
 
 fn main() {
     let pass_generator = Xkpasswd::new();
-    let settings = custom_settings().expect("Invalid settings");
+    let settings: Settings = build_settings(None).expect("Invalid settings");
     println!("Custom: {}", pass_generator.gen_pass(&settings));
 
     for preset in [
@@ -21,19 +21,25 @@ fn main() {
         Preset::Wifi,
         Preset::XKCD,
     ] {
-        let settings = Settings::from_preset(preset);
+        let settings: Settings = build_settings(Some(preset)).unwrap();
         println!("{:?}: {}", preset, pass_generator.gen_pass(&settings));
     }
 }
 
-fn custom_settings() -> Result<Settings, &'static str> {
-    Settings::default()
+fn build_settings<B: Builder + Randomizer>(
+    optional_preset: Option<Preset>,
+) -> Result<B, &'static str> {
+    if let Some(preset) = optional_preset {
+        return Ok(B::from_preset(preset));
+    }
+
+    B::default()
         .with_words_count(3)?
         .with_word_lengths(4, 8)?
+        .with_word_transforms(WordTransform::Lowercase | WordTransform::Uppercase)?
         .with_separators(".")
         .with_padding_digits(0, 2)
         .with_padding_symbols("!@#$%^&*-_=+:|~?/;")
         .with_padding_symbol_lengths(0, 2)
-        .with_padding_strategy(PaddingStrategy::Fixed)?
-        .with_word_transforms(WordTransform::Lowercase | WordTransform::Uppercase)
+        .with_padding_strategy(PaddingStrategy::Fixed)
 }
