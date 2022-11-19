@@ -24,7 +24,8 @@ path = "src/lib.rs"
 crate-type = ["cdylib", "rlib"]
 
 [features]
-default = ["console_error_panic_hook"]
+default = ["wasm_dev"]
+wasm_dev = ["console_error_panic_hook", "web-sys"]
 benchmarks = []
 
 [dependencies]
@@ -34,7 +35,7 @@ rand = "0.8.5"
 #serde = { version = "1.0.147", features = ["derive"] }
 #serde-wasm-bindgen = "0.4.5"
 wasm-bindgen = "0.2.83"
-web-sys = { version = "0.3.60", features = ["console"] }
+web-sys = { version = "0.3.60", features = ["console"], optional = true }
 
 [dev-dependencies]
 wasm-bindgen-test = "0.3.33"

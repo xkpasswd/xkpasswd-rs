@@ -1,6 +1,8 @@
+pub mod bit_flags;
 pub mod prelude;
 pub mod settings;
 
+use bit_flags::*;
 use prelude::*;
 use settings::*;
 
@@ -33,5 +35,5 @@ fn custom_settings() -> Result<Settings, &'static str> {
         .with_padding_symbols("!@#$%^&*-_=+:|~?/;")
         .with_padding_symbol_lengths(0, 2)
         .with_padding_strategy(PaddingStrategy::Fixed)?
-        .with_word_transforms(WordTransform::LOWERCASE | WordTransform::UPPERCASE)
+        .with_word_transforms(WordTransform::Lowercase | WordTransform::Uppercase)
 }
