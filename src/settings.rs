@@ -1,3 +1,4 @@
+use super::bit_flags::{BitFlags, FieldSize, WordTransform};
 use super::prelude::{Builder, Randomizer};
 use rand::distributions::{Distribution, Uniform};
 use rand::Rng;
@@ -15,7 +16,7 @@ const DEFAULT_SEPARATORS: &str = ".-_~";
 const DEFAULT_SYMBOLS: &str = "~@$%^&*-_+=:|~?/.;";
 const DEFAULT_WORDS_COUNT: u8 = 3;
 const DEFAULT_WORD_LENGTHS: (u8, u8) = (MIN_WORD_LENGTH, MAX_WORD_LENGTH);
-const DEFAULT_WORD_TRANSFORMS: u8 = WordTransform::LOWERCASE | WordTransform::UPPERCASE;
+const DEFAULT_WORD_TRANSFORMS: FieldSize = 0b00000101; // WordTransform::Lowercase | WordTransform::Uppercase
 
 #[derive(Clone, Debug)]
 pub enum PaddingStrategy {
@@ -34,33 +35,6 @@ pub enum Preset {
     Web32,
     Wifi,
     XKCD,
-}
-
-#[wasm_bindgen(js_name = "WordTransform")]
-pub enum WasmWordTransform {
-    // single transforms - possible to combine with each other
-    Lowercase = 0b00000001,
-    Titlecase = 0b00000010,
-    Uppercase = 0b00000100,
-    InversedTitlecase = 0b00001000,
-
-    // group transforms - overriding other single ones
-    AlternatingCaseLowerFirst = 0b01000000,
-    AlternatingCaseUpperFirst = 0b10000000,
-}
-
-pub struct WordTransform;
-
-impl WordTransform {
-    // single transforms - possible to combine with each other
-    pub const LOWERCASE: u8 = 1;
-    pub const TITLECASE: u8 = 1 << 1;
-    pub const UPPERCASE: u8 = 1 << 2;
-    pub const INVERSED_TITLECASE: u8 = 1 << 3;
-
-    // group transforms - overriding other single ones
-    pub const ALTERNATING_CASE_LOWER_FIRST: u8 = 1 << 6;
-    pub const ALTERNATING_CASE_UPPER_FIRST: u8 = 1 << 7;
 }
 
 #[derive(Clone, Debug)]
@@ -156,25 +130,25 @@ impl Builder for Settings {
         }
     }
 
-    fn with_word_transforms(&self, transforms: u8) -> Result<Self, &'static str> {
+    fn with_word_transforms(&self, transforms: FieldSize) -> Result<Self, &'static str> {
         let mut cloned = self.clone();
 
         // handle group transforms first
-        if transforms & WordTransform::ALTERNATING_CASE_LOWER_FIRST > 0 {
-            cloned.word_transforms = WordTransform::ALTERNATING_CASE_LOWER_FIRST;
+        if transforms.has_flag(WordTransform::AlternatingCaseLowerFirst) {
+            cloned.word_transforms = WordTransform::AlternatingCaseLowerFirst as FieldSize;
             return Ok(cloned);
         }
 
-        if transforms & WordTransform::ALTERNATING_CASE_UPPER_FIRST > 0 {
-            cloned.word_transforms = WordTransform::ALTERNATING_CASE_UPPER_FIRST;
+        if transforms.has_flag(WordTransform::AlternatingCaseUpperFirst) {
+            cloned.word_transforms = WordTransform::AlternatingCaseUpperFirst as FieldSize;
             return Ok(cloned);
         }
 
         // no transform matched
-        if transforms & WordTransform::LOWERCASE == 0
-            && transforms & WordTransform::TITLECASE == 0
-            && transforms & WordTransform::UPPERCASE == 0
-            && transforms & WordTransform::INVERSED_TITLECASE == 0
+        if !transforms.has_flag(WordTransform::Lowercase)
+            && !transforms.has_flag(WordTransform::Titlecase)
+            && !transforms.has_flag(WordTransform::Uppercase)
+            && !transforms.has_flag(WordTransform::InversedTitlecase)
         {
             return Err("invalid transform");
         }
@@ -189,7 +163,7 @@ impl Builder for Settings {
             Preset::AppleID => Settings {
                 words_count: 3,
                 word_lengths: (5, 7),
-                word_transforms: WordTransform::LOWERCASE | WordTransform::UPPERCASE,
+                word_transforms: WordTransform::Lowercase | WordTransform::Uppercase,
                 separators: "-:.,".to_string(),
                 padding_digits: (2, 2),
                 padding_symbols: "!?@&".to_string(),
@@ -199,7 +173,7 @@ impl Builder for Settings {
             Preset::Default => Settings {
                 words_count: 3,
                 word_lengths: (4, 8),
-                word_transforms: WordTransform::ALTERNATING_CASE_LOWER_FIRST,
+                word_transforms: FieldSize::from_flag(WordTransform::AlternatingCaseLowerFirst),
                 separators: DEFAULT_SYMBOLS.to_string(),
                 padding_digits: (2, 2),
                 padding_symbols: DEFAULT_SYMBOLS.to_string(),
@@ -209,7 +183,7 @@ impl Builder for Settings {
             Preset::WindowsNTLMv1 => Settings {
                 words_count: 2,
                 word_lengths: (5, 5),
-                word_transforms: WordTransform::INVERSED_TITLECASE,
+                word_transforms: FieldSize::from_flag(WordTransform::InversedTitlecase),
                 separators: "-+=.*_|~,".to_string(),
                 padding_digits: (1, 0),
                 padding_symbols: "!@$%^&*+=:|~?".to_string(),
@@ -219,7 +193,7 @@ impl Builder for Settings {
             Preset::SecurityQuestions => Settings {
                 words_count: 6,
                 word_lengths: (4, 8),
-                word_transforms: WordTransform::LOWERCASE,
+                word_transforms: FieldSize::from_flag(WordTransform::Lowercase),
                 separators: " ".to_string(),
                 padding_digits: (0, 0),
                 padding_symbols: ".!?".to_string(),
@@ -229,7 +203,7 @@ impl Builder for Settings {
             Preset::Web16 => Settings {
                 words_count: 3,
                 word_lengths: (4, 4),
-                word_transforms: WordTransform::LOWERCASE | WordTransform::UPPERCASE,
+                word_transforms: WordTransform::Lowercase | WordTransform::Uppercase,
                 separators: "-+=.*_|~,".to_string(),
                 padding_digits: (0, 0),
                 padding_symbols: "!@$%^&*+=:|~?".to_string(),
@@ -239,7 +213,7 @@ impl Builder for Settings {
             Preset::Web32 => Settings {
                 words_count: 4,
                 word_lengths: (4, 5),
-                word_transforms: WordTransform::ALTERNATING_CASE_UPPER_FIRST,
+                word_transforms: FieldSize::from_flag(WordTransform::AlternatingCaseUpperFirst),
                 separators: "-+=.*_|~,".to_string(),
                 padding_digits: (2, 2),
                 padding_symbols: "!@$%^&*+=:|~?".to_string(),
@@ -249,7 +223,7 @@ impl Builder for Settings {
             Preset::Wifi => Settings {
                 words_count: 6,
                 word_lengths: (4, 8),
-                word_transforms: WordTransform::LOWERCASE | WordTransform::UPPERCASE,
+                word_transforms: WordTransform::Lowercase | WordTransform::Uppercase,
                 separators: "-+=.*_|~,".to_string(),
                 padding_digits: (4, 4),
                 padding_symbols: "!@$%^&*+=:|~?".to_string(),
@@ -259,7 +233,7 @@ impl Builder for Settings {
             Preset::XKCD => Settings {
                 words_count: 4,
                 word_lengths: (4, 8),
-                word_transforms: WordTransform::LOWERCASE | WordTransform::UPPERCASE,
+                word_transforms: WordTransform::Lowercase | WordTransform::Uppercase,
                 separators: "-".to_string(),
                 padding_digits: (0, 0),
                 padding_symbols: "".to_string(),
@@ -328,11 +302,11 @@ impl Randomizer for Settings {
 }
 
 impl Settings {
-    const ALL_SINGLE_WORD_TRANSFORMS: [u8; 4] = [
-        WordTransform::LOWERCASE,
-        WordTransform::TITLECASE,
-        WordTransform::UPPERCASE,
-        WordTransform::INVERSED_TITLECASE,
+    const ALL_SINGLE_WORD_TRANSFORMS: [WordTransform; 4] = [
+        WordTransform::Lowercase,
+        WordTransform::Titlecase,
+        WordTransform::Uppercase,
+        WordTransform::InversedTitlecase,
     ];
 
     fn build_words_list<'a>(&self, pool: &[&'a str]) -> Vec<&'a str> {
@@ -368,34 +342,40 @@ impl Settings {
             .collect()
     }
 
-    fn build_transforms_list(&self) -> Vec<u8> {
-        if self.word_transforms & WordTransform::ALTERNATING_CASE_LOWER_FIRST > 0 {
+    fn build_transforms_list(&self) -> Vec<WordTransform> {
+        if self
+            .word_transforms
+            .has_flag(WordTransform::AlternatingCaseLowerFirst)
+        {
             return (0..self.words_count)
                 .map(|idx| {
                     if idx % 2 == 0 {
-                        WordTransform::LOWERCASE
+                        WordTransform::Lowercase
                     } else {
-                        WordTransform::UPPERCASE
+                        WordTransform::Uppercase
                     }
                 })
                 .collect();
         }
 
-        if self.word_transforms & WordTransform::ALTERNATING_CASE_UPPER_FIRST > 0 {
+        if self
+            .word_transforms
+            .has_flag(WordTransform::AlternatingCaseUpperFirst)
+        {
             return (0..self.words_count)
                 .map(|idx| {
                     if idx % 2 == 0 {
-                        WordTransform::UPPERCASE
+                        WordTransform::Uppercase
                     } else {
-                        WordTransform::LOWERCASE
+                        WordTransform::Lowercase
                     }
                 })
                 .collect();
         }
 
-        let whitelisted_transforms: Vec<&u8> = Self::ALL_SINGLE_WORD_TRANSFORMS
+        let whitelisted_transforms: Vec<&WordTransform> = Self::ALL_SINGLE_WORD_TRANSFORMS
             .iter()
-            .filter(|transform| self.word_transforms & *transform != 0)
+            .filter(|&transform| self.word_transforms & *transform)
             .collect();
 
         let mut rng = rand::thread_rng();
@@ -443,11 +423,11 @@ fn rand_chars(pool: &str, count: u8) -> String {
         .repeat(count as _)
 }
 
-fn transform_word(word: &str, transform: u8) -> String {
+fn transform_word(word: &str, transform: WordTransform) -> String {
     match transform {
-        WordTransform::TITLECASE => word[..1].to_uppercase() + &word[1..],
-        WordTransform::UPPERCASE => word.to_uppercase(),
-        WordTransform::INVERSED_TITLECASE => word[..1].to_lowercase() + &word[1..].to_uppercase(),
+        WordTransform::Titlecase => word[..1].to_uppercase() + &word[1..],
+        WordTransform::Uppercase => word.to_uppercase(),
+        WordTransform::InversedTitlecase => word[..1].to_lowercase() + &word[1..].to_uppercase(),
         // lowercase by default
         _ => word.to_lowercase(),
     }
@@ -650,10 +630,14 @@ mod tests {
         }
 
         let settings = Settings::default()
-            .with_word_transforms(WordTransform::LOWERCASE)
+            .with_word_transforms(FieldSize::from_flag(WordTransform::Lowercase))
             .unwrap();
+
         // only words_transform updated
-        assert_eq!(WordTransform::LOWERCASE, settings.word_transforms);
+        assert_eq!(
+            FieldSize::from_flag(WordTransform::Lowercase),
+            settings.word_transforms
+        );
 
         // other fields remain unchanged
         assert_eq!(DEFAULT_WORDS_COUNT, settings.words_count);
@@ -664,11 +648,12 @@ mod tests {
         assert_eq!((0, DEFAULT_PADDING_LENGTH), settings.padding_symbol_lengths);
         assert!(matches!(settings.padding_strategy, PaddingStrategy::Fixed));
 
-        for transform in [
-            WordTransform::TITLECASE,
-            WordTransform::UPPERCASE,
-            WordTransform::INVERSED_TITLECASE,
+        for flag in [
+            WordTransform::Titlecase,
+            WordTransform::Uppercase,
+            WordTransform::InversedTitlecase,
         ] {
+            let transform = FieldSize::from_flag(flag);
             let other_settings = settings.with_word_transforms(transform).unwrap();
             assert_eq!(transform, other_settings.word_transforms);
         }
@@ -676,21 +661,21 @@ mod tests {
 
     #[test]
     fn test_with_word_transforms_group() {
-        for group_transform in [
-            WordTransform::ALTERNATING_CASE_LOWER_FIRST,
-            WordTransform::ALTERNATING_CASE_UPPER_FIRST,
+        for group_flag in [
+            WordTransform::AlternatingCaseLowerFirst,
+            WordTransform::AlternatingCaseUpperFirst,
         ] {
-            for single_transform in [
-                WordTransform::LOWERCASE,
-                WordTransform::TITLECASE,
-                WordTransform::UPPERCASE,
-                WordTransform::INVERSED_TITLECASE,
+            for single_flag in [
+                WordTransform::Lowercase,
+                WordTransform::Titlecase,
+                WordTransform::Uppercase,
+                WordTransform::InversedTitlecase,
             ] {
                 let settings = Settings::default()
-                    .with_word_transforms(group_transform | single_transform)
+                    .with_word_transforms(group_flag | single_flag)
                     .unwrap();
                 // only words_transform updated
-                assert_eq!(group_transform, settings.word_transforms);
+                assert_eq!(FieldSize::from_flag(group_flag), settings.word_transforms);
             }
         }
     }
@@ -700,7 +685,7 @@ mod tests {
         let settings = Settings::default()
             .with_words_count(3)
             .unwrap()
-            .with_word_transforms(WordTransform::UPPERCASE)
+            .with_word_transforms(FieldSize::from_flag(WordTransform::Uppercase))
             .unwrap();
 
         // empty pool
@@ -875,10 +860,10 @@ mod tests {
 
     #[test]
     fn test_build_transforms_list() {
-        let all_transforms = WordTransform::LOWERCASE
-            | WordTransform::TITLECASE
-            | WordTransform::UPPERCASE
-            | WordTransform::INVERSED_TITLECASE;
+        let all_transforms = WordTransform::Lowercase
+            | WordTransform::Titlecase
+            | WordTransform::Uppercase
+            | WordTransform::InversedTitlecase;
 
         let settings = Settings::default()
             .with_words_count(3)
@@ -891,19 +876,19 @@ mod tests {
 
         let table = [
             (
-                WordTransform::ALTERNATING_CASE_LOWER_FIRST,
+                FieldSize::from_flag(WordTransform::AlternatingCaseLowerFirst),
                 vec![
-                    WordTransform::LOWERCASE,
-                    WordTransform::UPPERCASE,
-                    WordTransform::LOWERCASE,
+                    WordTransform::Lowercase,
+                    WordTransform::Uppercase,
+                    WordTransform::Lowercase,
                 ],
             ),
             (
-                WordTransform::ALTERNATING_CASE_UPPER_FIRST,
+                FieldSize::from_flag(WordTransform::AlternatingCaseUpperFirst),
                 vec![
-                    WordTransform::UPPERCASE,
-                    WordTransform::LOWERCASE,
-                    WordTransform::UPPERCASE,
+                    WordTransform::Uppercase,
+                    WordTransform::Lowercase,
+                    WordTransform::Uppercase,
                 ],
             ),
         ];
@@ -970,7 +955,7 @@ mod tests {
     fn test_transform_word() {
         let table = [
             (
-                WordTransform::LOWERCASE,
+                WordTransform::Lowercase,
                 [
                     ("foo", "foo"),
                     ("Bar", "bar"),
@@ -979,7 +964,7 @@ mod tests {
                 ],
             ),
             (
-                WordTransform::TITLECASE,
+                WordTransform::Titlecase,
                 [
                     ("foo", "Foo"),
                     ("Bar", "Bar"),
@@ -988,7 +973,7 @@ mod tests {
                 ],
             ),
             (
-                WordTransform::UPPERCASE,
+                WordTransform::Uppercase,
                 [
                     ("foo", "FOO"),
                     ("Bar", "BAR"),
@@ -997,7 +982,7 @@ mod tests {
                 ],
             ),
             (
-                WordTransform::INVERSED_TITLECASE,
+                WordTransform::InversedTitlecase,
                 [
                     ("foo", "fOO"),
                     ("Bar", "bAR"),
