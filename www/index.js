@@ -4,19 +4,25 @@ async function run() {
   await init();
 
   const pass = new xkpasswd.Xkpasswd();
-  const customSettings = new xkpasswd.Settings()
-    .withWordsCount(3)
-    .withWordLengths(4, 8)
-    .withSeparators('.')
-    .withPaddingDigits(0, 2)
-    .withPaddingSymbols('!@#$%^&*-_=+:|~?/;')
-    .withPaddingSymbolLengths(0, 2)
-    .withWordTransforms(
-      xkpasswd.WordTransform.Lowercase,
-      xkpasswd.WordTransform.Uppercase
-    );
 
-  appendPasswd('Custom', pass.genPass(customSettings));
+  try {
+    const customSettings = new xkpasswd.Settings()
+      .withWordsCount(3)
+      .withWordLengths(4, 8)
+      .withSeparators('.')
+      .withPaddingDigits(0, 2)
+      .withPaddingSymbols('!@#$%^&*-_=+:|~?/;')
+      .withPaddingSymbolLengths(0, 2)
+      .withWordTransforms(
+        xkpasswd.WordTransform.Lowercase,
+        xkpasswd.WordTransform.Uppercase
+      );
+
+    appendPasswd('Custom', pass.genPass(customSettings));
+  } catch (exc) {
+    console.warn(exc);
+  }
+
   const presetTitles = [
     'AppleID',
     'Default',
