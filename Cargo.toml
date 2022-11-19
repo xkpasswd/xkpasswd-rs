@@ -26,7 +26,6 @@ crate-type = ["cdylib", "rlib"]
 [features]
 default = ["wasm_dev"]
 wasm_dev = ["console_error_panic_hook", "web-sys"]
-benchmarks = []
 
 [dependencies]
 console_error_panic_hook = { version = "0.1.7", optional = true }
