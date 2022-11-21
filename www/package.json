@@ -5,7 +5,7 @@
   "main": "index.js",
   "scripts": {
     "wasm:dev": "wasm-pack build --target web --out-dir www/xkpasswd/pkg",
-    "wasm:prod": "wasm-pack build --target web --out-dir www/xkpasswd/pkg --no-default-features",
+    "wasm:prod": "wasm-pack build --target web --out-dir www/xkpasswd/pkg --features=wasm_prod",
     "predev": "npm run wasm:dev",
     "dev": "vite",
     "prebuild": "npm run wasm:prod",

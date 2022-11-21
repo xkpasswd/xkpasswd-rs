@@ -27,6 +27,6 @@ jobs:
         run: curl https://rustwasm.github.io/wasm-pack/installer/init.sh -sSf | sh
 
       - name: Build
-        run: wasm-pack build --no-default-features
+        run: wasm-pack build --features=wasm_prod
       - name: Calculate gzip size
         run: 'if [[ $(gzip -9 < pkg/xkpasswd_bg.wasm | wc -c) -gt 100000 ]]; then echo "gzipped wasm size exceeds 100KB"; exit 1; fi'
