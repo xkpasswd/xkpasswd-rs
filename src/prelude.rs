@@ -69,7 +69,7 @@ impl Xkpasswd {
 
         match settings.adjust_padding(passwd.len()) {
             PaddingResult::Unchanged => passwd,
-            PaddingResult::Trim(len) => passwd[..len as usize].to_string(),
+            PaddingResult::TrimTo(len) => passwd[..len as usize].to_string(),
             PaddingResult::Pad(padded_symbols) => passwd + &padded_symbols,
         }
     }
