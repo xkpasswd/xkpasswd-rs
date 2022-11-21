@@ -24,15 +24,17 @@ path = "src/lib.rs"
 crate-type = ["cdylib", "rlib"]
 
 [features]
-default = ["wasm_dev"]
-wasm_dev = ["console_error_panic_hook", "web-sys"]
+default = ["cli_dev", "wasm_dev"]
+cli_dev = ["cli_prod"]
+cli_prod = ["clap"]
+wasm_prod = ["getrandom"]
+wasm_dev = ["wasm_prod", "console_error_panic_hook", "web-sys"]
 
 [dependencies]
+clap = { version = "4.0.26", features = ["derive"], optional = true }
 console_error_panic_hook = { version = "0.1.7", optional = true }
-getrandom = { version = "0.2.8", features = ["js"] }
+getrandom = { version = "0.2.8", features = ["js"], optional = true }
 rand = "0.8.5"
-#serde = { version = "1.0.147", features = ["derive"] }
-#serde-wasm-bindgen = "0.4.5"
 wasm-bindgen = "0.2.83"
 web-sys = { version = "0.3.60", features = ["console"], optional = true }
 
