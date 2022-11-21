@@ -8,18 +8,10 @@ use std::ops::Range;
 use std::result::Result;
 use wasm_bindgen::prelude::*;
 
-const MIN_WORD_LENGTH: u8 = 4;
 const MIN_WORD_LENGTH_ERR: &str = "min word length must be 4 or higher";
-const MAX_WORD_LENGTH: u8 = 10;
 const MAX_WORD_LENGTH_ERR: &str = "max word length must be 10 or lower";
-const DEFAULT_PADDING_LENGTH: u8 = 2;
-const DEFAULT_SEPARATORS: &str = ".-_~";
-const DEFAULT_SYMBOLS: &str = "~@$%^&*-_+=:|~?/.;";
-const DEFAULT_WORDS_COUNT: u8 = 3;
-const DEFAULT_WORD_LENGTHS: (u8, u8) = (MIN_WORD_LENGTH, MAX_WORD_LENGTH);
-const DEFAULT_WORD_TRANSFORMS: FieldSize = 0b00000101; // WordTransform::Lowercase | WordTransform::Uppercase
 
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, PartialEq, Eq)]
 pub enum PaddingStrategy {
     Fixed,
     Adaptive(u8),
@@ -28,15 +20,15 @@ pub enum PaddingStrategy {
 #[derive(Debug)]
 pub enum PaddingResult {
     Unchanged,
-    Trim(u8),
+    TrimTo(u8),
     Pad(String),
 }
 
 #[wasm_bindgen]
 #[derive(Clone, Copy, Debug)]
 pub enum Preset {
-    AppleID,
     Default,
+    AppleID,
     WindowsNTLMv1,
     SecurityQuestions,
     Web16,
@@ -60,14 +52,14 @@ pub struct Settings {
 impl Default for Settings {
     fn default() -> Self {
         Settings {
-            words_count: DEFAULT_WORDS_COUNT,
-            word_lengths: DEFAULT_WORD_LENGTHS,
-            word_transforms: DEFAULT_WORD_TRANSFORMS,
-            separators: DEFAULT_SEPARATORS.to_string(),
-            padding_digits: (0, DEFAULT_PADDING_LENGTH),
-            padding_symbols: DEFAULT_SYMBOLS.to_string(),
-            padding_symbol_lengths: (0, DEFAULT_PADDING_LENGTH),
-            padding_strategy: PaddingStrategy::Fixed,
+            words_count: Settings::DEFAULT_WORDS_COUNT,
+            word_lengths: Settings::DEFAULT_WORD_LENGTHS,
+            word_transforms: Settings::DEFAULT_WORD_TRANSFORMS,
+            separators: Settings::DEFAULT_SEPARATORS.to_string(),
+            padding_digits: (0, Settings::DEFAULT_PADDING_LENGTH),
+            padding_symbols: Settings::DEFAULT_SYMBOLS.to_string(),
+            padding_symbol_lengths: (0, Settings::DEFAULT_PADDING_LENGTH),
+            padding_strategy: Settings::DEFAULT_PADDING_STRATEGY,
         }
     }
 }
@@ -87,11 +79,11 @@ impl Builder for Settings {
         let min = cmp::min(min_length, max_length);
         let max = cmp::max(min_length, max_length);
 
-        if min < MIN_WORD_LENGTH {
+        if min < Settings::MIN_WORD_LENGTH {
             return Err(MIN_WORD_LENGTH_ERR);
         }
 
-        if max > MAX_WORD_LENGTH {
+        if max > Settings::MAX_WORD_LENGTH {
             return Err(MAX_WORD_LENGTH_ERR);
         }
 
@@ -177,16 +169,6 @@ impl Builder for Settings {
                 padding_symbol_lengths: (1, 1),
                 padding_strategy: PaddingStrategy::Fixed,
             },
-            Preset::Default => Settings {
-                words_count: 3,
-                word_lengths: (4, 8),
-                word_transforms: FieldSize::from_flag(WordTransform::AlternatingCaseLowerFirst),
-                separators: DEFAULT_SYMBOLS.to_string(),
-                padding_digits: (2, 2),
-                padding_symbols: DEFAULT_SYMBOLS.to_string(),
-                padding_symbol_lengths: (2, 2),
-                padding_strategy: PaddingStrategy::Fixed,
-            },
             Preset::WindowsNTLMv1 => Settings {
                 words_count: 2,
                 word_lengths: (5, 5),
@@ -247,6 +229,7 @@ impl Builder for Settings {
                 padding_symbol_lengths: (0, 0),
                 padding_strategy: PaddingStrategy::Fixed,
             },
+            _ => Self::default(),
         }
     }
 }
@@ -301,7 +284,7 @@ impl Randomizer for Settings {
                         rand_chars(&self.padding_symbols, (length - pass_length) as u8);
                     PaddingResult::Pad(padded_symbols)
                 } else {
-                    PaddingResult::Trim((pass_length - length) as u8)
+                    PaddingResult::TrimTo(len)
                 }
             }
         }
@@ -309,6 +292,16 @@ impl Randomizer for Settings {
 }
 
 impl Settings {
+    const MIN_WORD_LENGTH: u8 = 4;
+    const MAX_WORD_LENGTH: u8 = 10;
+    const DEFAULT_PADDING_LENGTH: u8 = 2;
+    const DEFAULT_PADDING_STRATEGY: PaddingStrategy = PaddingStrategy::Fixed;
+    pub const DEFAULT_SEPARATORS: &str = ".-_~";
+    const DEFAULT_SYMBOLS: &str = "~@$%^&*-_+=:|~?/.;";
+    const DEFAULT_WORDS_COUNT: u8 = 3;
+    const DEFAULT_WORD_LENGTHS: (u8, u8) = (Settings::MIN_WORD_LENGTH, Settings::MAX_WORD_LENGTH);
+    const DEFAULT_WORD_TRANSFORMS: FieldSize = 0b00000101; // WordTransform::Lowercase | WordTransform::Uppercase
+
     const ALL_SINGLE_WORD_TRANSFORMS: [WordTransform; 4] = [
         WordTransform::Lowercase,
         WordTransform::Titlecase,
@@ -450,14 +443,29 @@ mod tests {
     fn test_default_settings() {
         let settings = Settings::default();
 
-        assert_eq!(DEFAULT_WORDS_COUNT, settings.words_count);
-        assert_eq!(DEFAULT_WORD_LENGTHS, settings.word_lengths);
-        assert_eq!(DEFAULT_WORD_TRANSFORMS, settings.word_transforms);
-        assert_eq!(DEFAULT_SEPARATORS.to_string(), settings.separators);
-        assert_eq!((0, DEFAULT_PADDING_LENGTH), settings.padding_digits);
-        assert_eq!(DEFAULT_SYMBOLS.to_string(), settings.padding_symbols);
-        assert_eq!((0, DEFAULT_PADDING_LENGTH), settings.padding_symbol_lengths);
-        assert!(matches!(settings.padding_strategy, PaddingStrategy::Fixed));
+        assert_eq!(Settings::DEFAULT_WORDS_COUNT, settings.words_count);
+        assert_eq!(Settings::DEFAULT_WORD_LENGTHS, settings.word_lengths);
+        assert_eq!(Settings::DEFAULT_WORD_TRANSFORMS, settings.word_transforms);
+        assert_eq!(
+            Settings::DEFAULT_SEPARATORS.to_string(),
+            settings.separators
+        );
+        assert_eq!(
+            (0, Settings::DEFAULT_PADDING_LENGTH),
+            settings.padding_digits
+        );
+        assert_eq!(
+            Settings::DEFAULT_SYMBOLS.to_string(),
+            settings.padding_symbols
+        );
+        assert_eq!(
+            (0, Settings::DEFAULT_PADDING_LENGTH),
+            settings.padding_symbol_lengths
+        );
+        assert!(matches!(
+            settings.padding_strategy,
+            Settings::DEFAULT_PADDING_STRATEGY
+        ));
     }
 
     #[test]
@@ -473,13 +481,28 @@ mod tests {
         assert_eq!(1, settings.words_count);
 
         // other fields remain unchanged
-        assert_eq!(DEFAULT_WORD_LENGTHS, settings.word_lengths);
-        assert_eq!(DEFAULT_WORD_TRANSFORMS, settings.word_transforms);
-        assert_eq!(DEFAULT_SEPARATORS.to_string(), settings.separators);
-        assert_eq!((0, DEFAULT_PADDING_LENGTH), settings.padding_digits);
-        assert_eq!(DEFAULT_SYMBOLS.to_string(), settings.padding_symbols);
-        assert_eq!((0, DEFAULT_PADDING_LENGTH), settings.padding_symbol_lengths);
-        assert!(matches!(settings.padding_strategy, PaddingStrategy::Fixed));
+        assert_eq!(Settings::DEFAULT_WORD_LENGTHS, settings.word_lengths);
+        assert_eq!(Settings::DEFAULT_WORD_TRANSFORMS, settings.word_transforms);
+        assert_eq!(
+            Settings::DEFAULT_SEPARATORS.to_string(),
+            settings.separators
+        );
+        assert_eq!(
+            (0, Settings::DEFAULT_PADDING_LENGTH),
+            settings.padding_digits
+        );
+        assert_eq!(
+            Settings::DEFAULT_SYMBOLS.to_string(),
+            settings.padding_symbols
+        );
+        assert_eq!(
+            (0, Settings::DEFAULT_PADDING_LENGTH),
+            settings.padding_symbol_lengths
+        );
+        assert!(matches!(
+            settings.padding_strategy,
+            Settings::DEFAULT_PADDING_STRATEGY
+        ));
 
         // overriding with multiple calls
         let other_settings = settings.with_words_count(123).unwrap();
@@ -490,13 +513,15 @@ mod tests {
     fn test_with_word_lengths() {
         // invalid lengths
         assert!(matches!(
-            Settings::default().with_word_lengths(MIN_WORD_LENGTH - 1, MAX_WORD_LENGTH + 1),
+            Settings::default()
+                .with_word_lengths(Settings::MIN_WORD_LENGTH - 1, Settings::MAX_WORD_LENGTH + 1),
             Err(MIN_WORD_LENGTH_ERR)
         ));
 
         // max word length has lower priority
         assert!(matches!(
-            Settings::default().with_word_lengths(MIN_WORD_LENGTH, MAX_WORD_LENGTH + 1),
+            Settings::default()
+                .with_word_lengths(Settings::MIN_WORD_LENGTH, Settings::MAX_WORD_LENGTH + 1),
             Err(MAX_WORD_LENGTH_ERR)
         ));
 
@@ -505,12 +530,24 @@ mod tests {
         assert_eq!((4, 6), settings.word_lengths);
 
         // other fields remain unchanged
-        assert_eq!(DEFAULT_WORDS_COUNT, settings.words_count);
-        assert_eq!(DEFAULT_WORD_TRANSFORMS, settings.word_transforms);
-        assert_eq!(DEFAULT_SEPARATORS.to_string(), settings.separators);
-        assert_eq!(DEFAULT_SYMBOLS.to_string(), settings.padding_symbols);
-        assert_eq!((0, DEFAULT_PADDING_LENGTH), settings.padding_symbol_lengths);
-        assert!(matches!(settings.padding_strategy, PaddingStrategy::Fixed));
+        assert_eq!(Settings::DEFAULT_WORDS_COUNT, settings.words_count);
+        assert_eq!(Settings::DEFAULT_WORD_TRANSFORMS, settings.word_transforms);
+        assert_eq!(
+            Settings::DEFAULT_SEPARATORS.to_string(),
+            settings.separators
+        );
+        assert_eq!(
+            Settings::DEFAULT_SYMBOLS.to_string(),
+            settings.padding_symbols
+        );
+        assert_eq!(
+            (0, Settings::DEFAULT_PADDING_LENGTH),
+            settings.padding_symbol_lengths
+        );
+        assert!(matches!(
+            settings.padding_strategy,
+            Settings::DEFAULT_PADDING_STRATEGY
+        ));
 
         // overriding with multiple calls
         let other_settings = settings.with_word_lengths(5, 5).unwrap();
@@ -527,13 +564,25 @@ mod tests {
         assert_eq!("abc123".to_string(), settings.separators);
 
         // other fields remain unchanged
-        assert_eq!(DEFAULT_WORDS_COUNT, settings.words_count);
-        assert_eq!(DEFAULT_WORD_LENGTHS, settings.word_lengths);
-        assert_eq!(DEFAULT_WORD_TRANSFORMS, settings.word_transforms);
-        assert_eq!((0, DEFAULT_PADDING_LENGTH), settings.padding_digits);
-        assert_eq!(DEFAULT_SYMBOLS.to_string(), settings.padding_symbols);
-        assert_eq!((0, DEFAULT_PADDING_LENGTH), settings.padding_symbol_lengths);
-        assert!(matches!(settings.padding_strategy, PaddingStrategy::Fixed));
+        assert_eq!(Settings::DEFAULT_WORDS_COUNT, settings.words_count);
+        assert_eq!(Settings::DEFAULT_WORD_LENGTHS, settings.word_lengths);
+        assert_eq!(Settings::DEFAULT_WORD_TRANSFORMS, settings.word_transforms);
+        assert_eq!(
+            (0, Settings::DEFAULT_PADDING_LENGTH),
+            settings.padding_digits
+        );
+        assert_eq!(
+            Settings::DEFAULT_SYMBOLS.to_string(),
+            settings.padding_symbols
+        );
+        assert_eq!(
+            (0, Settings::DEFAULT_PADDING_LENGTH),
+            settings.padding_symbol_lengths
+        );
+        assert!(matches!(
+            settings.padding_strategy,
+            Settings::DEFAULT_PADDING_STRATEGY
+        ));
 
         // overriding with multiple calls
         let other_settings = settings.with_separators("");
@@ -547,13 +596,25 @@ mod tests {
         assert_eq!((1, 3), settings.padding_digits);
 
         // other fields remain unchanged
-        assert_eq!(DEFAULT_WORDS_COUNT, settings.words_count);
-        assert_eq!(DEFAULT_WORD_LENGTHS, settings.word_lengths);
-        assert_eq!(DEFAULT_WORD_TRANSFORMS, settings.word_transforms);
-        assert_eq!(DEFAULT_SEPARATORS.to_string(), settings.separators);
-        assert_eq!(DEFAULT_SYMBOLS.to_string(), settings.padding_symbols);
-        assert_eq!((0, DEFAULT_PADDING_LENGTH), settings.padding_symbol_lengths);
-        assert!(matches!(settings.padding_strategy, PaddingStrategy::Fixed));
+        assert_eq!(Settings::DEFAULT_WORDS_COUNT, settings.words_count);
+        assert_eq!(Settings::DEFAULT_WORD_LENGTHS, settings.word_lengths);
+        assert_eq!(Settings::DEFAULT_WORD_TRANSFORMS, settings.word_transforms);
+        assert_eq!(
+            Settings::DEFAULT_SEPARATORS.to_string(),
+            settings.separators
+        );
+        assert_eq!(
+            Settings::DEFAULT_SYMBOLS.to_string(),
+            settings.padding_symbols
+        );
+        assert_eq!(
+            (0, Settings::DEFAULT_PADDING_LENGTH),
+            settings.padding_symbol_lengths
+        );
+        assert!(matches!(
+            settings.padding_strategy,
+            Settings::DEFAULT_PADDING_STRATEGY
+        ));
 
         // overriding with multiple calls
         let other_settings = settings.with_padding_digits(0, 0);
@@ -567,13 +628,25 @@ mod tests {
         assert_eq!("456xyz".to_string(), settings.padding_symbols);
 
         // other fields remain unchanged
-        assert_eq!(DEFAULT_WORDS_COUNT, settings.words_count);
-        assert_eq!(DEFAULT_WORD_LENGTHS, settings.word_lengths);
-        assert_eq!(DEFAULT_WORD_TRANSFORMS, settings.word_transforms);
-        assert_eq!(DEFAULT_SEPARATORS.to_string(), settings.separators);
-        assert_eq!((0, DEFAULT_PADDING_LENGTH), settings.padding_digits);
-        assert_eq!((0, DEFAULT_PADDING_LENGTH), settings.padding_symbol_lengths);
-        assert!(matches!(settings.padding_strategy, PaddingStrategy::Fixed));
+        assert_eq!(Settings::DEFAULT_WORDS_COUNT, settings.words_count);
+        assert_eq!(Settings::DEFAULT_WORD_LENGTHS, settings.word_lengths);
+        assert_eq!(Settings::DEFAULT_WORD_TRANSFORMS, settings.word_transforms);
+        assert_eq!(
+            Settings::DEFAULT_SEPARATORS.to_string(),
+            settings.separators
+        );
+        assert_eq!(
+            (0, Settings::DEFAULT_PADDING_LENGTH),
+            settings.padding_digits
+        );
+        assert_eq!(
+            (0, Settings::DEFAULT_PADDING_LENGTH),
+            settings.padding_symbol_lengths
+        );
+        assert!(matches!(
+            settings.padding_strategy,
+            Settings::DEFAULT_PADDING_STRATEGY
+        ));
 
         // overriding with multiple calls
         let other_settings = settings.with_padding_symbols("def789");
@@ -591,12 +664,25 @@ mod tests {
         assert!(matches!(settings.padding_strategy, PaddingStrategy::Fixed));
 
         // other fields remain unchanged
-        assert_eq!(DEFAULT_WORDS_COUNT, settings.words_count);
-        assert_eq!(DEFAULT_WORD_LENGTHS, settings.word_lengths);
-        assert_eq!(DEFAULT_WORD_TRANSFORMS, settings.word_transforms);
-        assert_eq!(DEFAULT_SEPARATORS.to_string(), settings.separators);
-        assert_eq!((0, DEFAULT_PADDING_LENGTH), settings.padding_digits);
-        assert_eq!(DEFAULT_SYMBOLS.to_string(), settings.padding_symbols);
+        assert_eq!(Settings::DEFAULT_WORDS_COUNT, settings.words_count);
+        assert_eq!(Settings::DEFAULT_WORD_LENGTHS, settings.word_lengths);
+        assert_eq!(Settings::DEFAULT_WORD_TRANSFORMS, settings.word_transforms);
+        assert_eq!(
+            Settings::DEFAULT_SEPARATORS.to_string(),
+            settings.separators
+        );
+        assert_eq!(
+            (0, Settings::DEFAULT_PADDING_LENGTH),
+            settings.padding_digits
+        );
+        assert_eq!(
+            Settings::DEFAULT_SYMBOLS.to_string(),
+            settings.padding_symbols
+        );
+        assert!(matches!(
+            settings.padding_strategy,
+            Settings::DEFAULT_PADDING_STRATEGY
+        ));
 
         // overriding with multiple calls
         let other_settings = settings.with_padding_symbol_lengths(0, 0);
@@ -622,12 +708,21 @@ mod tests {
         assert_eq!((0, 0), settings.padding_symbol_lengths);
 
         // other fields remain unchanged
-        assert_eq!(DEFAULT_WORDS_COUNT, settings.words_count);
-        assert_eq!(DEFAULT_WORD_LENGTHS, settings.word_lengths);
-        assert_eq!(DEFAULT_WORD_TRANSFORMS, settings.word_transforms);
-        assert_eq!(DEFAULT_SEPARATORS.to_string(), settings.separators);
-        assert_eq!((0, DEFAULT_PADDING_LENGTH), settings.padding_digits);
-        assert_eq!(DEFAULT_SYMBOLS.to_string(), settings.padding_symbols);
+        assert_eq!(Settings::DEFAULT_WORDS_COUNT, settings.words_count);
+        assert_eq!(Settings::DEFAULT_WORD_LENGTHS, settings.word_lengths);
+        assert_eq!(Settings::DEFAULT_WORD_TRANSFORMS, settings.word_transforms);
+        assert_eq!(
+            Settings::DEFAULT_SEPARATORS.to_string(),
+            settings.separators
+        );
+        assert_eq!(
+            (0, Settings::DEFAULT_PADDING_LENGTH),
+            settings.padding_digits
+        );
+        assert_eq!(
+            Settings::DEFAULT_SYMBOLS.to_string(),
+            settings.padding_symbols
+        );
 
         // overriding
         let other_settings = settings
@@ -670,13 +765,28 @@ mod tests {
         );
 
         // other fields remain unchanged
-        assert_eq!(DEFAULT_WORDS_COUNT, settings.words_count);
-        assert_eq!(DEFAULT_WORD_LENGTHS, settings.word_lengths);
-        assert_eq!(DEFAULT_SEPARATORS.to_string(), settings.separators);
-        assert_eq!((0, DEFAULT_PADDING_LENGTH), settings.padding_digits);
-        assert_eq!(DEFAULT_SYMBOLS.to_string(), settings.padding_symbols);
-        assert_eq!((0, DEFAULT_PADDING_LENGTH), settings.padding_symbol_lengths);
-        assert!(matches!(settings.padding_strategy, PaddingStrategy::Fixed));
+        assert_eq!(Settings::DEFAULT_WORDS_COUNT, settings.words_count);
+        assert_eq!(Settings::DEFAULT_WORD_LENGTHS, settings.word_lengths);
+        assert_eq!(
+            Settings::DEFAULT_SEPARATORS.to_string(),
+            settings.separators
+        );
+        assert_eq!(
+            (0, Settings::DEFAULT_PADDING_LENGTH),
+            settings.padding_digits
+        );
+        assert_eq!(
+            Settings::DEFAULT_SYMBOLS.to_string(),
+            settings.padding_symbols
+        );
+        assert_eq!(
+            (0, Settings::DEFAULT_PADDING_LENGTH),
+            settings.padding_symbol_lengths
+        );
+        assert!(matches!(
+            settings.padding_strategy,
+            Settings::DEFAULT_PADDING_STRATEGY
+        ));
 
         for flag in [
             WordTransform::Titlecase,
@@ -851,7 +961,7 @@ mod tests {
             .unwrap();
         assert!(matches!(
             settings.adjust_padding(pass_length),
-            PaddingResult::Trim(2)
+            PaddingResult::TrimTo(10)
         ));
     }
 
@@ -958,14 +1068,14 @@ mod tests {
 
         // single char randomize
         for _ in 0..10 {
-            let result = rand_chars(DEFAULT_SYMBOLS, 1);
-            assert!(DEFAULT_SYMBOLS.contains(&result));
+            let result = rand_chars(Settings::DEFAULT_SYMBOLS, 1);
+            assert!(Settings::DEFAULT_SYMBOLS.contains(&result));
         }
 
         // multi char randomize
         for _ in 0..10 {
             for count in 2..5 {
-                let result = rand_chars(DEFAULT_SYMBOLS, count);
+                let result = rand_chars(Settings::DEFAULT_SYMBOLS, count);
                 assert_eq!(count as usize, result.len());
                 assert_eq!(
                     result
