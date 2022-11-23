@@ -37,7 +37,7 @@ pub trait Builder: Default + Sized {
     fn with_separators(&self, separators: &str) -> Self;
     fn with_padding_digits(&self, prefix: Option<u8>, suffix: Option<u8>) -> Self;
     fn with_padding_symbols(&self, symbols: &str) -> Self;
-    fn with_padding_symbol_lengths(&self, prefix: u8, suffix: u8) -> Self;
+    fn with_padding_symbol_lengths(&self, prefix: Option<u8>, suffix: Option<u8>) -> Self;
     fn with_padding_strategy(&self, strategy: PaddingStrategy) -> Result<Self, &'static str>;
     fn with_word_transforms(&self, transform: u8) -> Result<Self, &'static str>;
     fn from_preset(preset: Preset) -> Self;

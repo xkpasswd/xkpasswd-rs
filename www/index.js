@@ -8,11 +8,11 @@ async function run() {
   try {
     const customSettings = new xkpasswd.Settings()
       .withWordsCount(3)
-      .withWordLengths(4, null)
+      .withWordLengths(null, 8)
       .withSeparators('.')
       .withPaddingDigits(null, 2)
       .withPaddingSymbols('!@#$%^&*-_=+:|~?/;')
-      .withPaddingSymbolLengths(0, 2)
+      .withPaddingSymbolLengths(null, 2)
       .withWordTransforms(
         xkpasswd.WordTransform.Lowercase,
         xkpasswd.WordTransform.Uppercase

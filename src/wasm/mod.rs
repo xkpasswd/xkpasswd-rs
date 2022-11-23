@@ -87,7 +87,11 @@ impl WasmSettings {
     }
 
     #[wasm_bindgen(js_name = "withPaddingSymbolLengths")]
-    pub fn with_padding_symbol_lengths(&self, prefix: u8, suffix: u8) -> WasmSettings {
+    pub fn with_padding_symbol_lengths(
+        &self,
+        prefix: Option<u8>,
+        suffix: Option<u8>,
+    ) -> WasmSettings {
         let settings = self.settings.with_padding_symbol_lengths(prefix, suffix);
         WasmSettings { settings }
     }

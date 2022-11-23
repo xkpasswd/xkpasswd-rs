@@ -246,7 +246,7 @@ fn test_with_padding_symbol_lengths() {
     let settings = Settings::default()
         .with_padding_strategy(PaddingStrategy::Adaptive(12))
         .unwrap()
-        .with_padding_symbol_lengths(3, 4);
+        .with_padding_symbol_lengths(Some(3), Some(4));
     // only padding_symbol_lengths and padding_strategy updated
     assert_eq!((3, 4), settings.padding_symbol_lengths);
     assert!(matches!(settings.padding_strategy, PaddingStrategy::Fixed));
@@ -273,8 +273,17 @@ fn test_with_padding_symbol_lengths() {
     ));
 
     // overriding with multiple calls
-    let other_settings = settings.with_padding_symbol_lengths(0, 0);
+    let other_settings = settings.with_padding_symbol_lengths(Some(0), Some(0));
     assert_eq!((0, 0), other_settings.padding_symbol_lengths);
+
+    // with None values
+    let settings = Settings::default().with_padding_symbol_lengths(Some(2), Some(4));
+
+    let other_settings = settings.with_padding_symbol_lengths(None, Some(5));
+    assert_eq!((2, 5), other_settings.padding_symbol_lengths);
+
+    let other_settings = settings.with_padding_symbol_lengths(Some(8), None);
+    assert_eq!((8, 4), other_settings.padding_symbol_lengths);
 }
 
 #[test]
@@ -456,7 +465,7 @@ fn test_rand_prefix() {
     for ((prefix_digits, suffix_digits), (prefix_symbols, suffix_symbols)) in empty_cases {
         let settings = Settings::default()
             .with_padding_digits(Some(prefix_digits), Some(suffix_digits))
-            .with_padding_symbol_lengths(prefix_symbols, suffix_symbols);
+            .with_padding_symbol_lengths(Some(prefix_symbols), Some(suffix_symbols));
         let (symbols, digits) = settings.rand_prefix();
         assert_eq!("", symbols);
         assert_eq!("", digits);
@@ -467,7 +476,7 @@ fn test_rand_prefix() {
             let settings = Settings::default()
                 .with_padding_digits(Some(prefix_digits as u8), Some(2))
                 .with_padding_symbols("#")
-                .with_padding_symbol_lengths(prefix_symbols as u8, 3);
+                .with_padding_symbol_lengths(Some(prefix_symbols as u8), Some(3));
             let (symbols, digits) = settings.rand_prefix();
 
             // total length of prefix
@@ -495,7 +504,7 @@ fn test_rand_suffix() {
     for ((prefix_digits, suffix_digits), (prefix_symbols, suffix_symbols)) in empty_cases {
         let settings = Settings::default()
             .with_padding_digits(Some(prefix_digits), Some(suffix_digits))
-            .with_padding_symbol_lengths(prefix_symbols, suffix_symbols);
+            .with_padding_symbol_lengths(Some(prefix_symbols), Some(suffix_symbols));
         let (digits, symbols) = settings.rand_suffix();
         assert_eq!("", digits);
         assert_eq!("", symbols);
@@ -506,7 +515,7 @@ fn test_rand_suffix() {
             let settings = Settings::default()
                 .with_padding_digits(Some(2), Some(suffix_digits as u8))
                 .with_padding_symbols("~")
-                .with_padding_symbol_lengths(3, suffix_symbols as u8);
+                .with_padding_symbol_lengths(Some(3), Some(suffix_symbols as u8));
             let (digits, symbols) = settings.rand_suffix();
 
             // total length of suffix
