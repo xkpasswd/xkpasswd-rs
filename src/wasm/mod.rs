@@ -60,7 +60,7 @@ impl WasmSettings {
     }
 
     #[wasm_bindgen(js_name = "withWordLengths")]
-    pub fn with_word_lengths(&self, min: u8, max: u8) -> WasmSettings {
+    pub fn with_word_lengths(&self, min: Option<u8>, max: Option<u8>) -> WasmSettings {
         let settings = self
             .settings
             .with_word_lengths(min, max)

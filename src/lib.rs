@@ -16,7 +16,7 @@ mod tests {
 
         let settings = WasmSettings::default()
             .with_words_count(3)
-            .with_word_lengths(4, 8)
+            .with_word_lengths(None, Some(8))
             .with_separators(".")
             .with_padding_digits(0, 2)
             .with_padding_symbols("!@#$%^&*-_=+:|~?/;")
