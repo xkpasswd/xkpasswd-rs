@@ -29,7 +29,11 @@ type Dict<'a> = HashMap<u8, Vec<&'a str>>;
 
 pub trait Builder: Default + Sized {
     fn with_words_count(&self, words_count: u8) -> Result<Self, &'static str>;
-    fn with_word_lengths(&self, min_length: u8, max_length: u8) -> Result<Self, &'static str>;
+    fn with_word_lengths(
+        &self,
+        min_length: Option<u8>,
+        max_length: Option<u8>,
+    ) -> Result<Self, &'static str>;
     fn with_separators(&self, separators: &str) -> Self;
     fn with_padding_digits(&self, prefix: u8, suffix: u8) -> Self;
     fn with_padding_symbols(&self, symbols: &str) -> Self;

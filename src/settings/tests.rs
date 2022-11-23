@@ -75,19 +75,25 @@ fn test_with_words_count() {
 fn test_with_word_lengths() {
     // invalid lengths
     assert!(matches!(
-        Settings::default()
-            .with_word_lengths(Settings::MIN_WORD_LENGTH - 1, Settings::MAX_WORD_LENGTH + 1),
+        Settings::default().with_word_lengths(
+            Some(Settings::MIN_WORD_LENGTH - 1),
+            Some(Settings::MAX_WORD_LENGTH + 1)
+        ),
         Err(MIN_WORD_LENGTH_ERR)
     ));
 
     // max word length has lower priority
     assert!(matches!(
-        Settings::default()
-            .with_word_lengths(Settings::MIN_WORD_LENGTH, Settings::MAX_WORD_LENGTH + 1),
+        Settings::default().with_word_lengths(
+            Some(Settings::MIN_WORD_LENGTH),
+            Some(Settings::MAX_WORD_LENGTH + 1)
+        ),
         Err(MAX_WORD_LENGTH_ERR)
     ));
 
-    let settings = Settings::default().with_word_lengths(4, 6).unwrap();
+    let settings = Settings::default()
+        .with_word_lengths(Some(4), Some(6))
+        .unwrap();
     // only word_lengths updated
     assert_eq!((4, 6), settings.word_lengths);
 
@@ -112,11 +118,22 @@ fn test_with_word_lengths() {
     ));
 
     // overriding with multiple calls
-    let other_settings = settings.with_word_lengths(5, 5).unwrap();
+    let other_settings = settings.with_word_lengths(Some(5), Some(5)).unwrap();
     assert_eq!((5, 5), other_settings.word_lengths); // equal values
 
-    let other_settings = settings.with_word_lengths(6, 4).unwrap();
+    let other_settings = settings.with_word_lengths(Some(6), Some(4)).unwrap();
     assert_eq!((4, 6), other_settings.word_lengths); // min/max corrected
+
+    // with None values
+    let settings = Settings::default()
+        .with_word_lengths(Some(4), Some(7))
+        .unwrap();
+
+    let other_settings = settings.with_word_lengths(None, Some(5)).unwrap();
+    assert_eq!((4, 5), other_settings.word_lengths);
+
+    let other_settings = settings.with_word_lengths(Some(8), None).unwrap();
+    assert_eq!((7, 8), other_settings.word_lengths);
 }
 
 #[test]
@@ -387,7 +404,9 @@ fn test_get_word_lengths() {
     let table = [((4, 6), 4..7), ((5, 5), 5..6), ((6, 10), 6..11)];
 
     for ((min, max), expected_lengths) in table {
-        let settings = Settings::default().with_word_lengths(min, max).unwrap();
+        let settings = Settings::default()
+            .with_word_lengths(Some(min), Some(max))
+            .unwrap();
         assert_eq!(expected_lengths, settings.word_lengths());
     }
 }

@@ -28,14 +28,14 @@ pub struct Settings {
 impl Default for Settings {
     fn default() -> Self {
         Settings {
-            words_count: Settings::DEFAULT_WORDS_COUNT,
-            word_lengths: Settings::DEFAULT_WORD_LENGTHS,
-            word_transforms: Settings::DEFAULT_WORD_TRANSFORMS,
-            separators: Settings::DEFAULT_SEPARATORS.to_string(),
-            padding_digits: (0, Settings::DEFAULT_PADDING_LENGTH),
-            padding_symbols: Settings::DEFAULT_SYMBOLS.to_string(),
-            padding_symbol_lengths: (0, Settings::DEFAULT_PADDING_LENGTH),
-            padding_strategy: Settings::DEFAULT_PADDING_STRATEGY,
+            words_count: Self::DEFAULT_WORDS_COUNT,
+            word_lengths: Self::DEFAULT_WORD_LENGTHS,
+            word_transforms: Self::DEFAULT_WORD_TRANSFORMS,
+            separators: Self::DEFAULT_SEPARATORS.to_string(),
+            padding_digits: (0, Self::DEFAULT_PADDING_LENGTH),
+            padding_symbols: Self::DEFAULT_SYMBOLS.to_string(),
+            padding_symbol_lengths: (0, Self::DEFAULT_PADDING_LENGTH),
+            padding_strategy: Self::DEFAULT_PADDING_STRATEGY,
         }
     }
 }
@@ -51,15 +51,22 @@ impl Builder for Settings {
         Ok(cloned)
     }
 
-    fn with_word_lengths(&self, min_length: u8, max_length: u8) -> Result<Settings, &'static str> {
+    fn with_word_lengths(
+        &self,
+        min_length: Option<u8>,
+        max_length: Option<u8>,
+    ) -> Result<Settings, &'static str> {
+        let min_length = min_length.unwrap_or(self.word_lengths.0);
+        let max_length = max_length.unwrap_or(self.word_lengths.1);
+
         let min = cmp::min(min_length, max_length);
         let max = cmp::max(min_length, max_length);
 
-        if min < Settings::MIN_WORD_LENGTH {
+        if min < Self::MIN_WORD_LENGTH {
             return Err(MIN_WORD_LENGTH_ERR);
         }
 
-        if max > Settings::MAX_WORD_LENGTH {
+        if max > Self::MAX_WORD_LENGTH {
             return Err(MAX_WORD_LENGTH_ERR);
         }
 
@@ -275,8 +282,7 @@ impl Settings {
     pub const DEFAULT_SEPARATORS: &str = ".-_~";
     pub const DEFAULT_SYMBOLS: &str = "~@$%^&*-_+=:|~?/.;";
     pub const DEFAULT_WORDS_COUNT: u8 = 3;
-    pub const DEFAULT_WORD_LENGTHS: (u8, u8) =
-        (Settings::MIN_WORD_LENGTH, Settings::MAX_WORD_LENGTH);
+    pub const DEFAULT_WORD_LENGTHS: (u8, u8) = (Self::MIN_WORD_LENGTH, Self::MAX_WORD_LENGTH);
     pub const DEFAULT_WORD_TRANSFORMS: FieldSize = 0b00000101; // WordTransform::Lowercase | WordTransform::Uppercase
 
     const ALL_SINGLE_WORD_TRANSFORMS: [WordTransform; 4] = [

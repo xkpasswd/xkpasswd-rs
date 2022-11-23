@@ -36,11 +36,11 @@ pub struct Cli {
     #[arg(short = 'w', long = "words", default_value_t = 3)]
     words_count: u8,
 
-    #[arg(short = 'l', long = "min", default_value_t = 4)]
-    words_length_min: u8,
+    #[arg(short = 'l', long = "min")]
+    words_length_min: Option<u8>,
 
-    #[arg(short = 'u', long = "max", default_value_t = 8)]
-    words_length_max: u8,
+    #[arg(short = 'u', long = "max")]
+    words_length_max: Option<u8>,
 
     #[arg(short = 't', long, value_enum)]
     word_transforms: Option<Vec<CliPreset>>,
