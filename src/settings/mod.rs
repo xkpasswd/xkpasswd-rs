@@ -122,13 +122,13 @@ impl Builder for Settings {
         let mut cloned = self.clone();
 
         // handle group transforms first
-        if transforms.has_flag(WordTransform::AlternatingCaseLowerFirst) {
-            cloned.word_transforms = WordTransform::AlternatingCaseLowerFirst as FieldSize;
+        if transforms.has_flag(WordTransform::AltercaseLowerFirst) {
+            cloned.word_transforms = WordTransform::AltercaseLowerFirst as FieldSize;
             return Ok(cloned);
         }
 
-        if transforms.has_flag(WordTransform::AlternatingCaseUpperFirst) {
-            cloned.word_transforms = WordTransform::AlternatingCaseUpperFirst as FieldSize;
+        if transforms.has_flag(WordTransform::AltercaseUpperFirst) {
+            cloned.word_transforms = WordTransform::AltercaseUpperFirst as FieldSize;
             return Ok(cloned);
         }
 
@@ -191,7 +191,7 @@ impl Builder for Settings {
             Preset::Web32 => Settings {
                 words_count: 4,
                 word_lengths: (4, 5),
-                word_transforms: FieldSize::from_flag(WordTransform::AlternatingCaseUpperFirst),
+                word_transforms: FieldSize::from_flag(WordTransform::AltercaseUpperFirst),
                 separators: "-+=.*_|~,".to_string(),
                 padding_digits: (2, 2),
                 padding_symbols: "!@$%^&*+=:|~?".to_string(),
@@ -334,7 +334,7 @@ impl Settings {
     fn build_transforms_list(&self) -> Vec<WordTransform> {
         if self
             .word_transforms
-            .has_flag(WordTransform::AlternatingCaseLowerFirst)
+            .has_flag(WordTransform::AltercaseLowerFirst)
         {
             return (0..self.words_count)
                 .map(|idx| {
@@ -349,7 +349,7 @@ impl Settings {
 
         if self
             .word_transforms
-            .has_flag(WordTransform::AlternatingCaseUpperFirst)
+            .has_flag(WordTransform::AltercaseUpperFirst)
         {
             return (0..self.words_count)
                 .map(|idx| {

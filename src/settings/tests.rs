@@ -399,8 +399,8 @@ fn test_with_word_transforms_single() {
 #[test]
 fn test_with_word_transforms_group() {
     for group_flag in [
-        WordTransform::AlternatingCaseLowerFirst,
-        WordTransform::AlternatingCaseUpperFirst,
+        WordTransform::AltercaseLowerFirst,
+        WordTransform::AltercaseUpperFirst,
     ] {
         for single_flag in [
             WordTransform::Lowercase,
@@ -612,7 +612,7 @@ fn test_build_transforms_list() {
 
     let table = [
         (
-            FieldSize::from_flag(WordTransform::AlternatingCaseLowerFirst),
+            FieldSize::from_flag(WordTransform::AltercaseLowerFirst),
             vec![
                 WordTransform::Lowercase,
                 WordTransform::Uppercase,
@@ -620,7 +620,7 @@ fn test_build_transforms_list() {
             ],
         ),
         (
-            FieldSize::from_flag(WordTransform::AlternatingCaseUpperFirst),
+            FieldSize::from_flag(WordTransform::AltercaseUpperFirst),
             vec![
                 WordTransform::Uppercase,
                 WordTransform::Lowercase,
