@@ -1,3 +1,6 @@
+#[cfg(test)]
+mod tests;
+
 use crate::bit_flags::*;
 use crate::prelude::*;
 
@@ -6,8 +9,8 @@ use clap::Parser;
 #[derive(Parser, Debug)]
 #[command(version)]
 pub struct Cli {
-    #[arg(short = 'w', long = "words", default_value_t = 3)]
-    words_count: u8,
+    #[arg(short = 'w', long = "words")]
+    words_count: Option<u8>,
 
     #[arg(long = "word-min")]
     word_length_min: Option<u8>,
@@ -55,11 +58,13 @@ impl Cli {
         };
 
         settings = settings
-            .with_words_count(self.words_count)?
             .with_word_lengths(self.word_length_min, self.word_length_max)?
-            .with_word_transforms(WordTransform::Lowercase | WordTransform::Uppercase)?
             .with_padding_digits(self.padding_digits_before, self.padding_digits_after)
             .with_padding_symbol_lengths(self.padding_symbols_before, self.padding_symbols_after);
+
+        if let Some(words_count) = self.words_count {
+            settings = settings.with_words_count(words_count)?
+        }
 
         if let Some(word_transforms) = &self.word_transforms {
             let transforms: FieldSize = word_transforms

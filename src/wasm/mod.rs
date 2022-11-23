@@ -18,8 +18,7 @@ pub struct WasmSettings {
 impl WasmSettings {
     #[wasm_bindgen(constructor)]
     pub fn new() -> WasmSettings {
-        let settings = Settings::default();
-        WasmSettings { settings }
+        WasmSettings::default()
     }
 
     #[wasm_bindgen(js_name = "withWordsCount")]
@@ -115,8 +114,7 @@ impl WasmXkpasswd {
     #[wasm_bindgen(constructor)]
     pub fn new() -> WasmXkpasswd {
         set_panic_hook();
-        let pass_generator = Xkpasswd::new();
-        WasmXkpasswd { pass_generator }
+        WasmXkpasswd::default()
     }
 
     #[wasm_bindgen(js_name = "genPass")]
