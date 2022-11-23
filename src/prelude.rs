@@ -1,5 +1,29 @@
-use super::settings::*;
 use std::{collections::HashMap, ops::Range};
+
+#[derive(Clone, Debug, PartialEq, Eq)]
+pub enum PaddingStrategy {
+    Fixed,
+    Adaptive(u8),
+}
+
+#[derive(Debug)]
+pub enum PaddingResult {
+    Unchanged,
+    TrimTo(u8),
+    Pad(String),
+}
+
+#[derive(Clone, Copy, Debug)]
+pub enum Preset {
+    Default,
+    AppleID,
+    WindowsNTLMv1,
+    SecurityQuestions,
+    Web16,
+    Web32,
+    Wifi,
+    Xkcd,
+}
 
 type Dict<'a> = HashMap<u8, Vec<&'a str>>;
 
