@@ -75,7 +75,7 @@ impl WasmSettings {
     }
 
     #[wasm_bindgen(js_name = "withPaddingDigits")]
-    pub fn with_padding_digits(&self, prefix: u8, suffix: u8) -> WasmSettings {
+    pub fn with_padding_digits(&self, prefix: Option<u8>, suffix: Option<u8>) -> WasmSettings {
         let settings = self.settings.with_padding_digits(prefix, suffix);
         WasmSettings { settings }
     }

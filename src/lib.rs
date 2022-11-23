@@ -18,7 +18,7 @@ mod tests {
             .with_words_count(3)
             .with_word_lengths(None, Some(8))
             .with_separators(".")
-            .with_padding_digits(0, 2)
+            .with_padding_digits(None, Some(2))
             .with_padding_symbols("!@#$%^&*-_=+:|~?/;")
             .with_padding_symbol_lengths(0, 2)
             .with_word_transforms(&[
