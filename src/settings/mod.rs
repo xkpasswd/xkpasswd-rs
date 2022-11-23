@@ -81,9 +81,12 @@ impl Builder for Settings {
         cloned
     }
 
-    fn with_padding_digits(&self, prefix: u8, suffix: u8) -> Self {
+    fn with_padding_digits(&self, prefix: Option<u8>, suffix: Option<u8>) -> Self {
         let mut cloned = self.clone();
-        cloned.padding_digits = (prefix, suffix);
+        cloned.padding_digits = (
+            prefix.unwrap_or(self.padding_digits.0),
+            suffix.unwrap_or(self.padding_digits.1),
+        );
         cloned
     }
 

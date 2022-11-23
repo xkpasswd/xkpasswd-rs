@@ -8,9 +8,9 @@ async function run() {
   try {
     const customSettings = new xkpasswd.Settings()
       .withWordsCount(3)
-      .withWordLengths(4, 8)
+      .withWordLengths(4, null)
       .withSeparators('.')
-      .withPaddingDigits(0, 2)
+      .withPaddingDigits(null, 2)
       .withPaddingSymbols('!@#$%^&*-_=+:|~?/;')
       .withPaddingSymbolLengths(0, 2)
       .withWordTransforms(
@@ -42,7 +42,7 @@ async function run() {
     xkpasswd.Preset.Web16,
     xkpasswd.Preset.Web32,
     xkpasswd.Preset.Wifi,
-    xkpasswd.Preset.XKCD,
+    xkpasswd.Preset.Xkcd,
   ].forEach((preset, idx) => {
     const settings = xkpasswd.Settings.fromPreset(preset);
     appendPasswd(presetTitles[idx], pass.genPass(settings));
