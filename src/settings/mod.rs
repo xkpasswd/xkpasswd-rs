@@ -158,7 +158,7 @@ impl Builder for Settings {
                 padding_symbol_lengths: (1, 1),
                 padding_strategy: PaddingStrategy::Fixed,
             },
-            Preset::WindowsNTLMv1 => Settings {
+            Preset::WindowsNtlmV1 => Settings {
                 words_count: 2,
                 word_lengths: (5, 5),
                 word_transforms: FieldSize::from_flag(WordTransform::InversedTitlecase),

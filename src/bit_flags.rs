@@ -1,3 +1,4 @@
+use clap::ValueEnum;
 use std::ops::*;
 use wasm_bindgen::prelude::*;
 
@@ -5,7 +6,7 @@ pub type FieldSize = u8;
 
 #[wasm_bindgen]
 #[repr(u8)]
-#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+#[derive(Clone, Copy, Debug, PartialEq, Eq, ValueEnum)]
 pub enum WordTransform {
     // single transforms - possible to combine with each other
     Lowercase = 0b00000001,
