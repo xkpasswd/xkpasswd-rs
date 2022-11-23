@@ -25,10 +25,10 @@ crate-type = ["cdylib", "rlib"]
 
 [features]
 default = ["cli_dev", "wasm_dev"]
-cli_dev = ["cli_prod"]
-cli_prod = ["clap"]
-wasm_prod = ["getrandom"]
-wasm_dev = ["wasm_prod", "console_error_panic_hook", "web-sys"]
+cli = ["clap"]
+cli_dev = ["cli"]
+wasm = ["getrandom"]
+wasm_dev = ["wasm", "console_error_panic_hook", "web-sys"]
 
 [dependencies]
 clap = { version = "4.0.26", features = ["derive"], optional = true }
