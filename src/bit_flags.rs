@@ -14,8 +14,8 @@ pub enum WordTransform {
     InversedTitlecase = 0b00001000,
 
     // group transforms - overriding other single ones
-    AlternatingCaseLowerFirst = 0b01000000,
-    AlternatingCaseUpperFirst = 0b10000000,
+    AltercaseLowerFirst = 0b01000000,
+    AltercaseUpperFirst = 0b10000000,
 }
 
 pub trait BitFlags {
@@ -73,13 +73,13 @@ mod tests {
         );
         assert_eq!(
             0b10000001,
-            WordTransform::Lowercase | WordTransform::AlternatingCaseUpperFirst
+            WordTransform::Lowercase | WordTransform::AltercaseUpperFirst
         );
         assert_eq!(
             0b01001010,
             WordTransform::Titlecase
                 | WordTransform::InversedTitlecase
-                | WordTransform::AlternatingCaseLowerFirst
+                | WordTransform::AltercaseLowerFirst
         );
     }
 
@@ -94,11 +94,11 @@ mod tests {
         );
         assert_eq!(
             0b01000000,
-            FieldSize::from_flag(WordTransform::AlternatingCaseLowerFirst)
+            FieldSize::from_flag(WordTransform::AltercaseLowerFirst)
         );
         assert_eq!(
             0b10000000,
-            FieldSize::from_flag(WordTransform::AlternatingCaseUpperFirst)
+            FieldSize::from_flag(WordTransform::AltercaseUpperFirst)
         );
     }
 
@@ -106,12 +106,12 @@ mod tests {
     fn test_has_flag() {
         let transforms = WordTransform::Lowercase
             | WordTransform::Uppercase
-            | WordTransform::AlternatingCaseLowerFirst;
+            | WordTransform::AltercaseLowerFirst;
         assert!(transforms.has_flag(WordTransform::Lowercase));
         assert!(transforms.has_flag(WordTransform::Uppercase));
-        assert!(transforms.has_flag(WordTransform::AlternatingCaseLowerFirst));
+        assert!(transforms.has_flag(WordTransform::AltercaseLowerFirst));
         assert!(!transforms.has_flag(WordTransform::Titlecase));
         assert!(!transforms.has_flag(WordTransform::InversedTitlecase));
-        assert!(!transforms.has_flag(WordTransform::AlternatingCaseUpperFirst));
+        assert!(!transforms.has_flag(WordTransform::AltercaseUpperFirst));
     }
 }
