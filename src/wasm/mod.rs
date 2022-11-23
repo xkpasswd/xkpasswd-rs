@@ -8,34 +8,6 @@ use utils::*;
 
 const DEFAULT_SETTING_BUILDER_ERR: &str = "Invalid settings";
 
-#[wasm_bindgen(js_name = "Preset")]
-#[derive(Clone, Copy, Debug)]
-pub enum WasmPreset {
-    Default,
-    AppleID,
-    WindowsNTLMv1,
-    SecurityQuestions,
-    Web16,
-    Web32,
-    Wifi,
-    Xkcd,
-}
-
-impl WasmPreset {
-    fn to_preset(self) -> Preset {
-        match self {
-            Self::Default => Preset::Default,
-            Self::AppleID => Preset::AppleID,
-            Self::WindowsNTLMv1 => Preset::WindowsNTLMv1,
-            Self::SecurityQuestions => Preset::SecurityQuestions,
-            Self::Web16 => Preset::Web16,
-            Self::Web32 => Preset::Web32,
-            Self::Wifi => Preset::Wifi,
-            Self::Xkcd => Preset::Xkcd,
-        }
-    }
-}
-
 #[wasm_bindgen(js_name = "Settings")]
 #[derive(Debug, Default)]
 pub struct WasmSettings {
@@ -125,9 +97,9 @@ impl WasmSettings {
     }
 
     #[wasm_bindgen(js_name = "fromPreset")]
-    pub fn from_preset(preset: WasmPreset) -> WasmSettings {
+    pub fn from_preset(preset: Preset) -> WasmSettings {
         WasmSettings {
-            settings: Settings::from_preset(preset.to_preset()),
+            settings: Settings::from_preset(preset),
         }
     }
 }

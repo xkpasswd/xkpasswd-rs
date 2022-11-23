@@ -1,4 +1,6 @@
+use clap::ValueEnum;
 use std::{collections::HashMap, ops::Range};
+use wasm_bindgen::prelude::*;
 
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub enum PaddingStrategy {
@@ -13,11 +15,12 @@ pub enum PaddingResult {
     Pad(String),
 }
 
-#[derive(Clone, Copy, Debug)]
+#[wasm_bindgen]
+#[derive(Clone, Copy, Debug, ValueEnum)]
 pub enum Preset {
     Default,
     AppleID,
-    WindowsNTLMv1,
+    WindowsNtlmV1,
     SecurityQuestions,
     Web16,
     Web32,
