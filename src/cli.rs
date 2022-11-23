@@ -85,7 +85,8 @@ impl Cli {
             .with_words_count(self.words_count)?
             .with_word_lengths(self.words_length_min, self.words_length_max)?
             .with_word_transforms(WordTransform::Lowercase | WordTransform::Uppercase)?
-            .with_padding_digits(self.padding_digits_before, self.padding_digits_after);
+            .with_padding_digits(self.padding_digits_before, self.padding_digits_after)
+            .with_padding_symbol_lengths(self.padding_symbols_before, self.padding_symbols_after);
 
         if let Some(separators) = &self.separators {
             settings = settings.with_separators(separators);

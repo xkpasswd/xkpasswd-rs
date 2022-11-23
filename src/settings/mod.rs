@@ -96,9 +96,12 @@ impl Builder for Settings {
         cloned
     }
 
-    fn with_padding_symbol_lengths(&self, prefix: u8, suffix: u8) -> Self {
+    fn with_padding_symbol_lengths(&self, prefix: Option<u8>, suffix: Option<u8>) -> Self {
         let mut cloned = self.clone();
-        cloned.padding_symbol_lengths = (prefix, suffix);
+        cloned.padding_symbol_lengths = (
+            prefix.unwrap_or(self.padding_symbol_lengths.0),
+            suffix.unwrap_or(self.padding_symbol_lengths.1),
+        );
         cloned.padding_strategy = PaddingStrategy::Fixed;
         cloned
     }
