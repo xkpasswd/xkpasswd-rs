@@ -13,7 +13,7 @@ use std::result::Result;
 const MIN_WORD_LENGTH_ERR: &str = "min word length must be 4 or higher";
 const MAX_WORD_LENGTH_ERR: &str = "max word length must be 10 or lower";
 
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, PartialEq, Eq)]
 pub struct Settings {
     words_count: u8,
     word_lengths: (u8, u8),
@@ -82,6 +82,10 @@ impl Builder for Settings {
     }
 
     fn with_padding_digits(&self, prefix: Option<u8>, suffix: Option<u8>) -> Self {
+        if prefix.is_none() && suffix.is_none() {
+            return self.clone();
+        }
+
         let mut cloned = self.clone();
         cloned.padding_digits = (
             prefix.unwrap_or(self.padding_digits.0),
@@ -97,6 +101,10 @@ impl Builder for Settings {
     }
 
     fn with_padding_symbol_lengths(&self, prefix: Option<u8>, suffix: Option<u8>) -> Self {
+        if prefix.is_none() && suffix.is_none() {
+            return self.clone();
+        }
+
         let mut cloned = self.clone();
         cloned.padding_symbol_lengths = (
             prefix.unwrap_or(self.padding_symbol_lengths.0),

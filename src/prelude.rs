@@ -55,18 +55,20 @@ pub trait Randomizer {
     fn adjust_padding(&self, pass_length: usize) -> PaddingResult;
 }
 
-#[derive(Debug, Default)]
+#[derive(Debug)]
 pub struct Xkpasswd {
     dict: Dict<'static>,
 }
 
-impl Xkpasswd {
-    pub fn new() -> Xkpasswd {
+impl Default for Xkpasswd {
+    fn default() -> Self {
         let dict_en_bytes = include_bytes!("./assets/dict_en.txt");
         let dict = load_dict(&dict_en_bytes[..]);
         Xkpasswd { dict }
     }
+}
 
+impl Xkpasswd {
     pub fn gen_pass<S: Randomizer>(&self, settings: &S) -> String {
         let mut all_words: Vec<&str> = vec![];
 

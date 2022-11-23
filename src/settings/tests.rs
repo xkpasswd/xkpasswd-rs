@@ -247,6 +247,7 @@ fn test_with_padding_symbol_lengths() {
         .with_padding_strategy(PaddingStrategy::Adaptive(12))
         .unwrap()
         .with_padding_symbol_lengths(Some(3), Some(4));
+
     // only padding_symbol_lengths and padding_strategy updated
     assert_eq!((3, 4), settings.padding_symbol_lengths);
     assert!(matches!(settings.padding_strategy, PaddingStrategy::Fixed));
@@ -270,6 +271,19 @@ fn test_with_padding_symbol_lengths() {
     assert!(matches!(
         settings.padding_strategy,
         Settings::DEFAULT_PADDING_STRATEGY
+    ));
+
+    // however, if the symbol lenghts are both None, don't touch padding_strategy
+    let settings = Settings::default()
+        .with_padding_strategy(PaddingStrategy::Adaptive(12))
+        .unwrap()
+        .with_padding_symbol_lengths(None, None);
+
+    // only padding_symbol_lengths and padding_strategy updated
+    assert_eq!((0, 0), settings.padding_symbol_lengths);
+    assert!(matches!(
+        settings.padding_strategy,
+        PaddingStrategy::Adaptive(12)
     ));
 
     // overriding with multiple calls
