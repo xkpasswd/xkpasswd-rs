@@ -33,7 +33,7 @@ pub enum Preset {
 
 type Dict<'a> = HashMap<u8, Vec<&'a str>>;
 
-pub trait Builder: Default + Sized {
+pub trait Builder: Default + fmt::Display + Sized {
     fn with_words_count(&self, words_count: u8) -> Result<Self, &'static str>;
     fn with_word_lengths(
         &self,
@@ -105,8 +105,20 @@ impl Xkpasswd {
 
         match settings.adjust_padding(passwd.len()) {
             PaddingResult::Unchanged => passwd,
-            PaddingResult::TrimTo(len) => passwd[..len as usize].to_string(),
-            PaddingResult::Pad(padded_symbols) => passwd + &padded_symbols,
+            PaddingResult::TrimTo(len) => {
+                log::debug!(
+                    "trimmed {} characters to fit padding strategy",
+                    passwd.len() - len as usize
+                );
+                passwd[..len as usize].to_string()
+            }
+            PaddingResult::Pad(padded_symbols) => {
+                log::debug!(
+                    "padded {} symbols to fit padding strategy",
+                    padded_symbols.len()
+                );
+                passwd + &padded_symbols
+            }
         }
     }
 }
@@ -114,6 +126,8 @@ impl Xkpasswd {
 fn load_dict(dict_bytes: &[u8]) -> Dict {
     let dict_str = from_utf8(dict_bytes).unwrap_or("").trim();
     let mut dict: Dict = HashMap::new();
+
+    log::debug!("loaded raw dict with {} lines", dict_str.lines().count());
 
     dict_str.lines().for_each(|line| {
         let mut comps = line.trim().split(':');
@@ -125,6 +139,11 @@ fn load_dict(dict_bytes: &[u8]) -> Dict {
             dict.insert(len, words);
         }
     });
+
+    log::debug!(
+        "parsed dict with {:?} entries",
+        dict.iter().fold(0, |acc, cur| acc + cur.1.len())
+    );
 
     dict
 }

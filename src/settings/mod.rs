@@ -7,6 +7,7 @@ use rand::distributions::{Distribution, Uniform};
 use rand::Rng;
 use std::cmp;
 use std::collections::HashMap;
+use std::fmt;
 use std::ops::Range;
 use std::result::Result;
 
@@ -131,12 +132,12 @@ impl Builder for Settings {
 
         // handle group transforms first
         if transforms.has_flag(WordTransform::AltercaseLowerFirst) {
-            cloned.word_transforms = WordTransform::AltercaseLowerFirst as FieldSize;
+            cloned.word_transforms = FieldSize::from_flag(WordTransform::AltercaseLowerFirst);
             return Ok(cloned);
         }
 
         if transforms.has_flag(WordTransform::AltercaseUpperFirst) {
-            cloned.word_transforms = WordTransform::AltercaseUpperFirst as FieldSize;
+            cloned.word_transforms = FieldSize::from_flag(WordTransform::AltercaseUpperFirst);
             return Ok(cloned);
         }
 
@@ -239,7 +240,17 @@ impl Randomizer for Settings {
 
     fn rand_words(&self, pool: &[&str]) -> Vec<String> {
         let words_list = self.build_words_list(pool);
+        log::debug!(
+            "randomizing {} words from a pool of {} entries",
+            self.words_count,
+            pool.len()
+        );
+
         let transforms_list = self.build_transforms_list();
+        log::debug!(
+            "transforming words in order of [{}]",
+            WordTransform::to_strings(&transforms_list).join(", ")
+        );
 
         words_list
             .iter()
@@ -276,14 +287,100 @@ impl Randomizer for Settings {
             PaddingStrategy::Adaptive(len) => {
                 let length = len as usize;
 
-                if length > pass_length {
-                    let padded_symbols =
-                        rand_chars(&self.padding_symbols, (length - pass_length) as u8);
-                    PaddingResult::Pad(padded_symbols)
-                } else {
-                    PaddingResult::TrimTo(len)
+                match length.cmp(&pass_length) {
+                    cmp::Ordering::Equal => PaddingResult::Unchanged,
+                    cmp::Ordering::Less => PaddingResult::TrimTo(len),
+                    cmp::Ordering::Greater => {
+                        let padded_symbols =
+                            rand_chars(&self.padding_symbols, (length - pass_length) as u8);
+                        PaddingResult::Pad(padded_symbols)
+                    }
                 }
             }
+        }
+    }
+}
+
+impl fmt::Display for Settings {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        let (word_min, word_max) = self.word_lengths;
+
+        let word_lengths = if word_min == word_max {
+            format!("only {} chars", word_min)
+        } else {
+            format!("from {} to {} chars", word_min, word_max)
+        };
+
+        let mut desc = vec![format!("{} word(s)", self.words_count), word_lengths];
+
+        let word_transforms = self.word_transforms.to_strings();
+        if word_transforms.len() > 1 {
+            desc.push(format!("mixed of {}", word_transforms.join(" & ")));
+        } else {
+            desc.push(format!("{} only", word_transforms[0]))
+        }
+
+        if self.separators.len() > 1 {
+            desc.push(format!("a separator from ⟪{}⟫", self.separators));
+        } else {
+            desc.push(format!("'{}' as separator", self.separators));
+        }
+
+        let (prefix, suffix) = self.padding_digits;
+
+        if prefix > 0 && suffix > 0 {
+            desc.push(format!(
+                "{} digit(s) before & {} digit(s) after",
+                prefix, suffix
+            ));
+        } else if prefix > 0 {
+            desc.push(format!("{} digit(s) before", prefix));
+        } else if suffix > 0 {
+            desc.push(format!("{} digit(s) after", suffix));
+        }
+
+        let padding_symbols = if self.padding_symbols.len() > 1 {
+            format!("from ⟪{}⟫", self.padding_symbols)
+        } else {
+            format!("'{}'", self.padding_symbols)
+        };
+
+        let (prefix, suffix) = self.padding_symbol_lengths;
+
+        let padding_symbol_lengths = if prefix > 0 && suffix > 0 {
+            format!(
+                "{} symbol(s) {} before & {} symbol(s) {} after",
+                prefix, padding_symbols, suffix, padding_symbols
+            )
+        } else if prefix > 0 {
+            format!("{} symbol(s) {} before", prefix, padding_symbols)
+        } else if suffix > 0 {
+            format!("{} symbol(s) {} after", suffix, padding_symbols)
+        } else {
+            "".to_string()
+        };
+
+        if !padding_symbol_lengths.is_empty() {
+            desc.push(padding_symbol_lengths);
+        }
+
+        let padding = match self.padding_strategy {
+            PaddingStrategy::Fixed => "no extra padding".to_string(),
+            PaddingStrategy::Adaptive(len) => format!("pad/trim to fit {} chars", len),
+        };
+
+        desc.push(padding);
+
+        let len = desc.len();
+        if len > 1 {
+            write!(
+                f,
+                "\n - {}\n - and {}",
+                desc[..len - 1].join("\n - "),
+                desc[len - 1]
+            )
+        } else {
+            write!(f, "{}", desc[0])
         }
     }
 }
@@ -395,10 +492,15 @@ fn rand_digits(count: u8) -> String {
     let affordable_count = 20u32.min(count as u32);
 
     let lower_bound = 10u64.pow(affordable_count - 1);
-    let upper_bound = if affordable_count == 20 {
-        u64::MAX
-    } else {
+    let upper_bound = if affordable_count < 20 {
         10u64.pow(affordable_count)
+    } else {
+        log::debug!(
+            "maximum digits length reached, randomize {} digits smaller than {}",
+            affordable_count,
+            u64::MAX
+        );
+        u64::MAX
     };
 
     let mut rng = rand::thread_rng();

@@ -18,9 +18,26 @@ pub enum WordTransform {
     AltercaseUpperFirst = 0b10000000,
 }
 
+impl fmt::Display for WordTransform {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        let name = match *self {
+            Self::Lowercase => "lowercase",
+            Self::Uppercase => "UPPERCASE",
+            Self::Titlecase => "Titlecase",
+            Self::InversedTitlecase => "iNVERSED tITLECASE",
+            Self::AltercaseLowerFirst => "altercase LOWER first",
+            Self::AltercaseUpperFirst => "ALTERCASE upper FIRST",
+        };
+
+        write!(f, "{}", name)
+    }
+}
+
 pub trait BitFlags {
     fn from_flag(flag: WordTransform) -> Self;
     fn has_flag(self, flag: WordTransform) -> bool;
+    fn to_flags(self) -> Vec<WordTransform>;
+    fn to_strings(self) -> Vec<String>;
 }
 
 impl BitOr for WordTransform {
@@ -54,6 +71,37 @@ impl BitFlags for FieldSize {
 
     fn has_flag(self, flag: WordTransform) -> bool {
         self & flag
+    }
+
+    fn to_flags(self) -> Vec<WordTransform> {
+        let mut flags: Vec<WordTransform> = vec![];
+        for flag in [
+            WordTransform::AltercaseUpperFirst,
+            WordTransform::AltercaseLowerFirst,
+            WordTransform::Lowercase,
+            WordTransform::Titlecase,
+            WordTransform::Uppercase,
+            WordTransform::InversedTitlecase,
+        ] {
+            if self & flag {
+                flags.push(flag)
+            }
+        }
+
+        flags
+    }
+
+    fn to_strings(self) -> Vec<String> {
+        WordTransform::to_strings(&self.to_flags())
+    }
+}
+
+impl WordTransform {
+    pub fn to_strings(transforms: &[WordTransform]) -> Vec<String> {
+        transforms
+            .iter()
+            .map(|t| t.to_string())
+            .collect::<Vec<String>>()
     }
 }
 
@@ -113,5 +161,26 @@ mod tests {
         assert!(!transforms.has_flag(WordTransform::Titlecase));
         assert!(!transforms.has_flag(WordTransform::InversedTitlecase));
         assert!(!transforms.has_flag(WordTransform::AltercaseUpperFirst));
+    }
+
+    #[test]
+    fn test_to_flags() {
+        let transforms = WordTransform::Titlecase | WordTransform::InversedTitlecase;
+        assert_eq!(
+            vec![WordTransform::Titlecase, WordTransform::InversedTitlecase,],
+            transforms.to_flags()
+        );
+
+        let transforms = WordTransform::Lowercase
+            | WordTransform::Uppercase
+            | WordTransform::AltercaseLowerFirst;
+        assert_eq!(
+            vec![
+                WordTransform::AltercaseLowerFirst,
+                WordTransform::Lowercase,
+                WordTransform::Uppercase,
+            ],
+            transforms.to_flags()
+        );
     }
 }
