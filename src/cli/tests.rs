@@ -15,6 +15,7 @@ const DEFAULT_CLI: Cli = Cli {
     fixed_padding: false,
     adaptive_padding: None,
     preset: None,
+    verbosity: 0,
 };
 
 #[test]
@@ -73,9 +74,8 @@ fn test_build_settings_custom() {
         padding_symbols: Some("$%^".to_string()),
         padding_symbols_before: Some(3),
         padding_symbols_after: Some(1),
-        fixed_padding: false,
         adaptive_padding: Some(17),
-        preset: None,
+        ..DEFAULT_CLI
     };
 
     let expected_settings = Settings::default()
