@@ -1,5 +1,8 @@
+#[cfg(test)]
+mod tests;
+
 use clap::ValueEnum;
-use std::{collections::HashMap, ops::Range};
+use std::{collections::HashMap, ops::Range, str::*};
 use wasm_bindgen::prelude::*;
 
 #[derive(Clone, Debug, PartialEq, Eq)]
@@ -62,7 +65,7 @@ pub struct Xkpasswd {
 
 impl Default for Xkpasswd {
     fn default() -> Self {
-        let dict_en_bytes = include_bytes!("./assets/dict_en.txt");
+        let dict_en_bytes = include_bytes!("../assets/dict_en.txt");
         let dict = load_dict(&dict_en_bytes[..]);
         Xkpasswd { dict }
     }
@@ -109,11 +112,11 @@ impl Xkpasswd {
 }
 
 fn load_dict(dict_bytes: &[u8]) -> Dict {
-    let dict_str = std::str::from_utf8(dict_bytes).unwrap_or("");
+    let dict_str = from_utf8(dict_bytes).unwrap_or("").trim();
     let mut dict: Dict = HashMap::new();
 
     dict_str.lines().for_each(|line| {
-        let mut comps = line.split(':');
+        let mut comps = line.trim().split(':');
 
         if let Some(len_str) = comps.next() {
             let len = len_str.parse::<u8>().unwrap();
