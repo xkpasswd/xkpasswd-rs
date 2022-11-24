@@ -289,15 +289,15 @@ impl Randomizer for Settings {
 }
 
 impl Settings {
-    pub const MIN_WORD_LENGTH: u8 = 4;
-    pub const MAX_WORD_LENGTH: u8 = 10;
-    pub const DEFAULT_PADDING_LENGTH: u8 = 2;
-    pub const DEFAULT_PADDING_STRATEGY: PaddingStrategy = PaddingStrategy::Fixed;
-    pub const DEFAULT_SEPARATORS: &str = ".-_~";
-    pub const DEFAULT_SYMBOLS: &str = "~@$%^&*-_+=:|~?/.;";
-    pub const DEFAULT_WORDS_COUNT: u8 = 3;
-    pub const DEFAULT_WORD_LENGTHS: (u8, u8) = (Self::MIN_WORD_LENGTH, Self::MAX_WORD_LENGTH);
-    pub const DEFAULT_WORD_TRANSFORMS: FieldSize = 0b00000101; // WordTransform::Lowercase | WordTransform::Uppercase
+    const MIN_WORD_LENGTH: u8 = 4;
+    const MAX_WORD_LENGTH: u8 = 10;
+    const DEFAULT_PADDING_LENGTH: u8 = 2;
+    const DEFAULT_PADDING_STRATEGY: PaddingStrategy = PaddingStrategy::Fixed;
+    const DEFAULT_SEPARATORS: &str = ".-_~";
+    const DEFAULT_SYMBOLS: &str = "~@$%^&*-_+=:|~?/.;";
+    const DEFAULT_WORDS_COUNT: u8 = 3;
+    const DEFAULT_WORD_LENGTHS: (u8, u8) = (Self::MIN_WORD_LENGTH, Self::MAX_WORD_LENGTH);
+    const DEFAULT_WORD_TRANSFORMS: FieldSize = 0b00000101; // WordTransform::Lowercase | WordTransform::Uppercase
 
     const ALL_SINGLE_WORD_TRANSFORMS: [WordTransform; 4] = [
         WordTransform::Lowercase,
