@@ -12,8 +12,8 @@ const DEFAULT_CLI: Cli = Cli {
     padding_symbols: None,
     padding_symbols_before: None,
     padding_symbols_after: None,
-    fixed_padding: false,
-    adaptive_padding: None,
+    padding: None,
+    adaptive_length: None,
     preset: None,
     verbosity: 0,
 };
@@ -74,7 +74,8 @@ fn test_build_settings_custom() {
         padding_symbols: Some("$%^".to_string()),
         padding_symbols_before: Some(3),
         padding_symbols_after: Some(1),
-        adaptive_padding: Some(17),
+        padding: Some(CliPadding::Adaptive),
+        adaptive_length: Some(17),
         ..DEFAULT_CLI
     };
 
