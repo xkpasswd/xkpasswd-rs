@@ -2,7 +2,7 @@
 mod tests;
 
 use crate::bit_flags::{BitFlags, FieldSize, WordTransform};
-use crate::prelude::{Builder, PaddingResult, PaddingStrategy, Preset, Randomizer};
+use crate::prelude::{Builder, Entropy, PaddingResult, PaddingStrategy, Preset, Randomizer};
 use rand::distributions::{Distribution, Uniform};
 use rand::Rng;
 use std::cmp;
@@ -37,6 +37,92 @@ impl Default for Settings {
             padding_symbols: Self::DEFAULT_SYMBOLS.to_string(),
             padding_symbol_lengths: (0, Self::DEFAULT_PADDING_LENGTH),
             padding_strategy: Self::DEFAULT_PADDING_STRATEGY,
+        }
+    }
+}
+
+impl fmt::Display for Settings {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        let (word_min, word_max) = self.word_lengths;
+
+        let word_lengths = if word_min == word_max {
+            format!("only {} chars", word_min)
+        } else {
+            format!("from {} to {} chars", word_min, word_max)
+        };
+
+        let mut desc = vec![format!("{} word(s)", self.words_count), word_lengths];
+
+        let word_transforms = self.word_transforms.to_strings();
+        if word_transforms.len() > 1 {
+            desc.push(format!("mixed of {}", word_transforms.join(" & ")));
+        } else {
+            desc.push(format!("{} only", word_transforms[0]))
+        }
+
+        if self.separators.len() > 1 {
+            desc.push(format!("a separator from ⟪{}⟫", self.separators));
+        } else {
+            desc.push(format!("'{}' as separator", self.separators));
+        }
+
+        let (prefix, suffix) = self.padding_digits;
+
+        if prefix > 0 && suffix > 0 {
+            desc.push(format!(
+                "{} digit(s) before & {} digit(s) after",
+                prefix, suffix
+            ));
+        } else if prefix > 0 {
+            desc.push(format!("{} digit(s) before", prefix));
+        } else if suffix > 0 {
+            desc.push(format!("{} digit(s) after", suffix));
+        }
+
+        let padding_symbols = if self.padding_symbols.len() > 1 {
+            format!("from ⟪{}⟫", self.padding_symbols)
+        } else {
+            format!("of '{}'", self.padding_symbols)
+        };
+
+        let (prefix, suffix) = self.padding_symbol_lengths;
+
+        let padding_symbol_lengths = if prefix > 0 && suffix > 0 {
+            format!(
+                "{} symbol(s) before & {} symbol(s) after {}",
+                prefix, suffix, padding_symbols
+            )
+        } else if prefix > 0 {
+            format!("{} symbol(s) before {}", prefix, padding_symbols)
+        } else if suffix > 0 {
+            format!("{} symbol(s) after {}", suffix, padding_symbols)
+        } else {
+            "".to_string()
+        };
+
+        if !padding_symbol_lengths.is_empty() {
+            desc.push(padding_symbol_lengths);
+        }
+
+        let padding = match self.padding_strategy {
+            PaddingStrategy::Fixed => "no extra padding".to_string(),
+            PaddingStrategy::Adaptive(len) => {
+                format!("pad/trim symbols {} to fit {} chars", padding_symbols, len)
+            }
+        };
+
+        desc.push(padding);
+
+        let len = desc.len();
+        if len > 1 {
+            write!(
+                f,
+                "\n - {}\n - and {}",
+                desc[..len - 1].join("\n - "),
+                desc[len - 1]
+            )
+        } else {
+            write!(f, "{}", desc[0])
         }
     }
 }
@@ -240,6 +326,7 @@ impl Randomizer for Settings {
 
     fn rand_words(&self, pool: &[&str]) -> Vec<String> {
         let words_list = self.build_words_list(pool);
+
         log::debug!(
             "randomizing {} words from a pool of {} entries",
             self.words_count,
@@ -247,6 +334,7 @@ impl Randomizer for Settings {
         );
 
         let transforms_list = self.build_transforms_list();
+
         log::debug!(
             "transforming words in order of [{}]",
             WordTransform::to_strings(&transforms_list).join(", ")
@@ -289,98 +377,120 @@ impl Randomizer for Settings {
 
                 match length.cmp(&pass_length) {
                     cmp::Ordering::Equal => PaddingResult::Unchanged,
-                    cmp::Ordering::Less => PaddingResult::TrimTo(len),
+                    cmp::Ordering::Less => {
+                        log::debug!(
+                            "trimmed {} characters to fit padding strategy",
+                            pass_length - len as usize
+                        );
+
+                        PaddingResult::TrimTo(len)
+                    }
                     cmp::Ordering::Greater => {
                         let padded_symbols =
                             rand_chars(&self.padding_symbols, (length - pass_length) as u8);
+
+                        log::debug!(
+                            "padded {} symbols to fit padding strategy",
+                            padded_symbols.len()
+                        );
+
                         PaddingResult::Pad(padded_symbols)
                     }
                 }
             }
         }
     }
-}
 
-impl fmt::Display for Settings {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        let (word_min, word_max) = self.word_lengths;
+    fn calc_entropy(&self, pool_size: usize) -> Entropy {
+        let (min_total_len, max_total_len) = match self.padding_strategy {
+            PaddingStrategy::Adaptive(len) => (len, len),
+            PaddingStrategy::Fixed => {
+                let prefix_digits = if self.padding_digits.0 > 0 {
+                    self.padding_digits.0 + 1
+                } else {
+                    self.padding_digits.0
+                };
 
-        let word_lengths = if word_min == word_max {
-            format!("only {} chars", word_min)
-        } else {
-            format!("from {} to {} chars", word_min, word_max)
+                let suffix_digits = if self.padding_digits.1 > 0 {
+                    self.padding_digits.1 + 1
+                } else {
+                    self.padding_digits.1
+                };
+
+                let non_alpha_len = self.padding_symbol_lengths.0
+                    + self.padding_symbol_lengths.1
+                    + prefix_digits
+                    + suffix_digits
+                    + self.words_count
+                    - 1;
+
+                let (min, max) = self.word_lengths;
+                (
+                    self.words_count * min + non_alpha_len,
+                    self.words_count * max + non_alpha_len,
+                )
+            }
         };
 
-        let mut desc = vec![format!("{} word(s)", self.words_count), word_lengths];
+        log::debug!(
+            "entropy: blind length of {} ~ {}",
+            min_total_len,
+            max_total_len
+        );
 
-        let word_transforms = self.word_transforms.to_strings();
-        if word_transforms.len() > 1 {
-            desc.push(format!("mixed of {}", word_transforms.join(" & ")));
+        let single_word_transform = self.word_transforms
+            == FieldSize::from_flag(WordTransform::Lowercase)
+            || self.word_transforms == FieldSize::from_flag(WordTransform::Uppercase);
+
+        let mut blind_pool_size = if single_word_transform { 26 } else { 52 };
+
+        if self.padding_digits != (0, 0) {
+            blind_pool_size += 10
         } else {
-            desc.push(format!("{} only", word_transforms[0]))
-        }
-
-        if self.separators.len() > 1 {
-            desc.push(format!("a separator from ⟪{}⟫", self.separators));
-        } else {
-            desc.push(format!("'{}' as separator", self.separators));
-        }
-
-        let (prefix, suffix) = self.padding_digits;
-
-        if prefix > 0 && suffix > 0 {
-            desc.push(format!(
-                "{} digit(s) before & {} digit(s) after",
-                prefix, suffix
-            ));
-        } else if prefix > 0 {
-            desc.push(format!("{} digit(s) before", prefix));
-        } else if suffix > 0 {
-            desc.push(format!("{} digit(s) after", suffix));
-        }
-
-        let padding_symbols = if self.padding_symbols.len() > 1 {
-            format!("from ⟪{}⟫", self.padding_symbols)
-        } else {
-            format!("'{}'", self.padding_symbols)
+            blind_pool_size += 0
         };
 
-        let (prefix, suffix) = self.padding_symbol_lengths;
-
-        let padding_symbol_lengths = if prefix > 0 && suffix > 0 {
-            format!(
-                "{} symbol(s) {} before & {} symbol(s) {} after",
-                prefix, padding_symbols, suffix, padding_symbols
-            )
-        } else if prefix > 0 {
-            format!("{} symbol(s) {} before", prefix, padding_symbols)
-        } else if suffix > 0 {
-            format!("{} symbol(s) {} after", suffix, padding_symbols)
-        } else {
-            "".to_string()
-        };
-
-        if !padding_symbol_lengths.is_empty() {
-            desc.push(padding_symbol_lengths);
+        if !self.separators.is_empty() || !self.padding_symbols.is_empty() {
+            blind_pool_size += 32;
         }
 
-        let padding = match self.padding_strategy {
-            PaddingStrategy::Fixed => "no extra padding".to_string(),
-            PaddingStrategy::Adaptive(len) => format!("pad/trim to fit {} chars", len),
+        log::debug!("entropy: blind pool size of {}", blind_pool_size);
+
+        let blind_pool = (blind_pool_size as f64).log2();
+        let blind_min = (min_total_len as f64) * blind_pool;
+        let blind_max = (max_total_len as f64) * blind_pool;
+
+        let seen_words_pool_size = pool_size * self.word_transforms.to_flags().len();
+        log::debug!("entropy: seen words pool size of {}", seen_words_pool_size);
+
+        let seen_words_entropy = (self.words_count as f64) * (seen_words_pool_size as f64).log2();
+
+        let seen_separator_entropy = if self.separators.is_empty() {
+            0.0
+        } else {
+            (self.separators.len() as f64).log2()
         };
 
-        desc.push(padding);
-
-        let len = desc.len();
-        if len > 1 {
-            write!(
-                f,
-                "\n - {}\n - and {}",
-                desc[..len - 1].join("\n - "),
-                desc[len - 1]
-            )
+        let seen_digits_entropy = if self.padding_digits == (0, 0) {
+            0.0
         } else {
-            write!(f, "{}", desc[0])
+            f64::from(self.padding_digits.0 + self.padding_digits.1) * 10f64.log2()
+        };
+
+        let seen_symbols_entropy = if self.padding_symbols.is_empty() {
+            0.0
+        } else {
+            (self.padding_symbols.len() as f64).log2()
+        };
+
+        Entropy {
+            blind_min: blind_min.round() as usize,
+            blind_max: blind_max.round() as usize,
+            seen: (seen_words_entropy
+                + seen_separator_entropy
+                + seen_digits_entropy
+                + seen_symbols_entropy)
+                .round() as usize,
         }
     }
 }

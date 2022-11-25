@@ -579,6 +579,29 @@ fn test_adjust_padding() {
 }
 
 #[test]
+fn test_calc_entropy() {
+    let table = [
+        ((Preset::AppleID, 4351), (164, 203, 57)),
+        ((Preset::WindowsNtlmV1, 1380), (92, 92, 31)),
+        ((Preset::SecurityQuestions, 6631), (176, 316, 78)),
+        ((Preset::Web16, 1113), (102, 102, 40)),
+        ((Preset::Web32, 2493), (177, 203, 65)),
+        ((Preset::Wifi, 6631), (413, 413, 116)),
+        ((Preset::Xkcd, 6631), (121, 224, 55)),
+    ];
+
+    for ((preset, pool_size), (blind_min, blind_max, seen)) in table {
+        let expected = Entropy {
+            blind_max,
+            blind_min,
+            seen,
+        };
+        let entropy = Settings::from_preset(preset).calc_entropy(pool_size);
+        assert_eq!(expected, entropy);
+    }
+}
+
+#[test]
 fn test_build_words_list() {
     let settings = Settings::default().with_words_count(3).unwrap();
 

@@ -38,6 +38,10 @@ impl Randomizer for MockSettings {
             PaddingResult::Pad(str) => PaddingResult::Pad(str.clone()),
         }
     }
+
+    fn calc_entropy(&self, _: usize) -> Entropy {
+        Entropy::default()
+    }
 }
 
 #[test]
@@ -167,6 +171,7 @@ fn test_xkpasswd_gen_pass() {
     ];
 
     for (expected, settings) in table {
-        assert_eq!(expected, pass.gen_pass(&settings));
+        let (passwd, _) = pass.gen_pass(&settings);
+        assert_eq!(expected, passwd);
     }
 }

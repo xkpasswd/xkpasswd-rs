@@ -1,4 +1,5 @@
-use std::{fmt, ops::*};
+use std::fmt;
+use std::ops::*;
 use wasm_bindgen::prelude::*;
 
 pub type FieldSize = u8;
