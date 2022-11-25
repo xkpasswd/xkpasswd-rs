@@ -4,7 +4,15 @@ mod tests;
 use crate::bit_flags::*;
 use crate::prelude::*;
 
-use clap::{builder::PossibleValue, ArgAction, Parser, ValueEnum};
+use clap::builder::PossibleValue;
+use clap::error::ErrorKind;
+use clap::{ArgAction, CommandFactory, Parser, ValueEnum};
+
+#[derive(Clone, Debug, ValueEnum)]
+enum CliPadding {
+    Fixed,
+    Adaptive,
+}
 
 #[derive(Parser, Debug)]
 #[command(version)]
@@ -68,17 +76,17 @@ pub struct Cli {
     )]
     padding_symbols_after: Option<u8>,
 
-    #[arg(short = 'f', long = "no-padding", help = "No extra symbols padding")]
-    fixed_padding: bool,
+    #[arg(short = 'p', long = "padding", help = "Padding strategy", value_enum)]
+    padding: Option<CliPadding>,
 
     #[arg(
         short = 'a',
-        long = "adaptive",
+        long = "adaptive-length",
         help = "Pad or trim the final output to fit a length"
     )]
-    adaptive_padding: Option<u8>,
+    adaptive_length: Option<u8>,
 
-    #[arg(short = 'p', long = "preset", value_enum)]
+    #[arg(short = 'P', long = "preset", value_enum)]
     preset: Option<Preset>,
 
     #[arg(short, long = "verbose", help = "Verbosity: 1 = info, 2+ = debug", action = ArgAction::Count)]
@@ -117,13 +125,25 @@ impl Cli {
             settings = settings.with_padding_symbols(padding_symbols);
         }
 
-        if self.fixed_padding {
-            settings = settings.with_padding_strategy(PaddingStrategy::Fixed)?;
-        }
-
-        if let Some(adaptive_padding) = &self.adaptive_padding {
-            settings =
-                settings.with_padding_strategy(PaddingStrategy::Adaptive(*adaptive_padding))?
+        if let Some(padding) = &self.padding {
+            match padding {
+                CliPadding::Fixed => {
+                    settings = settings.with_padding_strategy(PaddingStrategy::Fixed)?
+                }
+                CliPadding::Adaptive => {
+                    if let Some(adaptive_length) = &self.adaptive_length {
+                        settings = settings
+                            .with_padding_strategy(PaddingStrategy::Adaptive(*adaptive_length))?
+                    } else {
+                        Cli::command()
+                            .error(
+                                ErrorKind::MissingRequiredArgument,
+                                "Adaptive padding requires --adaptive-length argument",
+                            )
+                            .exit();
+                    }
+                }
+            }
         }
 
         self.init_logger();
