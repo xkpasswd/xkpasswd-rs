@@ -47,7 +47,7 @@ jobs:
       - uses: actions-rs/cargo@v1
         with:
           command: clippy
-          args: -- -D warnings
+          args: --features=cli_dev --features=wasm_dev -- -D warnings
 
   test:
     name: Test
@@ -62,3 +62,4 @@ jobs:
       - uses: actions-rs/cargo@v1
         with:
           command: test
+          args: --features=cli_dev

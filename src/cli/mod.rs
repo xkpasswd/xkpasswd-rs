@@ -127,8 +127,6 @@ impl Cli {
         }
 
         self.init_logger();
-        log::info!("generating password with {}", settings);
-
         Ok(settings)
     }
 

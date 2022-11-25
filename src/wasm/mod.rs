@@ -121,7 +121,9 @@ impl WasmXkpasswd {
     pub fn gen_pass(&self, js_settings: &WasmSettings) -> String {
         let settings: Settings = js_settings.settings.clone();
 
-        console_log!("{:?}", settings);
-        self.pass_generator.gen_pass(&settings)
+        let (passwd, entropy) = self.pass_generator.gen_pass(&settings);
+        console_log!("{:?} {:?}", settings, entropy);
+
+        passwd
     }
 }

@@ -1,8 +1,10 @@
 #[cfg(test)]
 mod tests;
 
-use core::fmt;
-use std::{collections::HashMap, ops::Range, str::*};
+use std::collections::HashMap;
+use std::fmt;
+use std::ops::Range;
+use std::str::*;
 use wasm_bindgen::prelude::*;
 
 #[derive(Clone, Debug, PartialEq, Eq)]
@@ -31,6 +33,29 @@ pub enum Preset {
     Xkcd,
 }
 
+#[derive(Debug, Default, PartialEq, Eq)]
+pub struct Entropy {
+    pub blind_min: usize,
+    pub blind_max: usize,
+    pub seen: usize,
+}
+
+impl fmt::Display for Entropy {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        let blind_entropies = if self.blind_min == self.blind_max {
+            format!("{} bits", self.blind_min)
+        } else {
+            format!("between {} & {} bits", self.blind_min, self.blind_max)
+        };
+
+        write!(
+            f,
+            "{} blind and {} bits with full knowledge",
+            blind_entropies, self.seen
+        )
+    }
+}
+
 type Dict<'a> = HashMap<u8, Vec<&'a str>>;
 
 pub trait Builder: Default + fmt::Display + Sized {
@@ -56,6 +81,7 @@ pub trait Randomizer {
     fn rand_prefix(&self) -> (String, String);
     fn rand_suffix(&self) -> (String, String);
     fn adjust_padding(&self, pass_length: usize) -> PaddingResult;
+    fn calc_entropy(&self, pool_size: usize) -> Entropy;
 }
 
 #[derive(Debug)]
@@ -72,7 +98,7 @@ impl Default for Xkpasswd {
 }
 
 impl Xkpasswd {
-    pub fn gen_pass<S: Randomizer>(&self, settings: &S) -> String {
+    pub fn gen_pass<S: Randomizer>(&self, settings: &S) -> (String, Entropy) {
         let mut all_words: Vec<&str> = vec![];
 
         settings.word_lengths().for_each(|len| {
@@ -103,23 +129,15 @@ impl Xkpasswd {
             suffix_symbols
         );
 
-        match settings.adjust_padding(passwd.len()) {
+        let passwd = match settings.adjust_padding(passwd.len()) {
             PaddingResult::Unchanged => passwd,
-            PaddingResult::TrimTo(len) => {
-                log::debug!(
-                    "trimmed {} characters to fit padding strategy",
-                    passwd.len() - len as usize
-                );
-                passwd[..len as usize].to_string()
-            }
-            PaddingResult::Pad(padded_symbols) => {
-                log::debug!(
-                    "padded {} symbols to fit padding strategy",
-                    padded_symbols.len()
-                );
-                passwd + &padded_symbols
-            }
-        }
+            PaddingResult::TrimTo(len) => passwd[..len as usize].to_string(),
+            PaddingResult::Pad(padded_symbols) => passwd + &padded_symbols,
+        };
+
+        let entropy = settings.calc_entropy(all_words.len());
+
+        (passwd, entropy)
     }
 }
 
