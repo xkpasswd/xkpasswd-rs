@@ -77,7 +77,7 @@ impl WasmSettings {
     }
 
     #[wasm_bindgen(js_name = "withAdaptivePadding")]
-    pub fn with_adaptive_padding(&self, length: u8) -> WasmSettings {
+    pub fn with_adaptive_padding(&self, length: usize) -> WasmSettings {
         let settings = self
             .settings
             .with_padding_strategy(PaddingStrategy::Adaptive(length))
@@ -121,8 +121,8 @@ impl WasmXkpasswd {
     pub fn gen_pass(&self, js_settings: &WasmSettings) -> String {
         let settings: Settings = js_settings.settings.clone();
 
-        let (passwd, entropy) = self.pass_generator.gen_pass(&settings);
-        console_log!("{:?} {:?}", settings, entropy);
+        let (passwd, _entropy) = self.pass_generator.gen_pass(&settings);
+        console_log!("{:?} {:?}", settings, _entropy);
 
         passwd
     }

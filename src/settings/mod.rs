@@ -128,9 +128,9 @@ impl fmt::Display for Settings {
 }
 
 impl Builder for Settings {
-    fn with_words_count(&self, words_count: u8) -> Result<Self, &'static str> {
+    fn with_words_count(&self, words_count: u8) -> Result<Self, String> {
         if words_count == 0 {
-            return Err("only positive integer is allowed for words count");
+            return Err("only positive integer is allowed for words count".to_string());
         }
 
         let mut cloned = self.clone();
@@ -142,7 +142,7 @@ impl Builder for Settings {
         &self,
         min_length: Option<u8>,
         max_length: Option<u8>,
-    ) -> Result<Settings, &'static str> {
+    ) -> Result<Self, String> {
         let min_length = min_length.unwrap_or(self.word_lengths.0);
         let max_length = max_length.unwrap_or(self.word_lengths.1);
 
@@ -150,11 +150,11 @@ impl Builder for Settings {
         let max = cmp::max(min_length, max_length);
 
         if min < Self::MIN_WORD_LENGTH {
-            return Err(MIN_WORD_LENGTH_ERR);
+            return Err(MIN_WORD_LENGTH_ERR.to_string());
         }
 
         if max > Self::MAX_WORD_LENGTH {
-            return Err(MAX_WORD_LENGTH_ERR);
+            return Err(MAX_WORD_LENGTH_ERR.to_string());
         }
 
         let mut cloned = self.clone();
@@ -201,19 +201,26 @@ impl Builder for Settings {
         cloned
     }
 
-    fn with_padding_strategy(&self, strategy: PaddingStrategy) -> Result<Settings, &'static str> {
+    fn with_padding_strategy(&self, strategy: PaddingStrategy) -> Result<Self, String> {
+        let mut cloned = self.clone();
+
         match strategy {
-            PaddingStrategy::Adaptive(0) => Err("invalid adaptive padding number"),
-            _ => {
-                let mut cloned = self.clone();
+            PaddingStrategy::Adaptive(0) => {
+                return Err("invalid adaptive padding number".to_string())
+            }
+            PaddingStrategy::Adaptive(_) => {
                 cloned.padding_strategy = strategy;
                 cloned.padding_symbol_lengths = (0, 0);
-                Ok(cloned)
+            }
+            PaddingStrategy::Fixed => {
+                cloned.padding_strategy = strategy;
             }
         }
+
+        Ok(cloned)
     }
 
-    fn with_word_transforms(&self, transforms: FieldSize) -> Result<Self, &'static str> {
+    fn with_word_transforms(&self, transforms: FieldSize) -> Result<Self, String> {
         let mut cloned = self.clone();
 
         // handle group transforms first
@@ -233,7 +240,7 @@ impl Builder for Settings {
             && !transforms.has_flag(WordTransform::Uppercase)
             && !transforms.has_flag(WordTransform::InversedTitlecase)
         {
-            return Err("invalid transform");
+            return Err("invalid transform".to_string());
         }
 
         let mut cloned = self.clone();
@@ -355,7 +362,7 @@ impl Randomizer for Settings {
         let (prefix_digits, _) = self.padding_digits;
         let (prefix_symbols, _) = self.padding_symbol_lengths;
         (
-            rand_chars(&self.padding_symbols, prefix_symbols),
+            rand_chars(&self.padding_symbols, prefix_symbols as usize),
             rand_digits(prefix_digits),
         )
     }
@@ -365,39 +372,34 @@ impl Randomizer for Settings {
         let (_, suffix_symbols) = self.padding_symbol_lengths;
         (
             rand_digits(suffix_digits),
-            rand_chars(&self.padding_symbols, suffix_symbols),
+            rand_chars(&self.padding_symbols, suffix_symbols as usize),
         )
     }
 
     fn adjust_padding(&self, pass_length: usize) -> PaddingResult {
         match self.padding_strategy {
             PaddingStrategy::Fixed => PaddingResult::Unchanged,
-            PaddingStrategy::Adaptive(len) => {
-                let length = len as usize;
+            PaddingStrategy::Adaptive(len) => match len.cmp(&pass_length) {
+                cmp::Ordering::Equal => PaddingResult::Unchanged,
+                cmp::Ordering::Less => {
+                    log::debug!(
+                        "trimmed {} characters to fit padding strategy",
+                        pass_length - len as usize
+                    );
 
-                match length.cmp(&pass_length) {
-                    cmp::Ordering::Equal => PaddingResult::Unchanged,
-                    cmp::Ordering::Less => {
-                        log::debug!(
-                            "trimmed {} characters to fit padding strategy",
-                            pass_length - len as usize
-                        );
-
-                        PaddingResult::TrimTo(len)
-                    }
-                    cmp::Ordering::Greater => {
-                        let padded_symbols =
-                            rand_chars(&self.padding_symbols, (length - pass_length) as u8);
-
-                        log::debug!(
-                            "padded {} symbols to fit padding strategy",
-                            padded_symbols.len()
-                        );
-
-                        PaddingResult::Pad(padded_symbols)
-                    }
+                    PaddingResult::TrimTo(len)
                 }
-            }
+                cmp::Ordering::Greater => {
+                    let padded_symbols = rand_chars(&self.padding_symbols, len - pass_length);
+
+                    log::debug!(
+                        "padded {} symbols to fit padding strategy",
+                        padded_symbols.len()
+                    );
+
+                    PaddingResult::Pad(padded_symbols)
+                }
+            },
         }
     }
 
@@ -424,10 +426,11 @@ impl Randomizer for Settings {
                     + self.words_count
                     - 1;
 
+                let count = self.words_count as usize;
                 let (min, max) = self.word_lengths;
                 (
-                    self.words_count * min + non_alpha_len,
-                    self.words_count * max + non_alpha_len,
+                    count * (min as usize) + (non_alpha_len as usize),
+                    count * (max as usize) + (non_alpha_len as usize),
                 )
             }
         };
@@ -618,7 +621,7 @@ fn rand_digits(count: u8) -> String {
     padding_digits.to_string()
 }
 
-fn rand_chars(pool: &str, count: u8) -> String {
+fn rand_chars(pool: &str, count: usize) -> String {
     if pool.is_empty() {
         return "".to_string();
     }

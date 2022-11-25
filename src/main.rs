@@ -7,13 +7,8 @@ use cli::*;
 use prelude::*;
 use settings::*;
 
-use clap::Parser;
-
-const DEFAULT_SETTING_BUILDER_ERR: &str = "Invalid settings";
-
 fn main() {
-    let cli = Cli::parse();
-    let settings: Settings = cli.build_settings().expect(DEFAULT_SETTING_BUILDER_ERR);
+    let settings: Settings = Cli::parse_and_build();
     log::info!("generating password with {}", settings);
 
     let pass_generator = Xkpasswd::default();

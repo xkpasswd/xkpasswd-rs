@@ -25,7 +25,7 @@ crate-type = ["cdylib", "rlib"]
 
 [features]
 default = ["cli", "wasm"]
-cli = ["clap", "log", "stderrlog"]
+cli = ["clap", "log", "stderrlog", "toml", "dirs"]
 cli_dev = ["cli"]
 wasm = ["getrandom"]
 wasm_dev = ["wasm", "console_error_panic_hook", "web-sys"]
@@ -33,10 +33,12 @@ wasm_dev = ["wasm", "console_error_panic_hook", "web-sys"]
 [dependencies]
 clap = { version = "4.0.26", features = ["derive"], optional = true }
 console_error_panic_hook = { version = "0.1.7", optional = true }
+dirs = { version = "4.0.0", optional = true }
 getrandom = { version = "0.2.8", features = ["js"], optional = true }
 log = { version = "0.4.17", optional = true }
 rand = "0.8.5"
 stderrlog = { version = "0.5.4", optional = true }
+toml = { version = "0.5.9", optional = true }
 wasm-bindgen = "0.2.83"
 web-sys = { version = "0.3.60", features = ["console"], optional = true }
 
