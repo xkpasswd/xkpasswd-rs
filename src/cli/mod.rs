@@ -4,7 +4,7 @@ mod tests;
 use crate::bit_flags::*;
 use crate::prelude::*;
 
-use clap::Parser;
+use clap::{builder::PossibleValue, ArgAction, Parser, ValueEnum};
 
 #[derive(Parser, Debug)]
 #[command(version)]
@@ -91,5 +91,71 @@ impl Cli {
         }
 
         Ok(settings)
+    }
+}
+
+impl ValueEnum for Preset {
+    fn value_variants<'a>() -> &'a [Self] {
+        &[
+            Self::Default,
+            Self::AppleID,
+            Self::WindowsNtlmV1,
+            Self::SecurityQuestions,
+            Self::Web16,
+            Self::Web32,
+            Self::Wifi,
+            Self::Xkcd,
+        ]
+    }
+
+    fn to_possible_value(&self) -> Option<PossibleValue> {
+        Some(match self {
+            Self::Default => PossibleValue::new("default"),
+            Self::AppleID => PossibleValue::new("apple-id").help("Apple ID password"),
+            Self::WindowsNtlmV1 => PossibleValue::new("ntlm").help("Windows NTLM v1"),
+            Self::SecurityQuestions => {
+                PossibleValue::new("sec-questions").help("Security questions")
+            }
+            Self::Web16 => {
+                PossibleValue::new("web16").help("Maxium 16 characters for older websites")
+            }
+            Self::Web32 => {
+                PossibleValue::new("web32").help("Maximum 32 characters for modern websites")
+            }
+            Self::Wifi => PossibleValue::new("wifi").help("Fixed 63 characters for Wifi WPA2 keys"),
+            Self::Xkcd => {
+                PossibleValue::new("xkcd").help("As described in the original XKCD comic")
+            }
+        })
+    }
+}
+
+impl ValueEnum for WordTransform {
+    fn value_variants<'a>() -> &'a [Self] {
+        &[
+            Self::Lowercase,
+            Self::Titlecase,
+            Self::Uppercase,
+            Self::InversedTitlecase,
+            Self::AltercaseLowerFirst,
+            Self::AltercaseUpperFirst,
+        ]
+    }
+
+    fn to_possible_value(&self) -> Option<PossibleValue> {
+        Some(match self {
+            Self::Lowercase => PossibleValue::new("lowercase").help("lowercase"),
+            Self::Titlecase => PossibleValue::new("titlecase").help("Titlecase"),
+            Self::Uppercase => PossibleValue::new("uppercase").help("UPPERCASE"),
+            Self::InversedTitlecase => {
+                PossibleValue::new("inversed-titlecase").help("iNVERSED tITLECASE")
+            }
+            Self::AltercaseLowerFirst => {
+                PossibleValue::new("altercase-lower-first").help("altercase LOWER first")
+            }
+            Self::AltercaseUpperFirst => {
+                PossibleValue::new("altercase-upper-first").help("ALTERCASE upper FIRST")
+            }
+        })
     }
 }
