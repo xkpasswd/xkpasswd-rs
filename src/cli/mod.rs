@@ -1,15 +1,17 @@
 #[cfg(test)]
 mod tests;
+mod toml_conf;
 
 use crate::bit_flags::*;
 use crate::prelude::*;
+use toml_conf::*;
 
 use clap::builder::PossibleValue;
 use clap::error::ErrorKind;
 use clap::{ArgAction, CommandFactory, Parser, ValueEnum};
 
-#[derive(Clone, Debug, ValueEnum)]
-enum CliPadding {
+#[derive(Clone, Copy, Debug, ValueEnum)]
+pub enum CliPadding {
     Fixed,
     Adaptive,
 }
@@ -84,17 +86,52 @@ pub struct Cli {
         long = "adaptive-length",
         help = "Pad or trim the final output to fit a length"
     )]
-    adaptive_length: Option<u8>,
+    adaptive_length: Option<usize>,
 
     #[arg(short = 'P', long = "preset", value_enum)]
     preset: Option<Preset>,
 
-    #[arg(short, long = "verbose", help = "Verbosity: 1 = info, 2+ = debug", action = ArgAction::Count)]
+    #[arg(short = 'v', long = "verbose", help = "Verbosity: 1 = info, 2+ = debug", action = ArgAction::Count)]
     verbosity: u8,
+
+    #[arg(short = 'c', long = "config", help = "Path to .toml config file")]
+    config_file: Option<String>,
 }
 
 impl Cli {
-    pub fn build_settings<B: Builder + Randomizer>(&self) -> Result<B, &'static str> {
+    pub fn parse_and_build<B: Builder + Randomizer>() -> B {
+        let mut cli = Self::parse();
+        cli.init_logger();
+
+        let settings_builder = move |cli: Self| match cli.build_settings::<B>() {
+            Err(err) => Err(format!("Invalid settings: {}", err)),
+            Ok(settings) => Ok(settings),
+        };
+
+        let result = match cli.parse_config_file() {
+            Ok(_) => settings_builder(cli),
+            Err(err) => match err {
+                ConfigParseError::Ignore => settings_builder(cli),
+                ConfigParseError::InvalidFile(err) => {
+                    Err(format!("Error parsing config file: {}", err))
+                }
+                ConfigParseError::InvalidConfig(field, err) => {
+                    Err(format!("Error parsing config file at '{}': {}", field, err))
+                }
+            },
+        };
+
+        match result {
+            Ok(settings) => settings,
+            Err(message) => {
+                Self::command()
+                    .error(ErrorKind::InvalidValue, message)
+                    .exit();
+            }
+        }
+    }
+
+    fn build_settings<B: Builder + Randomizer>(&self) -> Result<B, String> {
         let mut settings = if let Some(preset) = self.preset {
             B::from_preset(preset)
         } else {
@@ -135,18 +172,14 @@ impl Cli {
                         settings = settings
                             .with_padding_strategy(PaddingStrategy::Adaptive(*adaptive_length))?
                     } else {
-                        Cli::command()
-                            .error(
-                                ErrorKind::MissingRequiredArgument,
-                                "Adaptive padding requires --adaptive-length argument",
-                            )
-                            .exit();
+                        return Err(
+                            "adaptive length is required for adaptive padding strategy".to_string()
+                        );
                     }
                 }
             }
         }
 
-        self.init_logger();
         Ok(settings)
     }
 
@@ -159,6 +192,7 @@ impl Cli {
             .module("xkpasswd")
             .quiet(self.verbosity == 0)
             .show_level(false)
+            .show_module_names(false)
             .timestamp(stderrlog::Timestamp::Off)
             .verbosity((self.verbosity + 1) as usize)
             .init()

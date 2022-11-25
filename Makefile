@@ -1,4 +1,4 @@
-.PHONY: lint test
+.PHONY: lint test test-cli test-wasm
 
 all: lint test
 

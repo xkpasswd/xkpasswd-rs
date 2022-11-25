@@ -32,11 +32,11 @@ fn test_default_settings() {
 
 #[test]
 fn test_with_words_count() {
+    let _err: Result<Settings, String> =
+        Err("only positive integer is allowed for words count".to_string());
+
     // invalid value
-    assert!(matches!(
-        Settings::default().with_words_count(0),
-        Err("only positive integer is allowed for words count")
-    ));
+    assert!(matches!(Settings::default().with_words_count(0), _err));
 
     let settings = Settings::default().with_words_count(1).unwrap();
     // only words_count updated
@@ -73,14 +73,18 @@ fn test_with_words_count() {
 
 #[test]
 fn test_with_word_lengths() {
+    let _err: Result<Settings, String> = Err(MIN_WORD_LENGTH_ERR.to_string());
+
     // invalid lengths
     assert!(matches!(
         Settings::default().with_word_lengths(
             Some(Settings::MIN_WORD_LENGTH - 1),
             Some(Settings::MAX_WORD_LENGTH + 1)
         ),
-        Err(MIN_WORD_LENGTH_ERR)
+        _err
     ));
+
+    let _err: Result<Settings, String> = Err(MAX_WORD_LENGTH_ERR.to_string());
 
     // max word length has lower priority
     assert!(matches!(
@@ -88,7 +92,7 @@ fn test_with_word_lengths() {
             Some(Settings::MIN_WORD_LENGTH),
             Some(Settings::MAX_WORD_LENGTH + 1)
         ),
-        Err(MAX_WORD_LENGTH_ERR)
+        _err
     ));
 
     let settings = Settings::default()
@@ -302,10 +306,12 @@ fn test_with_padding_symbol_lengths() {
 
 #[test]
 fn test_with_padding_strategy() {
+    let _err: Result<Settings, String> = Err("invalid adaptive padding number".to_string());
+
     // invalid adaptive padding
     assert!(matches!(
         Settings::default().with_padding_strategy(PaddingStrategy::Adaptive(0)),
-        Err("invalid adaptive padding number")
+        _err
     ));
 
     let settings = Settings::default()

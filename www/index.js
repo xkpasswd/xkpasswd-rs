@@ -37,7 +37,7 @@ async function run() {
   [
     xkpasswd.Preset.AppleID,
     xkpasswd.Preset.Default,
-    xkpasswd.Preset.WindowsNTLMv1,
+    xkpasswd.Preset.WindowsNtlmV1,
     xkpasswd.Preset.SecurityQuestions,
     xkpasswd.Preset.Web16,
     xkpasswd.Preset.Web32,

@@ -10,13 +10,13 @@ use wasm_bindgen::prelude::*;
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub enum PaddingStrategy {
     Fixed,
-    Adaptive(u8),
+    Adaptive(usize),
 }
 
 #[derive(Debug)]
 pub enum PaddingResult {
     Unchanged,
-    TrimTo(u8),
+    TrimTo(usize),
     Pad(String),
 }
 
@@ -59,18 +59,18 @@ impl fmt::Display for Entropy {
 type Dict<'a> = HashMap<u8, Vec<&'a str>>;
 
 pub trait Builder: Default + fmt::Display + Sized {
-    fn with_words_count(&self, words_count: u8) -> Result<Self, &'static str>;
+    fn with_words_count(&self, words_count: u8) -> Result<Self, String>;
     fn with_word_lengths(
         &self,
         min_length: Option<u8>,
         max_length: Option<u8>,
-    ) -> Result<Self, &'static str>;
+    ) -> Result<Self, String>;
     fn with_separators(&self, separators: &str) -> Self;
     fn with_padding_digits(&self, prefix: Option<u8>, suffix: Option<u8>) -> Self;
     fn with_padding_symbols(&self, symbols: &str) -> Self;
     fn with_padding_symbol_lengths(&self, prefix: Option<u8>, suffix: Option<u8>) -> Self;
-    fn with_padding_strategy(&self, strategy: PaddingStrategy) -> Result<Self, &'static str>;
-    fn with_word_transforms(&self, transform: u8) -> Result<Self, &'static str>;
+    fn with_padding_strategy(&self, strategy: PaddingStrategy) -> Result<Self, String>;
+    fn with_word_transforms(&self, transform: u8) -> Result<Self, String>;
     fn from_preset(preset: Preset) -> Self;
 }
 
