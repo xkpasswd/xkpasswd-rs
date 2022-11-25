@@ -24,8 +24,8 @@ path = "src/lib.rs"
 crate-type = ["cdylib", "rlib"]
 
 [features]
-default = ["cli_dev", "wasm_dev"]
-cli = ["clap"]
+default = ["cli", "wasm"]
+cli = ["clap", "log", "stderrlog"]
 cli_dev = ["cli"]
 wasm = ["getrandom"]
 wasm_dev = ["wasm", "console_error_panic_hook", "web-sys"]

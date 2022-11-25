@@ -1,7 +1,7 @@
 #[cfg(test)]
 mod tests;
 
-use clap::ValueEnum;
+use core::fmt;
 use std::{collections::HashMap, ops::Range, str::*};
 use wasm_bindgen::prelude::*;
 
@@ -19,7 +19,7 @@ pub enum PaddingResult {
 }
 
 #[wasm_bindgen]
-#[derive(Clone, Copy, Debug, ValueEnum)]
+#[derive(Clone, Copy, Debug)]
 pub enum Preset {
     Default,
     AppleID,

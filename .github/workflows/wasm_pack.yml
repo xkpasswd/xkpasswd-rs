@@ -13,9 +13,9 @@ jobs:
         run: curl https://rustwasm.github.io/wasm-pack/installer/init.sh -sSf | sh
 
       - name: Test on Chrome
-        run: wasm-pack test --headless --chrome
+        run: wasm-pack test --headless --chrome --features=wasm
       - name: Test on Firefox
-        run: wasm-pack test --headless --firefox
+        run: wasm-pack test --headless --firefox --features=wasm
 
   build-size:
     name: Build size limit
