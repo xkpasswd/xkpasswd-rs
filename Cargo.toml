@@ -27,7 +27,7 @@ crate-type = ["cdylib", "rlib"]
 default = ["cli", "wasm"]
 cli = ["clap", "log", "stderrlog", "toml", "dirs"]
 cli_dev = ["cli"]
-wasm = ["getrandom"]
+wasm = ["getrandom", "log"]
 wasm_dev = ["wasm", "console_error_panic_hook", "web-sys"]
 
 [dependencies]
