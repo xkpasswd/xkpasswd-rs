@@ -315,9 +315,17 @@ fn test_with_padding_strategy() {
     ));
 
     let settings = Settings::default()
+        .with_padding_symbol_lengths(Some(2), Some(3))
+        .with_padding_strategy(PaddingStrategy::Fixed)
+        .unwrap();
+    // only padding_strategy updated
+    assert!(matches!(settings.padding_strategy, PaddingStrategy::Fixed));
+    assert_eq!((2, 3), settings.padding_symbol_lengths);
+
+    let settings = Settings::default()
         .with_padding_strategy(PaddingStrategy::Adaptive(16))
         .unwrap();
-    // only padding_strategy and padding_symbol_lengths updated
+    // both padding_strategy and padding_symbol_lengths updated
     assert!(matches!(
         settings.padding_strategy,
         PaddingStrategy::Adaptive(16)

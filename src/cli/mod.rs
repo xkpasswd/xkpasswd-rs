@@ -10,7 +10,7 @@ use clap::builder::PossibleValue;
 use clap::error::ErrorKind;
 use clap::{ArgAction, CommandFactory, Parser, ValueEnum};
 
-#[derive(Clone, Copy, Debug, ValueEnum)]
+#[derive(Clone, Copy, Debug)]
 pub enum CliPadding {
     Fixed,
     Adaptive,
@@ -36,7 +36,7 @@ pub struct Cli {
         short = 't',
         long = "transforms",
         value_enum,
-        help = "Word transformations"
+        help = "Word transformations, can be combined with multiple occurrences"
     )]
     word_transforms: Option<Vec<WordTransform>>,
 
@@ -84,7 +84,7 @@ pub struct Cli {
     #[arg(
         short = 'a',
         long = "adaptive-length",
-        help = "Pad or trim the final output to fit a length"
+        help = "Pad or trim the final output to fit a length. Required for --padding=adaptive"
     )]
     adaptive_length: Option<usize>,
 
@@ -200,6 +200,23 @@ impl Cli {
     }
 }
 
+impl ValueEnum for CliPadding {
+    fn value_variants<'a>() -> &'a [Self] {
+        &[Self::Fixed, Self::Adaptive]
+    }
+
+    fn to_possible_value(&self) -> Option<PossibleValue> {
+        Some(match self {
+            Self::Fixed => PossibleValue::new("fixed")
+                .help("Fixed numbers of symbols to be padded before & after words"),
+            Self::Adaptive => PossibleValue::new("adaptive").help(
+                r#"Pad or trim the final output to fit a length. Requires --adaptive-length.
+Notes: setting this will disable --symbols-before and --symbols-after options"#,
+            ),
+        })
+    }
+}
+
 impl ValueEnum for Preset {
     fn value_variants<'a>() -> &'a [Self] {
         &[
@@ -216,7 +233,7 @@ impl ValueEnum for Preset {
 
     fn to_possible_value(&self) -> Option<PossibleValue> {
         Some(match self {
-            Self::Default => PossibleValue::new("default"),
+            Self::Default => PossibleValue::new("default").help("Some sensible default values"),
             Self::AppleID => PossibleValue::new("apple-id").help("Apple ID passwords"),
             Self::WindowsNtlmV1 => PossibleValue::new("ntlm").help("Windows NTLM v1"),
             Self::SecurityQuestions => PossibleValue::new("secq").help("Security questions"),
