@@ -85,12 +85,11 @@ impl WasmSettings {
         WasmSettings { settings }
     }
 
-    #[wasm_bindgen(variadic, js_name = "withWordTransforms")]
-    pub fn with_word_transforms(&self, transforms: &[u8]) -> WasmSettings {
-        let reduced = transforms.iter().fold(0, |acc, cur| acc | cur);
+    #[wasm_bindgen(js_name = "withWordTransforms")]
+    pub fn with_word_transforms(&self, transforms: u8) -> WasmSettings {
         let settings = self
             .settings
-            .with_word_transforms(reduced)
+            .with_word_transforms(transforms)
             .expect(DEFAULT_SETTING_BUILDER_ERR);
         WasmSettings { settings }
     }
