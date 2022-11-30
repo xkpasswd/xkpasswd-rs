@@ -21,10 +21,7 @@ mod tests {
             .with_padding_digits(None, Some(2))
             .with_padding_symbols("!@#$%^&*-_=+:|~?/;")
             .with_padding_symbol_lengths(None, Some(2))
-            .with_word_transforms(&[
-                FieldSize::from_flag(WordTransform::Lowercase),
-                FieldSize::from_flag(WordTransform::Uppercase),
-            ])
+            .with_word_transforms(WordTransform::Lowercase | WordTransform::Uppercase)
             .with_fixed_padding();
         assert_eq!(4, pass.gen_pass(&settings).split('.').count());
     }

@@ -31,6 +31,7 @@
   },
   "homepage": "https://github.com/ethan605/xkpasswd-rs",
   "devDependencies": {
+    "concurrently": "^7.6.0",
     "surge": "^0.23.1",
     "vite": "^3.2.3",
     "vite-plugin-wasm-pack": "^0.1.12"

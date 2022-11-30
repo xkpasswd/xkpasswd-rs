@@ -8,14 +8,13 @@ async function run() {
   try {
     const customSettings = new xkpasswd.Settings()
       .withWordsCount(3)
-      .withWordLengths(null, 8)
+      .withWordLengths(undefined, 8)
       .withSeparators('.')
-      .withPaddingDigits(null, 2)
+      .withPaddingDigits(undefined, 2)
       .withPaddingSymbols('!@#$%^&*-_=+:|~?/;')
-      .withPaddingSymbolLengths(null, 2)
+      .withPaddingSymbolLengths(undefined, 2)
       .withWordTransforms(
-        xkpasswd.WordTransform.Lowercase,
-        xkpasswd.WordTransform.Uppercase
+        xkpasswd.WordTransform.Lowercase | xkpasswd.WordTransform.Uppercase
       );
 
     appendPasswd('Custom', pass.genPass(customSettings));
@@ -49,17 +48,20 @@ async function run() {
   });
 }
 
-function appendPasswd(title, passwd) {
+function appendPasswd(title: string, passwd: string) {
   const div = document.createElement('div');
 
   const span = document.createElement('span');
   span.textContent = `${title}:`;
-  span.style = 'color: darkgray; font-weight: bold;';
+  span.setAttribute('style', 'color: darkgray; font-weight: bold;');
   div.appendChild(span);
 
   const pre = document.createElement('pre');
   pre.textContent = passwd;
-  pre.style = 'display: inline; font-weight: bold; margin-left: 0.5em;';
+  pre.setAttribute(
+    'style',
+    'display: inline; font-weight: bold; margin-left: 0.5em;'
+  );
   div.appendChild(pre);
 
   document.body.append(div);
