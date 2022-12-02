@@ -1,0 +1,19 @@
+#app {
+  @apply flex-col items-center mx-auto my-0 p-4 text-center max-w-2xl;
+}
+
+.btn {
+  @apply font-bold mx-2 p-2 rounded;
+}
+.btn-generate {
+  @apply bg-blue-500 text-white;
+}
+.btn-generate:hover {
+  @apply bg-blue-700;
+}
+.btn-copy {
+  @apply bg-red-500 text-white;
+}
+.btn-copy:hover {
+  @apply bg-red-700;
+}

@@ -1,23 +1,14 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
   <head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="/vite.svg" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>XKCD password generator</title>
-    <link href="./dist/index.css" rel="stylesheet">
   </head>
   <body>
     <noscript>This page contains webassembly and javascript content, please enable javascript in your browser.</noscript>
-    <script src="./bootstrap.ts" type="module"></script>
-    <select name="presets" id="presets-select">
-      <option value="default">Default</option>
-      <option value="appleId">Apple ID</option>
-      <option value="ntlm">Windows NTLM v1</option>
-      <option value="secq">Security Questions</option>
-      <option value="web16">Web16</option>
-      <option value="web32">Web32</option>
-      <option value="wifi">Wifi</option>
-      <option value="xkcd">XKCD</option>
-    </select>
+    <div id="app"></div>
+    <script type="module" src="/src/main.tsx"></script>
   </body>
 </html>
