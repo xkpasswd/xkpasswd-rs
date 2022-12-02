@@ -102,6 +102,21 @@ impl WasmSettings {
     }
 }
 
+#[wasm_bindgen]
+#[derive(Clone, Debug)]
+pub struct PasswdResult {
+    passwd: String,
+    pub entropy: Entropy,
+}
+
+#[wasm_bindgen]
+impl PasswdResult {
+    #[wasm_bindgen(getter)]
+    pub fn passwd(&self) -> String {
+        self.passwd.clone()
+    }
+}
+
 #[wasm_bindgen(js_name = "Xkpasswd")]
 #[derive(Debug, Default)]
 pub struct WasmXkpasswd {
@@ -117,12 +132,12 @@ impl WasmXkpasswd {
     }
 
     #[wasm_bindgen(js_name = "genPass")]
-    pub fn gen_pass(&self, js_settings: &WasmSettings) -> String {
+    pub fn gen_pass(&self, js_settings: &WasmSettings) -> PasswdResult {
         let settings: Settings = js_settings.settings.clone();
 
-        let (passwd, _entropy) = self.pass_generator.gen_pass(&settings);
-        console_log!("{:?} {:?}", settings, _entropy);
+        let (passwd, entropy) = self.pass_generator.gen_pass(&settings);
+        console_log!("{:?} {:?}", settings, entropy);
 
-        passwd
+        PasswdResult { passwd, entropy }
     }
 }
