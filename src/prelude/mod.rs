@@ -33,7 +33,8 @@ pub enum Preset {
     Xkcd,
 }
 
-#[derive(Debug, Default, PartialEq, Eq)]
+#[wasm_bindgen]
+#[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]
 pub struct Entropy {
     pub blind_min: usize,
     pub blind_max: usize,

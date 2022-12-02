@@ -19,11 +19,14 @@ const PRESET_OPTIONS = [
 
 export function App() {
   const [passGenerator] = useState(new xkpasswd.Xkpasswd());
-  const [settings, setSettings] = useState<xkpasswd.Settings | undefined>(
-    undefined
-  );
   const [preset, setPreset] = useState<xkpasswd.Preset>(
     xkpasswd.Preset.Default
+  );
+  const [settings, setSettings] = useState<xkpasswd.Settings>(
+    xkpasswd.Settings.fromPreset(preset)
+  );
+  const [entropy, setEntropy] = useState<xkpasswd.Entropy | undefined>(
+    undefined
   );
   const [passwd, setPasswd] = useState<string>('');
 
@@ -31,10 +34,11 @@ export function App() {
     setSettings(xkpasswd.Settings.fromPreset(preset));
   }, [preset]);
 
-  const genPasswd = useCallback(
-    () => settings && setPasswd(passGenerator.genPass(settings)),
-    [passGenerator, settings]
-  );
+  const genPasswd = useCallback(() => {
+    const { passwd, entropy } = passGenerator.genPass(settings);
+    setPasswd(passwd);
+    setEntropy(entropy);
+  }, [passGenerator, settings]);
 
   useEffect(buildSettings, [buildSettings, preset]);
   useEffect(genPasswd, [genPasswd, passGenerator, settings]);
@@ -75,6 +79,25 @@ export function App() {
           {passwd}
         </span>
       </div>
+      {entropy && (
+        <div className="mt-2">
+          <span>
+            {'Entropy: '}
+            <span className="font-mono text-bold text-green-600">
+              {entropy.blind_min}
+            </span>{' '}
+            ~{' '}
+            <span className="font-mono text-bold text-green-600">
+              {entropy.blind_max}
+            </span>
+            {' bits blind; '}
+            <span className="font-mono text-bold text-green-600">
+              {entropy.seen}
+            </span>
+            {' bits seen'}
+          </span>
+        </div>
+      )}
     </>
   );
 }
