@@ -1,0 +1,4 @@
+.entropy {
+  @apply font-mono font-bold text-blue px-1;
+  @apply border border-blue rounded;
+}

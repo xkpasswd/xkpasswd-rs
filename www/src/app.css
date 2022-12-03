@@ -1,19 +1,31 @@
+body {
+  @apply bg-white;
+  @apply sm:bg-transparent;
+}
+
 #app {
-  @apply flex-col items-center mx-auto my-0 p-4 text-center max-w-2xl;
+  @apply flex-col items-center text-center text-black;
+  @apply mx-auto my-4 p-4 max-w-xl;
+  @apply sm:bg-white sm:rounded-lg;
 }
 
 .btn {
-  @apply font-bold mx-2 p-2 rounded;
+  @apply font-bold mx-2 p-2 rounded text-white;
+}
+.btn:hover {
+  @apply bg-black;
 }
 .btn-generate {
-  @apply bg-blue-500 text-white;
+  @apply bg-blue;
 }
-.btn-generate:hover {
-  @apply bg-blue-700;
+
+.passwd-container {
+  @apply mt-4 py-2 cursor-pointer bg-black text-white;
 }
-.btn-copy {
-  @apply bg-red-500 text-white;
+.passwd-container:hover {
+  @apply bg-transparent text-black;
 }
-.btn-copy:hover {
-  @apply bg-red-700;
+.passwd {
+  @apply mx-auto p-3;
+  @apply font-bold font-mono break-words;
 }
