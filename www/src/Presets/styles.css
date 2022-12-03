@@ -1,0 +1,4 @@
+.presets {
+  @apply mx-auto mb-4 py-2 w-48;
+  @apply bg-blue text-white text-lg text-center rounded;
+}
