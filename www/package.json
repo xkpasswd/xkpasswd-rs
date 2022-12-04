@@ -16,7 +16,8 @@
     "build": "concurrently npm:lint 'vite build'",
     "preserve": "npm run build",
     "serve": "vite preview",
-    "surge": "surge dist xkpasswd.surge.sh"
+    "predeploy:staging": "npm run build",
+    "deploy:staging": "surge dist xkpasswd.surge.sh"
   },
   "dependencies": {
     "@heroicons/react": "^2.0.13",
@@ -32,6 +33,7 @@
     "eslint-config-prettier": "^8.5.0",
     "postcss": "^8.4.19",
     "prettier": "^2.8.0",
+    "surge": "^0.23.1",
     "tailwindcss": "^3.2.4",
     "typescript": "^4.6.4",
     "vite": "^3.2.3",

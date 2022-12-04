@@ -1,31 +1,21 @@
-body {
-  @apply bg-white;
-  @apply sm:bg-transparent;
-}
-
 #app {
-  @apply flex-col items-center text-center text-black;
+  @apply flex-col items-center text-black;
   @apply mx-auto my-4 p-4 max-w-xl;
   @apply sm:bg-white sm:rounded-lg;
 }
 
 .btn {
-  @apply font-bold mx-2 p-2 rounded text-white;
+  @apply font-bold underline;
 }
-.btn:hover {
-  @apply bg-black;
-}
-.btn-generate {
-  @apply bg-blue;
+.btn:hover,
+.btn:focus {
+  @apply text-blue decoration-double;
 }
 
-.passwd-container {
-  @apply mt-4 py-2 cursor-pointer bg-black text-white;
-}
-.passwd-container:hover {
-  @apply bg-transparent text-black;
-}
 .passwd {
-  @apply mx-auto p-3;
-  @apply font-bold font-mono break-words;
+  @apply font-bold font-mono bg-red text-white text-center;
+  @apply mx-auto mt-4 p-2 break-words cursor-pointer rounded;
+}
+.passwd:hover {
+  @apply bg-transparent text-red;
 }
