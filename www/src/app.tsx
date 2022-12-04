@@ -1,17 +1,16 @@
 import { useCallback, useEffect, useState } from 'preact/hooks';
 import * as xkpasswd from '../xkpasswd/xkpasswd';
-import { ArrowPathIcon } from '@heroicons/react/20/solid';
 import Entropy from './Entropy';
 import Presets from './Presets';
 import './app.css';
 
 export function App() {
   const [passGenerator] = useState(new xkpasswd.Xkpasswd());
-  const [preset, setPreset] = useState<xkpasswd.Preset>(
+  const [preset, setPreset] = useState<xkpasswd.Preset | undefined>(
     xkpasswd.Preset.Default
   );
   const [settings, setSettings] = useState<xkpasswd.Settings>(
-    xkpasswd.Settings.fromPreset(preset)
+    xkpasswd.Settings.fromPreset(xkpasswd.Preset.Default)
   );
   const [entropy, setEntropy] = useState<xkpasswd.Entropy | undefined>(
     undefined
@@ -19,7 +18,12 @@ export function App() {
   const [passwd, setPasswd] = useState<string>('');
 
   const buildSettings = useCallback(() => {
-    setSettings(xkpasswd.Settings.fromPreset(preset));
+    let settings =
+      preset == null
+        ? new xkpasswd.Settings()
+        : xkpasswd.Settings.fromPreset(preset);
+
+    setSettings(settings);
   }, [preset]);
 
   const genPasswd = useCallback(() => {
@@ -38,14 +42,20 @@ export function App() {
 
   return (
     <>
-      <div className="">
-        <Presets preset={preset} onSelectPreset={setPreset} />
-        <button className="btn btn-generate" onClick={genPasswd}>
-          <ArrowPathIcon class="h-6" />
-        </button>
+      <div className="flex items-center break-words">
+        <span>
+          {'Hey, can you please '}
+          <button className="btn btn-generate" onClick={genPasswd}>
+            {'generate'}
+          </button>
+          {' a password using '}
+          <Presets preset={preset} onSelect={setPreset} />
+          {' preset?'}
+        </span>
       </div>
-      <div className="passwd-container" onClick={copyPasswd}>
-        <span className="passwd">{passwd}</span>
+      <span>{`Sure, here you are (just tap to copy):`}</span>
+      <div className="passwd" onClick={copyPasswd}>
+        {passwd}
       </div>
       <Entropy entropy={entropy} />
     </>

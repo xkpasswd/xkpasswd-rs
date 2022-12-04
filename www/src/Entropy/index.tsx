@@ -10,7 +10,6 @@ const Entropy = ({ entropy }: Props) => {
     return null;
   }
 
-  let content = [];
   const entropyBlindMin = (
     <span className="entropy" key="entropy-blind-min">
       {entropy.blind_min}
@@ -21,35 +20,28 @@ const Entropy = ({ entropy }: Props) => {
       {entropy.blind_max}
     </span>
   );
-  const entropySeen = (
+
+  const entropyBlind =
+    entropy.blind_min == entropy.blind_max
+      ? [`Btw, it's entropy is of `, entropyBlindMin, ' bits blind & ']
+      : [
+          `Btw, it's entropy is between `,
+          entropyBlindMin,
+          ' and ',
+          entropyBlindMax,
+          ' bits blind & ',
+        ];
+
+  const entropySeen = [
     <span className="entropy" key="entropy-seen">
       {entropy.seen}
-    </span>
-  );
-
-  if (entropy.blind_min == entropy.blind_max) {
-    content = [
-      'Entropy is of ',
-      entropyBlindMin,
-      ' bits blind & ',
-      entropySeen,
-      ' bits with full knowledge',
-    ];
-  } else {
-    content = [
-      'Entropy is between ',
-      entropyBlindMin,
-      ' and ',
-      entropyBlindMax,
-      ' bits blind & ',
-      entropySeen,
-      ' bits with full knowledge',
-    ];
-  }
+    </span>,
+    ' bits with full knowledge!',
+  ];
 
   return (
-    <div className="mt-8">
-      <span className="text-gray">{content}</span>
+    <div className="mt-4">
+      <span>{[...entropyBlind, ...entropySeen]}</span>
     </div>
   );
 };
