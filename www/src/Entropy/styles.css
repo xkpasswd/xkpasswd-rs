@@ -1,4 +1,21 @@
 .entropy {
-  @apply font-mono font-bold text-blue px-1;
-  @apply border border-blue rounded;
+  @apply font-mono font-bold px-1;
+  @apply border rounded;
+}
+
+.entropy-good {
+  @apply border-blue text-blue;
+}
+.entropy-bad {
+  @apply border-red text-red;
+}
+
+.entropy-img {
+  @apply inline-block h-6 mb-1;
+}
+.entropy-img.not-bad {
+  @apply ml-1;
+}
+.entropy-img.rage-face {
+  @apply ml-0.5;
 }
