@@ -13,9 +13,14 @@
 .entropy-img {
   @apply inline-block h-6 mb-1;
 }
+.entropy-img.feels-good,
+.entropy-img.rage-face {
+  @apply ml-0.5;
+}
 .entropy-img.not-bad {
   @apply ml-1;
 }
-.entropy-img.rage-face {
-  @apply ml-0.5;
+
+.entropy-recommendation {
+  @apply block mt-2 text-sm text-black/50;
 }
