@@ -1,10 +1,11 @@
 import { useCallback, useEffect, useState } from 'preact/hooks';
 import * as xkpasswd from '../xkpasswd/xkpasswd';
 import Entropy from './Entropy';
+import Header from './Header';
 import Presets from './Presets';
 import './app.css';
 
-export function App() {
+const App = () => {
   const [passGenerator] = useState(new xkpasswd.Xkpasswd());
   const [preset, setPreset] = useState<xkpasswd.Preset | undefined>(
     xkpasswd.Preset.Default
@@ -42,6 +43,7 @@ export function App() {
 
   return (
     <>
+      <Header />
       <div className="flex items-center break-words">
         <span>
           {'Hey, can you please '}
@@ -60,4 +62,6 @@ export function App() {
       <Entropy entropy={entropy} />
     </>
   );
-}
+};
+
+export default App;

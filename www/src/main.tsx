@@ -1,5 +1,5 @@
 import { render } from 'preact';
-import { App } from './app';
+import App from './app';
 import './main.css';
 import initWasm from '../xkpasswd/xkpasswd';
 
