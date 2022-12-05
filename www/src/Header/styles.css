@@ -1,0 +1,11 @@
+.header-container {
+  @apply flex items-center justify-between -mt-2;
+}
+
+.header-logo {
+  @apply w-16 h-16 -mt-3 sm:-mt-1;
+}
+
+.header-title {
+  @apply font-bold text-lg text-red text-right;
+}

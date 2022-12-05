@@ -14,7 +14,7 @@
 
 .passwd {
   @apply font-bold font-mono bg-red text-white text-center;
-  @apply mx-auto mt-4 p-2 break-words cursor-pointer rounded;
+  @apply mx-auto mt-4 p-2 break-words cursor-pointer rounded select-none;
 }
 .passwd:hover {
   @apply bg-transparent text-red;

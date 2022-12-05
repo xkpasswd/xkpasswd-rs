@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'preact/hooks';
+import { useCallback, useEffect, useRef, useState } from 'preact/hooks';
 import * as xkpasswd from '../../xkpasswd/xkpasswd';
 import './styles.css';
 
@@ -27,18 +27,36 @@ const Presets = ({ preset, onSelect }: Props) => {
 
   const [title, setTitle] = useState(option?.text);
   const [visible, setVisible] = useState(false);
+  const [dropdownRightAlign, setDropdownRightAlign] = useState(false);
 
   const ref = useRef<HTMLDivElement>(null);
 
-  useEffect(() => {
-    const self = ref.current;
-
-    if (!self) {
+  const setDropdownAlignment = useCallback(() => {
+    const selfRef = ref.current;
+    if (!selfRef) {
       return;
     }
 
+    const { x, width } = selfRef.getBoundingClientRect();
+    setDropdownRightAlign(x + width / 2 > window.screen.width / 2);
+  }, [setDropdownRightAlign]);
+
+  const toggleDropdown = useCallback(() => {
+    if (visible) {
+      setVisible(false);
+      return;
+    }
+
+    setDropdownAlignment();
+    setVisible(true);
+  }, [visible, setVisible, setDropdownAlignment]);
+
+  useEffect(() => {
     const outsideClickListener = (event: MouseEvent) => {
-      if (!self.contains(event.target as HTMLElement) && isVisible(self)) {
+      if (
+        !ref.current?.contains(event.target as HTMLElement) &&
+        isVisible(ref.current)
+      ) {
         setVisible(false);
       }
     };
@@ -52,14 +70,16 @@ const Presets = ({ preset, onSelect }: Props) => {
 
   return (
     <div className="presets-container" ref={ref}>
-      <button className="btn" onClick={() => setVisible(!visible)}>
+      <button className="btn" onClick={toggleDropdown}>
         {title}
       </button>
       {visible && (
         <div
           aria-labelledby="menu-button"
           aria-orientation="vertical"
-          className="presets-dropdown"
+          className={`presets-dropdown ${
+            dropdownRightAlign ? 'right-0' : 'left-0'
+          }`}
           role="menu"
           tabIndex={-1}
         >
