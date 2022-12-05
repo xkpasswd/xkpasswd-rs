@@ -1,7 +1,11 @@
 #app {
   @apply flex-col items-center text-black;
-  @apply mx-auto my-4 p-4 max-w-xl;
+  @apply mx-auto p-3 sm:p-6 max-w-2xl;
   @apply sm:bg-white sm:rounded-lg;
+}
+
+.section {
+  @apply mt-4;
 }
 
 .btn {
@@ -12,10 +16,6 @@
   @apply text-blue decoration-double;
 }
 
-.passwd {
-  @apply font-bold font-mono bg-red text-white text-center;
-  @apply mx-auto mt-4 p-2 break-words cursor-pointer rounded select-none;
-}
-.passwd:hover {
-  @apply bg-transparent text-red;
+.settings {
+  @apply flex items-center break-words;
 }
