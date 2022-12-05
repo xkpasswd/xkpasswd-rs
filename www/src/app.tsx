@@ -3,6 +3,7 @@ import * as xkpasswd from '../xkpasswd/xkpasswd';
 import Entropy from './Entropy';
 import Header from './Header';
 import Presets from './Presets';
+import PasswordBox from './PasswordBox';
 import './app.css';
 
 const App = () => {
@@ -33,18 +34,13 @@ const App = () => {
     setEntropy(entropy);
   }, [passGenerator, settings]);
 
-  const copyPasswd = useCallback(
-    () => navigator.clipboard.writeText(passwd),
-    [passwd]
-  );
-
   useEffect(buildSettings, [buildSettings, preset]);
   useEffect(genPasswd, [genPasswd, passGenerator, settings]);
 
   return (
     <>
       <Header />
-      <div className="flex items-center break-words">
+      <div className="section settings">
         <span>
           {'Hey, can you please '}
           <button className="btn btn-generate" onClick={genPasswd}>
@@ -55,10 +51,7 @@ const App = () => {
           {' preset?'}
         </span>
       </div>
-      <span>{`Sure, here you are (just tap to copy):`}</span>
-      <div className="passwd" onClick={copyPasswd}>
-        {passwd}
-      </div>
+      <PasswordBox passwd={passwd} />
       <Entropy entropy={entropy} />
     </>
   );

@@ -7,6 +7,6 @@
 }
 
 body {
-  @apply bg-white;
-  @apply sm:bg-transparent;
+  @apply bg-white sm:bg-transparent;
+  @apply p-4;
 }

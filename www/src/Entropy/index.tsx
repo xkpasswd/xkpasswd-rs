@@ -10,7 +10,7 @@ type Props = {
   entropy?: xkpasswd.Entropy;
 };
 
-const entropyClassName = (good: boolean) =>
+const entropyClassNames = (good: boolean) =>
   good ? 'entropy entropy-good' : 'entropy entropy-bad';
 
 const Entropy = ({ entropy }: Props) => {
@@ -20,7 +20,7 @@ const Entropy = ({ entropy }: Props) => {
 
   const entropyBlindMin = (
     <span
-      className={entropyClassName(
+      className={entropyClassNames(
         entropy.blind_min >= MIN_RECOMMENDED_ENTROPY_BLIND
       )}
       key="entropy-blind-min"
@@ -31,7 +31,7 @@ const Entropy = ({ entropy }: Props) => {
 
   const entropyBlindMax = (
     <span
-      className={entropyClassName(
+      className={entropyClassNames(
         entropy.blind_max >= MIN_RECOMMENDED_ENTROPY_BLIND
       )}
       key="entropy-blind-max"
@@ -53,7 +53,9 @@ const Entropy = ({ entropy }: Props) => {
 
   const entropySeen = [
     <span
-      className={entropyClassName(entropy.seen >= MIN_RECOMMENDED_ENTROPY_SEEN)}
+      className={entropyClassNames(
+        entropy.seen >= MIN_RECOMMENDED_ENTROPY_SEEN
+      )}
       key="entropy-seen"
     >
       {entropy.seen}
@@ -82,7 +84,7 @@ const Entropy = ({ entropy }: Props) => {
         ];
 
   return (
-    <div className="mt-4">
+    <div className="section">
       <span>{[...entropyBlind, ...entropySeen, ...recommendation]}</span>
     </div>
   );

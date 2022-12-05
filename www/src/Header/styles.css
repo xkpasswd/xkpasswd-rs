@@ -1,5 +1,5 @@
 .header-container {
-  @apply flex items-center justify-between -mt-2;
+  @apply flex items-center justify-between -my-2;
 }
 
 .header-logo {
