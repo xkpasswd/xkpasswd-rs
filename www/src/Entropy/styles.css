@@ -24,3 +24,6 @@
 .entropy-recommendation {
   @apply block mt-2 text-sm;
 }
+.entropy-recommendation .information-icon {
+  @apply h-5 mb-1 inline-block stroke-black;
+}
