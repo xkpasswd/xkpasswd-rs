@@ -1,8 +1,9 @@
+import { InformationCircleIcon } from '@heroicons/react/24/outline';
 import * as xkpasswd from '../../xkpasswd/xkpasswd';
-import './styles.css';
 import feelsGoodImage from '/feels-good.png';
 import notBadImage from '/not-bad.png';
 import rageFaceImage from '/rage-face.png';
+import './styles.css';
 
 const NOT_BAD_ENTROPY_BLIND = 78;
 const NOT_BAD_ENTROPY_SEEN = 52;
@@ -59,11 +60,12 @@ const Entropy = ({ entropy }: Props) => {
         <Ratings entropy={entropy} />
       </span>
       <span className="entropy-recommendation">
-        {`(It's recommended to keep `}
+        <InformationCircleIcon className="information-icon" />
+        {`It's recommended to keep `}
         <Bits value={NOT_BAD_ENTROPY_BLIND} />
-        {' bits blind & '}
+        {' bits & '}
         <Bits seen value={NOT_BAD_ENTROPY_SEEN} />
-        {' bits with full knowledge.)'}
+        {' bits, respectively.'}
       </span>
     </div>
   );
