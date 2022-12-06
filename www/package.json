@@ -1,8 +1,11 @@
 {
   "name": "xkpasswd-wasm",
   "description": "XKCD password generator",
-  "private": true,
   "version": "0.1.0",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/xkpasswd/xkpasswd-rs.git"
+  },
   "type": "module",
   "scripts": {
     "wasm:dev": "wasm-pack build --target web --out-dir www/xkpasswd --features=wasm_dev",
@@ -11,9 +14,11 @@
     "lint:es": "eslint . --ext .ts --ext .tsx --fix",
     "lint": "concurrently npm:lint:ts npm:lint:es",
     "predev": "npm run wasm:dev",
-    "dev": "concurrently npm:lint vite",
+    "vite:dev": "VITE_GIT_SHA=$(git rev-parse --short HEAD) vite",
+    "vite:prod": "VITE_GIT_SHA=$(git rev-parse --short HEAD) vite build",
+    "dev": "concurrently npm:lint npm:vite:dev",
     "prebuild": "npm run wasm:prod",
-    "build": "concurrently npm:lint 'vite build'",
+    "build": "concurrently npm:lint npm:vite:prod",
     "preserve": "npm run build",
     "serve": "vite preview",
     "predeploy:staging": "npm run build",
