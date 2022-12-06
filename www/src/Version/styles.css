@@ -1,0 +1,13 @@
+.version-container {
+  @apply pt-4 font-mono text-xs text-gray/50 text-right;
+  @apply border-t border-gray/25;
+}
+
+.version-link.repo:after {
+  @apply content-['@'];
+  @apply text-gray/50;
+}
+
+.version-link:hover {
+  @apply text-red;
+}

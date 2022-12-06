@@ -4,6 +4,7 @@ import Entropy from './Entropy';
 import Header from './Header';
 import Presets from './Presets';
 import PasswordBox from './PasswordBox';
+import Version from './Version';
 import './app.css';
 
 const App = () => {
@@ -53,6 +54,7 @@ const App = () => {
       </div>
       <PasswordBox passwd={passwd} />
       <Entropy entropy={entropy} />
+      <Version />
     </>
   );
 };
