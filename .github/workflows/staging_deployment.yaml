@@ -27,9 +27,6 @@ jobs:
           npm run build
 
       - name: Deploy
-        uses: dswistowski/surge-sh-action@v1
-        with:
-          domain: ${{ secrets.SURGE_DOMAIN }}
-          project: www/dist
-          login: ${{ secrets.SURGE_LOGIN }}
-          token: ${{ secrets.SURGE_TOKEN }}
+        run: |
+          npm install -g surge
+          surge www/dist ${{ secrets.SURGE_DOMAIN }} --token ${{ secrets.SURGE_TOKEN }}

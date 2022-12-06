@@ -22,5 +22,5 @@
 }
 
 .entropy-recommendation {
-  @apply block mt-2 text-sm text-black/50;
+  @apply block mt-2 text-sm;
 }
