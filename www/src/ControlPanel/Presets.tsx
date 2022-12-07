@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'preact/hooks';
 import * as xkpasswd from '../../xkpasswd/xkpasswd';
+import { useSettings } from '../contexts';
 import './styles.css';
 
 const PRESET_OPTIONS = [
@@ -17,14 +18,21 @@ const PRESET_OPTIONS = [
   { text: 'XKCD', preset: xkpasswd.Preset.Xkcd },
 ];
 
-type Props = {
-  preset?: xkpasswd.Preset;
-  onSelect: (preset?: xkpasswd.Preset) => void;
-};
+const Presets = () => {
+  const { updateSettings } = useSettings();
+  const [preset, setPreset] = useState<xkpasswd.Preset | undefined>(
+    xkpasswd.Preset.Default
+  );
 
-const Presets = ({ preset, onSelect }: Props) => {
-  const option = PRESET_OPTIONS.find((opt) => preset == opt.preset);
+  useEffect(() => {
+    if (preset) {
+      updateSettings(xkpasswd.Settings.fromPreset(preset));
+    } else {
+      updateSettings(new xkpasswd.Settings());
+    }
+  }, [updateSettings, preset]);
 
+  const option = PRESET_OPTIONS.find((opt) => preset === opt.preset);
   const [title, setTitle] = useState(option?.text);
   const [visible, setVisible] = useState(false);
   const [dropdownRightAlign, setDropdownRightAlign] = useState(false);
@@ -89,7 +97,7 @@ const Presets = ({ preset, onSelect }: Props) => {
               key={`preset_option_${idx}`}
               onClick={() => {
                 setTitle(text);
-                onSelect(preset);
+                setPreset(preset);
                 setVisible(false);
               }}
             >
