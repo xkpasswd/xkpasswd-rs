@@ -25,7 +25,7 @@ type Props = {
 
 const Presets = ({ preset, onSelect }: Props) => {
   const option = PRESET_OPTIONS.find((opt) => preset == opt.preset);
-  const [title, setTitle] = useState(option?.text);
+  const [title, setTitle] = useState(option?.text || 'Default');
 
   return (
     <DropdownButton
