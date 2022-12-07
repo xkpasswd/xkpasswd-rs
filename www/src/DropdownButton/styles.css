@@ -1,0 +1,9 @@
+.dropdown-container {
+  @apply relative inline-block;
+}
+
+.dropdown-menu {
+  @apply absolute z-10 mt-2 w-48 origin-top-left;
+  @apply flex flex-col items-stretch;
+  @apply rounded overflow-hidden bg-white shadow-lg;
+}

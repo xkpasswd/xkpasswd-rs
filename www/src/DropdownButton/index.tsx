@@ -1,5 +1,6 @@
 import { ComponentChildren } from 'preact';
 import { useCallback, useEffect, useRef, useState } from 'preact/hooks';
+import './styles.css';
 
 const isVisible = (elem: HTMLElement | null) =>
   !!elem &&
@@ -11,7 +12,8 @@ type ChildrenProps = {
 
 type Props = {
   name: string;
-  title?: string;
+  title: string;
+  className?: string;
   dropdownClassName?: string;
   children: (props: ChildrenProps) => ComponentChildren;
 };
@@ -19,6 +21,7 @@ type Props = {
 const DropdownButton = ({
   name,
   title,
+  className,
   dropdownClassName,
   children,
 }: Props) => {
@@ -62,7 +65,7 @@ const DropdownButton = ({
   }, []);
 
   return (
-    <div className={`${name}-container`} ref={ref}>
+    <div className={`dropdown-container ${className}`} ref={ref}>
       <button id={`${name}-button`} className="btn" onClick={toggleDropdown}>
         {title}
       </button>
@@ -70,7 +73,7 @@ const DropdownButton = ({
         <div
           aria-labelledby={`${name}-button`}
           aria-orientation="vertical"
-          className={`${dropdownClassName} ${
+          className={`dropdown-menu ${dropdownClassName} ${
             dropdownRightAlign ? 'right-0' : 'left-0'
           }`}
           role="menu"

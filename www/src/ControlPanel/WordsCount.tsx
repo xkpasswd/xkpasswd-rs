@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useState } from 'preact/hooks';
 import { useSettings } from '../contexts';
 import { pluralize, STRINGIFIED_NUMBERS } from '../utils';
+import DropdownButton from '../DropdownButton';
 import './styles.css';
 
 const DEFAULT_WORDS_COUNT = 3;
@@ -10,7 +11,6 @@ const MAX_WORDS_COUNT = 10;
 const WordsCount = () => {
   const { settings, updateSettings } = useSettings();
   const [wordsCount, setWordsCount] = useState(DEFAULT_WORDS_COUNT);
-  const [showSlider, setShowSlider] = useState(false);
 
   const updateWordsCount = useCallback(
     (event: Event) => {
@@ -32,21 +32,24 @@ const WordsCount = () => {
 
   return (
     <>
-      <button className="btn" onClick={() => setShowSlider(!showSlider)}>
-        {STRINGIFIED_NUMBERS[wordsCount]}
-      </button>
+      <DropdownButton
+        name="words-count"
+        title={STRINGIFIED_NUMBERS[wordsCount]}
+        dropdownClassName="words-count-dropdown"
+      >
+        {() => (
+          <input
+            className="words-count-slider"
+            type="range"
+            min={MIN_WORDS_COUNT}
+            max={MAX_WORDS_COUNT}
+            step={1}
+            value={wordsCount}
+            onChange={updateWordsCount}
+          />
+        )}
+      </DropdownButton>
       {` ${pluralize(wordsCount, 'word')}`}
-      {showSlider && (
-        <input
-          className="words-count-slider"
-          type="range"
-          min={MIN_WORDS_COUNT}
-          max={MAX_WORDS_COUNT}
-          step={1}
-          value={wordsCount}
-          onChange={updateWordsCount}
-        />
-      )}
     </>
   );
 };
