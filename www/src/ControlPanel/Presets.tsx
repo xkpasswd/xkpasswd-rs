@@ -1,5 +1,6 @@
-import { useCallback, useEffect, useRef, useState } from 'preact/hooks';
+import { useState } from 'preact/hooks';
 import * as xkpasswd from '../../xkpasswd/xkpasswd';
+import DropdownButton from '../DropdownButton';
 import './styles.css';
 
 const PRESET_OPTIONS = [
@@ -24,86 +25,31 @@ type Props = {
 
 const Presets = ({ preset, onSelect }: Props) => {
   const option = PRESET_OPTIONS.find((opt) => preset == opt.preset);
-
   const [title, setTitle] = useState(option?.text);
-  const [visible, setVisible] = useState(false);
-  const [dropdownRightAlign, setDropdownRightAlign] = useState(false);
-
-  const ref = useRef<HTMLDivElement>(null);
-
-  const setDropdownAlignment = useCallback(() => {
-    const selfRef = ref.current;
-    if (!selfRef) {
-      return;
-    }
-
-    const { x, width } = selfRef.getBoundingClientRect();
-    setDropdownRightAlign(x + width / 2 > window.screen.width / 2);
-  }, [setDropdownRightAlign]);
-
-  const toggleDropdown = useCallback(() => {
-    if (visible) {
-      setVisible(false);
-      return;
-    }
-
-    setDropdownAlignment();
-    setVisible(true);
-  }, [visible, setVisible, setDropdownAlignment]);
-
-  useEffect(() => {
-    const outsideClickListener = (event: MouseEvent) => {
-      if (
-        !ref.current?.contains(event.target as HTMLElement) &&
-        isVisible(ref.current)
-      ) {
-        setVisible(false);
-      }
-    };
-
-    document.addEventListener('click', outsideClickListener);
-
-    return () => {
-      document.removeEventListener('click', outsideClickListener);
-    };
-  }, []);
 
   return (
-    <div className="presets-container" ref={ref}>
-      <button className="btn" onClick={toggleDropdown}>
-        {title}
-      </button>
-      {visible && (
-        <div
-          aria-labelledby="menu-button"
-          aria-orientation="vertical"
-          className={`presets-dropdown ${
-            dropdownRightAlign ? 'right-0' : 'left-0'
-          }`}
-          role="menu"
-          tabIndex={-1}
-        >
-          {PRESET_OPTIONS.map(({ text, preset }, idx) => (
-            <button
-              className="preset-option"
-              key={`preset_option_${idx}`}
-              onClick={() => {
-                setTitle(text);
-                onSelect(preset);
-                setVisible(false);
-              }}
-            >
-              {text}
-            </button>
-          ))}
-        </div>
-      )}
-    </div>
+    <DropdownButton
+      name="presets"
+      title={title}
+      dropdownClassName="presets-dropdown"
+    >
+      {({ dismiss: dismissDropdown }) =>
+        PRESET_OPTIONS.map(({ text, preset }, idx) => (
+          <button
+            className="preset-option"
+            key={`preset_option_${idx}`}
+            onClick={() => {
+              setTitle(text);
+              onSelect(preset);
+              dismissDropdown();
+            }}
+          >
+            {text}
+          </button>
+        ))
+      }
+    </DropdownButton>
   );
 };
-
-const isVisible = (elem: HTMLElement | null) =>
-  !!elem &&
-  !!(elem.offsetWidth || elem.offsetHeight || elem.getClientRects().length);
 
 export default Presets;
