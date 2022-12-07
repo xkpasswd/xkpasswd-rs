@@ -15,3 +15,10 @@
 .preset-option:focus {
   @apply bg-blue text-white;
 }
+
+.words-count-slider {
+  @apply appearance-none h-2 p-0 bg-blue cursor-pointer rounded-lg;
+}
+.words-count-slider:focus {
+  @apply ring-0 shadow-none;
+}
