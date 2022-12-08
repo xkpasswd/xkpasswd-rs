@@ -38,13 +38,13 @@ const Entropy = ({ entropy }: Props) => {
   const entropyBlind =
     entropy.blind_min == entropy.blind_max ? (
       <>
-        {`Btw, it's entropy is of `}
+        {'Btw, its entropy is of '}
         {entropyBlindMin}
         {' bits blind & '}
       </>
     ) : (
       <>
-        {`Btw, it's entropy is between `}
+        {'Btw, its entropy is between '}
         {entropyBlindMin}
         {' and '}
         {entropyBlindMax}

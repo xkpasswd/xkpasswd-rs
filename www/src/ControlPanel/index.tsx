@@ -45,7 +45,7 @@ const ControlPanel = ({ onGenerate }: Props) => {
           ' preset?'
         ) : (
           <>
-            {' preset, using '}
+            {' preset, with '}
             <WordsCount value={wordsCount} onChange={setWordsCount} />
             <WordTransforms
               value={wordTransforms}
