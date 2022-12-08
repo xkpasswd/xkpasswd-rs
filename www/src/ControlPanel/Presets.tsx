@@ -31,7 +31,11 @@ const Presets = ({ preset, onSelect }: Props) => {
     <DropdownButton
       name="presets"
       title={title}
-      dropdownClassName="presets-dropdown"
+      buildDropdownClassName={(isRightAlign) =>
+        isRightAlign
+          ? 'presets-dropdown right-align'
+          : 'presets-dropdown left-align'
+      }
     >
       {({ dismiss: dismissDropdown }) =>
         PRESET_OPTIONS.map(({ text, preset }, idx) => (

@@ -6,7 +6,7 @@ import './styles.css';
 
 const DEFAULT_WORDS_COUNT = 3;
 const MIN_WORDS_COUNT = 1;
-const MAX_WORDS_COUNT = 10;
+const MAX_WORDS_COUNT = 12;
 
 const WordsCount = () => {
   const { settings, updateSettings } = useSettings();
@@ -35,7 +35,11 @@ const WordsCount = () => {
       <DropdownButton
         name="words-count"
         title={STRINGIFIED_NUMBERS[wordsCount]}
-        dropdownClassName="words-count-dropdown"
+        buildDropdownClassName={(isRightAlign) =>
+          isRightAlign
+            ? 'words-count-dropdown right-align'
+            : 'words-count-dropdown left-align'
+        }
       >
         {() => (
           <input

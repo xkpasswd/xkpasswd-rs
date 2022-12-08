@@ -1,5 +1,12 @@
+.left-align {
+  @apply left-0 origin-top-left;
+}
+.presets-dropdown.right-align {
+  @apply right-0 origin-top-right;
+}
+
 .preset-option {
-  @apply px-4 py-2 text-left;
+  @apply px-4 py-2 text-left w-44;
 }
 .preset-option:hover,
 .preset-option:focus {
@@ -12,6 +19,10 @@
 .words-count-slider:focus {
   @apply ring-0 shadow-none;
 }
+
 .words-count-dropdown {
-  @apply h-8 p-4 pt-3 -left-20;
+  @apply h-8 p-4 pt-3 w-44;
+}
+.words-count-dropdown.right-align {
+  @apply -left-32 origin-top-left;
 }
