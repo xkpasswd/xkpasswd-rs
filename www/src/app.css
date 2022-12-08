@@ -9,7 +9,7 @@
 }
 
 .btn {
-  @apply font-bold underline;
+  @apply font-bold text-left underline;
 }
 .btn:hover,
 .btn:focus {
