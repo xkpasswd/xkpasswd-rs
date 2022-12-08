@@ -14,15 +14,18 @@ export const STRINGIFIED_NUMBERS = [
   'twelve',
 ];
 
-export const pluralize = (amount: number, word: string) => {
+export const pluralize = (
+  amount: number,
+  word: string,
+  pluralForm?: string
+) => {
   if (amount < 2) {
     return word;
   }
 
-  switch (word) {
-    case 'word':
-      return 'words';
-    default:
-      return word;
+  if (pluralForm) {
+    return pluralForm;
   }
+
+  return `${word}s`;
 };

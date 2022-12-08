@@ -4,6 +4,7 @@ import feelsGoodImage from '/feels-good.png';
 import notBadImage from '/not-bad.png';
 import rageFaceImage from '/rage-face.png';
 import './styles.css';
+import { pluralize } from '../utils';
 
 const NOT_BAD_ENTROPY_BLIND = 78;
 const NOT_BAD_ENTROPY_SEEN = 52;
@@ -71,18 +72,72 @@ const Entropy = ({ entropy }: Props) => {
   );
 };
 
-const Ratings = ({ entropy }: Props) => {
-  if (!entropy) {
-    return null;
+const calcExceptionalTime = (years: number) => {
+  if (years > 1_000_000_000) {
+    return 'more than a billion years';
   }
 
+  if (years > 1_000_000) {
+    return 'more than a million years';
+  }
+
+  if (years > 1_000) {
+    return 'more than a thousand years';
+  }
+
+  return null;
+};
+
+const GuessTime = ({ value }: { value: xkpasswd.GuessTime }) => {
+  const prefix = 'which takes computer ';
+  const suffix = ' to break at 1000 guesses/sec';
+  const exceptionalTime = calcExceptionalTime(value.years);
+
+  if (exceptionalTime) {
+    return (
+      <>
+        {prefix}
+        <span className="font-bold">{exceptionalTime}</span>
+        {suffix}
+      </>
+    );
+  }
+
+  return (
+    <>
+      {prefix}
+      {value.years > 0 && (
+        <span className="font-bold">
+          {value.years}
+          {` ${pluralize(value.years, 'year')} `}
+        </span>
+      )}
+      {value.months > 0 && (
+        <span className="font-bold">
+          {value.months}
+          {` ${pluralize(value.months, 'month')} `}
+        </span>
+      )}
+      {value.days > 0 && (
+        <span className="font-bold">
+          {value.days}
+          {` ${pluralize(value.days, 'day')} `}
+        </span>
+      )}
+      {suffix}
+    </>
+  );
+};
+
+const Ratings = ({ entropy }: { entropy: xkpasswd.Entropy }) => {
   if (
     entropy.blind_min < NOT_BAD_ENTROPY_BLIND ||
     entropy.seen < NOT_BAD_ENTROPY_SEEN
   ) {
     return (
       <>
-        {'which is not good!'}
+        <GuessTime value={entropy.guess_time} />
+        {'. Not good!'}
         <img className="entropy-img rage-face" src={rageFaceImage} />
       </>
     );
@@ -94,7 +149,8 @@ const Ratings = ({ entropy }: Props) => {
   ) {
     return (
       <>
-        {'which is great!'}
+        <GuessTime value={entropy.guess_time} />
+        {'. Great!'}
         <img className="entropy-img feels-good" src={feelsGoodImage} />
       </>
     );
@@ -102,7 +158,8 @@ const Ratings = ({ entropy }: Props) => {
 
   return (
     <>
-      {'which is not bad!'}
+      <GuessTime value={entropy.guess_time} />
+      {'. Not bad!'}
       <img className="entropy-img not-bad" src={notBadImage} />
     </>
   );
