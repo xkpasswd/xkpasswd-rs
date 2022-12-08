@@ -5,6 +5,8 @@ import WordsCount from './WordsCount';
 import { useSettings } from '../contexts';
 import './styles.css';
 
+const DEFAULT_WORDS_COUNT = 3;
+
 type Props = {
   onGenerate: () => void;
 };
@@ -14,14 +16,17 @@ const ControlPanel = ({ onGenerate }: Props) => {
   const [preset, setPreset] = useState<xkpasswd.Preset | undefined>(
     xkpasswd.Preset.Default
   );
+  const [wordsCount, setWordsCount] = useState(DEFAULT_WORDS_COUNT);
 
   useEffect(() => {
-    if (preset) {
+    if (preset != null) {
       updateSettings(xkpasswd.Settings.fromPreset(preset));
-    } else {
-      updateSettings(new xkpasswd.Settings());
+      return;
     }
-  }, [updateSettings, preset]);
+
+    const settings = new xkpasswd.Settings().withWordsCount(wordsCount);
+    updateSettings(settings);
+  }, [updateSettings, preset, wordsCount]);
 
   return (
     <div className="section settings">
@@ -32,10 +37,12 @@ const ControlPanel = ({ onGenerate }: Props) => {
         </button>
         {' a password using '}
         <Presets preset={preset} onSelect={setPreset} />
-        {preset == null ? ' preset, using ' : ' preset?'}
-        {preset == null && (
+        {preset != null ? (
+          ' preset?'
+        ) : (
           <>
-            <WordsCount />
+            {' preset, using '}
+            <WordsCount value={wordsCount} onChange={setWordsCount} />
             {'?'}
           </>
         )}
