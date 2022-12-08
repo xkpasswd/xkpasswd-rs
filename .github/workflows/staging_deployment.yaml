@@ -28,5 +28,6 @@ jobs:
 
       - name: Deploy
         run: |
-          npm install -g surge
-          surge www/dist ${{ secrets.SURGE_DOMAIN }} --token ${{ secrets.SURGE_TOKEN }}
+          echo "Temp. disable due to suspected bugs with surge in CI"
+          #npm install -g surge
+          #surge www/dist ${{ secrets.SURGE_DOMAIN }} --token ${{ secrets.SURGE_TOKEN }}
