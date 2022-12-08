@@ -10,6 +10,8 @@ export const STRINGIFIED_NUMBERS = [
   'eight',
   'nine',
   'ten',
+  'eleven',
+  'twelve',
 ];
 
 export const pluralize = (amount: number, word: string) => {
