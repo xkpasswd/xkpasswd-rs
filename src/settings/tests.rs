@@ -595,20 +595,30 @@ fn test_adjust_padding() {
 #[test]
 fn test_calc_entropy() {
     let table = [
-        ((Preset::AppleID, 4351), (164, 203, 57)),
-        ((Preset::WindowsNtlmV1, 1380), (92, 92, 31)),
-        ((Preset::SecurityQuestions, 6631), (176, 316, 78)),
-        ((Preset::Web16, 1113), (102, 102, 40)),
-        ((Preset::Web32, 2493), (177, 203, 65)),
-        ((Preset::Wifi, 6631), (413, 413, 116)),
-        ((Preset::Xkcd, 6631), (121, 224, 55)),
+        ((Preset::AppleID, 4351), (164, 203, 57), (1_000_001, 0, 0)),
+        ((Preset::WindowsNtlmV1, 1380), (92, 92, 31), (0, 0, 24)),
+        (
+            (Preset::SecurityQuestions, 6631),
+            (176, 316, 78),
+            (1_000_000_001, 0, 0),
+        ),
+        ((Preset::Web16, 1113), (102, 102, 40), (34, 10, 15)),
+        ((Preset::Web32, 2493), (177, 203, 65), (1_000_000_001, 0, 0)),
+        ((Preset::Wifi, 6631), (413, 413, 116), (1_000_000_001, 0, 0)),
+        ((Preset::Xkcd, 6631), (121, 224, 55), (1_000_001, 0, 0)),
     ];
 
-    for ((preset, pool_size), (blind_min, blind_max, seen)) in table {
+    for ((preset, pool_size), (blind_min, blind_max, seen), (years, months, days)) in table {
+        let guess_time = GuessTime {
+            years,
+            months,
+            days,
+        };
         let expected = Entropy {
             blind_max,
             blind_min,
             seen,
+            guess_time,
         };
         let entropy = Settings::from_preset(preset).calc_entropy(pool_size);
         assert_eq!(expected, entropy);

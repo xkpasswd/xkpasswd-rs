@@ -35,10 +35,100 @@ pub enum Preset {
 
 #[wasm_bindgen]
 #[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]
+pub struct GuessTime {
+    pub years: usize,
+    pub months: u8,
+    pub days: u8,
+}
+
+impl fmt::Display for GuessTime {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        if self.years > 1_000_000_000 {
+            return write!(f, "more than a billion years");
+        }
+
+        if self.years > 1_000_000 {
+            return write!(f, "more than a million years");
+        }
+
+        if self.years > 1_000 {
+            return write!(f, "more than a thousand years");
+        }
+
+        let mut comps: Vec<String> = vec![];
+
+        if self.years > 0 {
+            comps.push(format!("{} years", self.years))
+        }
+
+        if self.months > 0 {
+            comps.push(format!("{} months", self.months))
+        }
+
+        if self.days > 0 {
+            comps.push(format!("{} days", self.days))
+        }
+
+        write!(f, "{}", comps.join(" "))
+    }
+}
+
+impl GuessTime {
+    pub const GUESSES_PER_SEC: usize = 1_000;
+    const SECONDS_PER_DAY: f64 = 86_400.0;
+    const DAYS_PER_MONTH: f64 = 30.0;
+    const DAYS_PER_YEAR: f64 = 365.0;
+
+    pub fn for_entropy(amount: usize) -> Self {
+        if amount > 64 {
+            return Self {
+                years: 1_000_000_001,
+                months: 0,
+                days: 0,
+            };
+        }
+
+        if amount > 54 {
+            return Self {
+                years: 1_000_001,
+                months: 0,
+                days: 0,
+            };
+        }
+
+        if amount > 44 {
+            return Self {
+                years: 1001,
+                months: 0,
+                days: 0,
+            };
+        }
+
+        let mut time_to_guess =
+            2.0f64.powi(amount as i32) / (Self::SECONDS_PER_DAY * Self::GUESSES_PER_SEC as f64);
+
+        let years = (time_to_guess / Self::DAYS_PER_YEAR).floor() as usize;
+        time_to_guess -= Self::DAYS_PER_YEAR * years as f64;
+
+        let months = (time_to_guess / Self::DAYS_PER_MONTH).floor() as u8;
+        time_to_guess -= Self::DAYS_PER_MONTH * months as f64;
+
+        let days = time_to_guess.floor() as u8;
+        Self {
+            days,
+            months,
+            years,
+        }
+    }
+}
+
+#[wasm_bindgen]
+#[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]
 pub struct Entropy {
     pub blind_min: usize,
     pub blind_max: usize,
     pub seen: usize,
+    pub guess_time: GuessTime,
 }
 
 impl fmt::Display for Entropy {
@@ -51,8 +141,8 @@ impl fmt::Display for Entropy {
 
         write!(
             f,
-            "{} blind and {} bits with full knowledge",
-            blind_entropies, self.seen
+            "{} blind and {} bits with full knowledge, which takes computers {} to break at {} guesses/sec",
+            blind_entropies, self.seen, self.guess_time, GuessTime::GUESSES_PER_SEC
         )
     }
 }
