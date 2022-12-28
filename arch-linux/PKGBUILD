@@ -1,0 +1,28 @@
+# Maintainer: Thanh Nguyen <xtnguyen605@gmail.com>
+
+pkgname=xkpasswd
+pkgver=0.1.0
+pkgrel=1
+pkgdesc='XKCD password generator'
+arch=(x86_64)
+url='https://github.com/xkpasswd/xkpasswd-rs'
+license=(GPL-3.0)
+depends=()
+makedepends=(cargo git)
+source=("$pkgname-$pkgver.tar.gz::https://github.com/xkpasswd/xkpasswd-rs/archive/v$pkgver.tar.gz")
+sha512sums=('e90c51a421f7603ce4dabe5d8e1ee54a53341e8492e8a63fc9545aca0895aec9f50a22ca6d8b2890724ced459b56afb7a156afc88baeee7890d3da9e715596d4')
+
+prepare() {
+  mv "$pkgname-rs-$pkgver" "$pkgname-$pkgver"
+  cargo fetch --locked --target "$CARCH-unknown-linux-gnu"
+}
+
+build() {
+  cd $pkgname-$pkgver
+  cargo build --frozen --release
+}
+
+package() {
+  cd $pkgname-$pkgver
+  install -Dm755 target/release/xkpasswd -t "$pkgdir/usr/bin"
+}
