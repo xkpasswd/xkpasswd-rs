@@ -8,9 +8,9 @@ clean:
 		rm -rf www/{dist,xkpasswd}
 
 lint:
-	@cargo fmt; \
+	@cargo fmt --all -- --check; \
 		cargo check --features=cli_dev --features=wasm_dev; \
-		cargo clippy --features=cli_dev --features=wasm_dev
+		cargo clippy --features=cli_dev --features=wasm_dev -- -D warnings
 
 test: test-cli test-wasm
 
