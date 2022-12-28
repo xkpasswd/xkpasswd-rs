@@ -384,7 +384,7 @@ impl Randomizer for Settings {
                 cmp::Ordering::Less => {
                     log::debug!(
                         "trimmed {} characters to fit padding strategy",
-                        pass_length - len as usize
+                        pass_length - len
                     );
 
                     PaddingResult::TrimTo(len)
