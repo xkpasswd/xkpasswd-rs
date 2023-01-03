@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'preact/hooks';
+import { copyToClipboard } from '../utils';
 import './styles.css';
 
 type Props = {
@@ -11,8 +12,11 @@ const PasswordBox = ({ passwd }: Props) => {
   const ref = useRef<HTMLButtonElement>(null);
 
   const copyPasswd = useCallback(() => {
-    navigator.clipboard.writeText(passwd);
-    setShowTooltips(true);
+    if (copyToClipboard(passwd)) {
+      setShowTooltips(true);
+    } else {
+      prompt('Password to copy', passwd);
+    }
   }, [passwd]);
 
   useEffect(() => {
