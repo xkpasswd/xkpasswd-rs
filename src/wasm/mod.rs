@@ -85,12 +85,11 @@ impl WasmSettings {
         WasmSettings { settings }
     }
 
-    #[wasm_bindgen(variadic, js_name = "withWordTransforms")]
-    pub fn with_word_transforms(&self, transforms: &[u8]) -> WasmSettings {
-        let reduced = transforms.iter().fold(0, |acc, cur| acc | cur);
+    #[wasm_bindgen(js_name = "withWordTransforms")]
+    pub fn with_word_transforms(&self, transforms: u8) -> WasmSettings {
         let settings = self
             .settings
-            .with_word_transforms(reduced)
+            .with_word_transforms(transforms)
             .expect(DEFAULT_SETTING_BUILDER_ERR);
         WasmSettings { settings }
     }
@@ -100,6 +99,21 @@ impl WasmSettings {
         WasmSettings {
             settings: Settings::from_preset(preset),
         }
+    }
+}
+
+#[wasm_bindgen]
+#[derive(Clone, Debug)]
+pub struct PasswdResult {
+    passwd: String,
+    pub entropy: Entropy,
+}
+
+#[wasm_bindgen]
+impl PasswdResult {
+    #[wasm_bindgen(getter)]
+    pub fn passwd(&self) -> String {
+        self.passwd.clone()
     }
 }
 
@@ -118,12 +132,12 @@ impl WasmXkpasswd {
     }
 
     #[wasm_bindgen(js_name = "genPass")]
-    pub fn gen_pass(&self, js_settings: &WasmSettings) -> String {
+    pub fn gen_pass(&self, js_settings: &WasmSettings) -> PasswdResult {
         let settings: Settings = js_settings.settings.clone();
 
-        let (passwd, _entropy) = self.pass_generator.gen_pass(&settings);
-        console_log!("{:?} {:?}", settings, _entropy);
+        let (passwd, entropy) = self.pass_generator.gen_pass(&settings);
+        console_log!("{:?} {:?}", settings, entropy);
 
-        passwd
+        PasswdResult { passwd, entropy }
     }
 }

@@ -1,0 +1,29 @@
+.entropy {
+  @apply font-mono font-bold px-1;
+  @apply border rounded;
+}
+
+.entropy-good {
+  @apply border-blue text-blue;
+}
+.entropy-bad {
+  @apply border-red text-red;
+}
+
+.entropy-img {
+  @apply inline-block h-6 mb-1;
+}
+.entropy-img.feels-good,
+.entropy-img.rage-face {
+  @apply ml-0.5;
+}
+.entropy-img.not-bad {
+  @apply ml-1;
+}
+
+.entropy-recommendation {
+  @apply block mt-2 text-sm;
+}
+.entropy-recommendation .information-icon {
+  @apply h-5 mb-1 mr-1 inline-block stroke-black;
+}

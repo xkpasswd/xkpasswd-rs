@@ -1,0 +1,21 @@
+#app {
+  @apply flex-col items-center text-black;
+  @apply mx-auto p-3 sm:p-6 max-w-2xl;
+  @apply sm:bg-white sm:rounded-lg;
+}
+
+.section {
+  @apply mt-4;
+}
+
+.btn {
+  @apply font-bold text-left underline;
+}
+.btn:hover,
+.btn:focus {
+  @apply text-blue decoration-double;
+}
+
+.settings {
+  @apply flex items-center break-words;
+}

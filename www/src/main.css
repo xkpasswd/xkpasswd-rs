@@ -1,0 +1,12 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+*:focus {
+  @apply outline-none;
+}
+
+body {
+  @apply bg-white sm:bg-transparent;
+  @apply p-4;
+}

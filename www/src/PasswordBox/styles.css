@@ -1,0 +1,16 @@
+.password-box {
+  @apply break-words text-center;
+}
+
+.btn-password {
+  @apply font-bold font-mono bg-red text-white select-none;
+  @apply mx-auto p-2 w-full break-words cursor-pointer rounded;
+}
+.btn-password:hover,
+.btn-password:focus {
+  @apply bg-transparent text-red;
+}
+
+.password-tooltips {
+  @apply italic text-sm text-black/50;
+}

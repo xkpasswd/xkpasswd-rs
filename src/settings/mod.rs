@@ -2,7 +2,9 @@
 mod tests;
 
 use crate::bit_flags::{BitFlags, FieldSize, WordTransform};
-use crate::prelude::{Builder, Entropy, PaddingResult, PaddingStrategy, Preset, Randomizer};
+use crate::prelude::{
+    Builder, Entropy, GuessTime, PaddingResult, PaddingStrategy, Preset, Randomizer,
+};
 use rand::distributions::{Distribution, Uniform};
 use rand::Rng;
 use std::cmp;
@@ -486,14 +488,17 @@ impl Randomizer for Settings {
             (self.padding_symbols.len() as f64).log2()
         };
 
+        let seen = (seen_words_entropy
+            + seen_separator_entropy
+            + seen_digits_entropy
+            + seen_symbols_entropy)
+            .round() as usize;
+
         Entropy {
             blind_min: blind_min.round() as usize,
             blind_max: blind_max.round() as usize,
-            seen: (seen_words_entropy
-                + seen_separator_entropy
-                + seen_digits_entropy
-                + seen_symbols_entropy)
-                .round() as usize,
+            seen,
+            guess_time: GuessTime::for_entropy(seen),
         }
     }
 }
