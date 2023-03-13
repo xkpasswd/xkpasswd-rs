@@ -26,3 +26,10 @@
 .words-count-dropdown.right-align {
   @apply -left-32 origin-top-left;
 }
+
+.separators-dropdown {
+  @apply w-32;
+}
+.separators-input {
+  @apply bg-white px-2 py-1 border border-blue rounded;
+}

@@ -15,6 +15,7 @@ type Props = {
   title: string;
   className?: string;
   buildDropdownClassName?: (isRightAlign: boolean) => string;
+  onToggle?: (visible: boolean) => void;
   children: (props: ChildrenProps) => ComponentChildren;
 };
 
@@ -23,6 +24,7 @@ const DropdownButton = ({
   title,
   className,
   buildDropdownClassName,
+  onToggle,
   children,
 }: Props) => {
   const [visible, setVisible] = useState(false);
@@ -63,6 +65,8 @@ const DropdownButton = ({
     document.addEventListener('click', outsideClickListener);
     return () => document.removeEventListener('click', outsideClickListener);
   }, []);
+
+  useEffect(() => onToggle && onToggle(visible), [onToggle, visible]);
 
   const containerClassNames = ['dropdown-container', className]
     .filter(Boolean)
