@@ -10,7 +10,7 @@ import './styles.css';
 const DEFAULT_WORDS_COUNT = 3;
 const DEFAULT_WORD_TRANSFORMS =
   xkpasswd.WordTransform.Lowercase | xkpasswd.WordTransform.Uppercase;
-const DEFAULT_SEPARATORS = '.-_~';
+const DEFAULT_SEPARATORS = '.';
 
 type Props = {
   onGenerate: () => void;

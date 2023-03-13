@@ -7,6 +7,9 @@ type Props = {
   onChange: (separators: string) => void;
 };
 
+const formatSeparators = (separators: string): string =>
+  separators.replaceAll(' ', '␣');
+
 const Separators = ({ value, onChange }: Props) => {
   const separatorsInputRef = useRef<HTMLInputElement>(null);
   const updateSeparators = useCallback(
@@ -26,7 +29,7 @@ const Separators = ({ value, onChange }: Props) => {
     <>
       <DropdownButton
         name="separators"
-        title={`${value} as ${suffix}`}
+        title={`${formatSeparators(value)} as ${suffix}`}
         buildDropdownClassName={(isRightAlign) =>
           isRightAlign
             ? 'separators-dropdown right-align'
