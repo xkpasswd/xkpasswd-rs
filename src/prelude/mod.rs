@@ -69,7 +69,11 @@ impl fmt::Display for GuessTime {
             comps.push(format!("{} days", self.days))
         }
 
-        write!(f, "{}", comps.join(" "))
+        if comps.is_empty() {
+            write!(f, "less than a day")
+        } else {
+            write!(f, "{}", comps.join(" "))
+        }
     }
 }
 
@@ -114,6 +118,7 @@ impl GuessTime {
         time_to_guess -= Self::DAYS_PER_MONTH * months as f64;
 
         let days = time_to_guess.floor() as u8;
+
         Self {
             days,
             months,

@@ -103,27 +103,41 @@ const GuessTime = ({ value }: { value: xkpasswd.GuessTime }) => {
     );
   }
 
+  const comps = [
+    value.years > 0 && (
+      <span className="font-bold">
+        {value.years}
+        {` ${pluralize(value.years, 'year')} `}
+      </span>
+    ),
+    value.months > 0 && (
+      <span className="font-bold">
+        {value.months}
+        {` ${pluralize(value.months, 'month')} `}
+      </span>
+    ),
+    value.days > 0 && (
+      <span className="font-bold">
+        {value.days}
+        {` ${pluralize(value.days, 'day')} `}
+      </span>
+    ),
+  ].filter(Boolean);
+
+  if (comps.length == 0) {
+    return (
+      <>
+        {prefix}
+        <span className="font-bold">{'less than a day'}</span>
+        {suffix}
+      </>
+    );
+  }
+
   return (
     <>
       {prefix}
-      {value.years > 0 && (
-        <span className="font-bold">
-          {value.years}
-          {` ${pluralize(value.years, 'year')} `}
-        </span>
-      )}
-      {value.months > 0 && (
-        <span className="font-bold">
-          {value.months}
-          {` ${pluralize(value.months, 'month')} `}
-        </span>
-      )}
-      {value.days > 0 && (
-        <span className="font-bold">
-          {value.days}
-          {` ${pluralize(value.days, 'day')} `}
-        </span>
-      )}
+      {comps}
       {suffix}
     </>
   );
