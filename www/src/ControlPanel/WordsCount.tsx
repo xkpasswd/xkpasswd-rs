@@ -25,6 +25,8 @@ const WordsCount = ({ value, onChange }: Props) => {
     [onChange]
   );
 
+  const suffix = ` ${pluralize(value, 'word')}`;
+
   return (
     <>
       <DropdownButton
@@ -44,7 +46,7 @@ const WordsCount = ({ value, onChange }: Props) => {
           />
         )}
       </DropdownButton>
-      {` ${pluralize(value, 'word')}`}
+      {suffix}
     </>
   );
 };
