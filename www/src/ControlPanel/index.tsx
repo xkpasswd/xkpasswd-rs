@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useState } from 'preact/hooks';
 import * as xkpasswd from '../../xkpasswd/xkpasswd';
 import Presets from './Presets';
-import Separators from './Separators';
+import SymbolsInput from './SymbolsInput';
 import WordsCount from './WordsCount';
 import WordTransforms from './WordTransforms';
 import { useSettings } from '../contexts';
@@ -71,8 +71,9 @@ const ControlPanel = ({ onGenerate }: Props) => {
                 value={wordTransforms}
                 onChange={setWordTransforms}
               />,
-              <Separators
+              <SymbolsInput
                 key="separators"
+                name="separator"
                 value={separators}
                 onChange={setSeparators}
               />,
