@@ -23,11 +23,12 @@ const Separators = ({ value, onChange }: Props) => {
     [onChange]
   );
 
+  const prefix = `${formatSeparators(value)} as `;
   const suffix = value.length == 1 ? 'separator' : 'separators';
 
   return (
     <>
-      {`${formatSeparators(value)} as `}
+      {prefix}
       <DropdownButton
         name="separators"
         title={suffix}
