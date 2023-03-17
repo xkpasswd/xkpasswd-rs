@@ -30,11 +30,7 @@ const WordsCount = ({ value, onChange }: Props) => {
       <DropdownButton
         name="words-count"
         title={STRINGIFIED_NUMBERS[value]}
-        buildDropdownClassName={(isRightAlign) =>
-          isRightAlign
-            ? 'words-count-dropdown right-align'
-            : 'words-count-dropdown left-align'
-        }
+        buildDropdownClassName={() => 'words-count-dropdown'}
       >
         {() => (
           <input

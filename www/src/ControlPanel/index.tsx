@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'preact/hooks';
+import { useCallback, useEffect, useState } from 'preact/hooks';
 import * as xkpasswd from '../../xkpasswd/xkpasswd';
 import Presets from './Presets';
 import Separators from './Separators';
@@ -19,6 +19,7 @@ type Props = {
 const ControlPanel = ({ onGenerate }: Props) => {
   const { updateSettings } = useSettings();
   const [preset, setPreset] = useState<xkpasswd.Preset | undefined>(undefined);
+  const [expanded, setExpanded] = useState(false);
   const [wordsCount, setWordsCount] = useState(DEFAULT_WORDS_COUNT);
   const [wordTransforms, setWordTransforms] = useState(DEFAULT_WORD_TRANSFORMS);
   const [separators, setSeparators] = useState(DEFAULT_SEPARATORS);
@@ -36,29 +37,51 @@ const ControlPanel = ({ onGenerate }: Props) => {
     updateSettings(settings);
   }, [updateSettings, preset, wordsCount, wordTransforms, separators]);
 
+  const onExpand = useCallback(
+    () => setExpanded((expanded) => !expanded),
+    [setExpanded]
+  );
+
+  const presetText = preset == null && expanded ? ' preset, with?' : ' preset?';
+  const expandArrow = expanded ? '⇱ ' : '⇲ ';
+
   return (
     <div className="section settings">
       <span>
         {'Hey, can you please '}
-        <button className="btn btn-generate" onClick={onGenerate}>
+        <button className="btn" onClick={onGenerate}>
           {'generate'}
         </button>
         {' a password using '}
         <Presets preset={preset} onSelect={setPreset} />
-        {preset != null ? (
-          ' preset?'
-        ) : (
-          <>
-            {' preset, with '}
-            <WordsCount value={wordsCount} onChange={setWordsCount} />
-            <WordTransforms
-              value={wordTransforms}
-              onChange={setWordTransforms}
-            />
-            {', using '}
-            <Separators value={separators} onChange={setSeparators} />
-            {'?'}
-          </>
+        {presetText}
+        <button className="btn btn-expand" onClick={onExpand}>
+          {expandArrow}
+        </button>
+        {preset == null && expanded && (
+          <ul>
+            {[
+              <WordsCount
+                key="word-count"
+                value={wordsCount}
+                onChange={setWordsCount}
+              />,
+              <WordTransforms
+                key="word-transforms"
+                value={wordTransforms}
+                onChange={setWordTransforms}
+              />,
+              <Separators
+                key="separators"
+                value={separators}
+                onChange={setSeparators}
+              />,
+            ].map((element) => (
+              <li key={`${element.key}-wrapper`} className="custom-section">
+                {element}
+              </li>
+            ))}
+          </ul>
         )}
       </span>
     </div>
