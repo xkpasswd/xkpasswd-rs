@@ -14,7 +14,8 @@
 }
 
 .btn-expand {
-  @apply text-left pl-1 pr-4;
+  @apply text-left pl-1 pr-2;
+  @apply no-underline !important;
 }
 
 .custom-section {
