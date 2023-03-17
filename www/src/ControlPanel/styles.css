@@ -35,9 +35,18 @@
   @apply ring-0 shadow-none;
 }
 
+.formatted-symbols {
+  @apply font-bold text-red;
+}
+
 .separators-dropdown {
   @apply w-32;
 }
-.separators-input {
+.padding-symbols-dropdown {
+  @apply w-44;
+}
+
+.separators-input,
+.padding-symbols-input {
   @apply bg-white px-2 py-1 border border-blue rounded;
 }

@@ -12,7 +12,7 @@ type ChildrenProps = {
 
 type Props = {
   name: string;
-  title: string;
+  title: ComponentChildren;
   className?: string;
   buildDropdownClassName?: (isRightAlign: boolean) => string;
   onToggle?: (visible: boolean) => void;
