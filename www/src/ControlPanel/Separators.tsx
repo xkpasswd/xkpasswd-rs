@@ -27,14 +27,11 @@ const Separators = ({ value, onChange }: Props) => {
 
   return (
     <>
+      {`${formatSeparators(value)} as `}
       <DropdownButton
         name="separators"
-        title={`${formatSeparators(value)} as ${suffix}`}
-        buildDropdownClassName={(isRightAlign) =>
-          isRightAlign
-            ? 'separators-dropdown right-align'
-            : 'separators-dropdown left-align'
-        }
+        title={suffix}
+        buildDropdownClassName={() => 'separators-dropdown'}
         onToggle={(visible) => visible && separatorsInputRef.current?.focus()}
       >
         {() => (

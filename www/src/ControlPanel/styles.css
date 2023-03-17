@@ -13,18 +13,26 @@
   @apply bg-blue text-white;
 }
 
-.words-count-slider {
-  @apply appearance-none h-2 p-0 bg-blue cursor-pointer rounded-lg;
+.btn-expand {
+  @apply text-left pl-1 pr-4;
 }
-.words-count-slider:focus {
-  @apply ring-0 shadow-none;
+
+.custom-section {
+  @apply px-2;
+}
+.custom-section::before {
+  content: '•';
+  @apply pr-1;
 }
 
 .words-count-dropdown {
   @apply h-8 p-4 pt-3 w-44;
 }
-.words-count-dropdown.right-align {
-  @apply -left-32 origin-top-left;
+.words-count-slider {
+  @apply appearance-none h-2 p-0 bg-blue cursor-pointer rounded-lg;
+}
+.words-count-slider:focus {
+  @apply ring-0 shadow-none;
 }
 
 .separators-dropdown {
