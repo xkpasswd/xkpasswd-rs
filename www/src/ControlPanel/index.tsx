@@ -53,7 +53,7 @@ const ControlPanel = ({ onGenerate }: Props) => {
   );
 
   const presetText = preset == null && expanded ? ' preset, with?' : ' preset?';
-  const expandArrow = expanded ? '⇱ ' : '⇲ ';
+  const expandArrow = expanded ? '⯆' : '⯇';
   const expandConfigs = (
     <ul>
       {[
