@@ -1,16 +1,30 @@
+import { ComponentChildren } from 'preact';
 import { useCallback, useRef } from 'preact/hooks';
 import DropdownButton from '../DropdownButton';
 import './styles.css';
 
-type Props = {
+type RenderProps = {
   name: string;
+  renderPrefix?: (formattedSymbols: string) => ComponentChildren;
+  renderTitle?: (formattedSymbols: string) => ComponentChildren;
+  renderSuffix?: (formattedSymbols: string) => ComponentChildren;
+};
+
+type Props = {
   value: string;
   onChange: (symbols: string) => void;
 };
 
 const formatSymbols = (symbols: string): string => symbols.replaceAll(' ', '␣');
 
-const Symbols = ({ name, value, onChange }: Props) => {
+const SymbolsInput = ({
+  name,
+  value,
+  onChange,
+  renderPrefix,
+  renderTitle,
+  renderSuffix,
+}: Props & RenderProps) => {
   const symbols = useRef<HTMLInputElement>(null);
   const updateSymbols = useCallback(
     (event: Event) => {
@@ -23,23 +37,21 @@ const Symbols = ({ name, value, onChange }: Props) => {
     [onChange]
   );
 
-  const namePlural = `${name}s`;
-  const prefix = `${formatSymbols(value)} as `;
-  const suffix = value.length == 1 ? name : namePlural;
+  const formattedSymbols = formatSymbols(value);
 
   return (
     <>
-      {prefix}
+      {renderPrefix && renderPrefix(formattedSymbols)}
       <DropdownButton
-        name={namePlural}
-        title={suffix}
-        buildDropdownClassName={() => `${namePlural}-dropdown`}
+        name={name}
+        title={renderTitle && renderTitle(formattedSymbols)}
+        buildDropdownClassName={() => `${name}-dropdown`}
         onToggle={(visible) => visible && symbols.current?.focus()}
       >
         {() => (
           <input
             autoFocus
-            className={`${namePlural}-input`}
+            className={`${name}-input`}
             onChange={updateSymbols}
             type="text"
             value={value}
@@ -47,8 +59,35 @@ const Symbols = ({ name, value, onChange }: Props) => {
           />
         )}
       </DropdownButton>
+      {renderSuffix && renderSuffix(formattedSymbols)}
     </>
   );
 };
 
-export default Symbols;
+export const Separators = (props: Props) => (
+  <SymbolsInput
+    name="separators"
+    renderPrefix={(symbols) => (
+      <>
+        <span className="formatted-symbols">{symbols}</span>
+        {' as '}
+      </>
+    )}
+    renderTitle={(symbols) => (symbols.length > 1 ? 'separators' : 'separator')}
+    {...props}
+  />
+);
+
+export const PaddingSymbols = (props: Props) => (
+  <SymbolsInput
+    name="padding-symbols"
+    renderTitle={() => 'padding'}
+    renderSuffix={(symbols) => (
+      <>
+        {' with '}
+        <span className="formatted-symbols">{symbols}</span>
+      </>
+    )}
+    {...props}
+  />
+);
