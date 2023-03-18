@@ -82,7 +82,7 @@ const WordTransforms = ({ value, onChange }: Props) => {
     setTransforms(new Set([selectedTransform]));
   }, []);
 
-  const prefix = transforms.size == 1 ? 'of ' : 'mix of ';
+  const prefix = transforms.size == 1 ? '' : 'mix of ';
   const suffix = transforms.size == 1 ? ' only' : '';
 
   return (
