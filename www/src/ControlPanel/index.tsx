@@ -65,10 +65,12 @@ const ControlPanel = ({ onGenerate }: Props) => {
             after={builder.symbolsAfter}
             onChangeAfter={builder.updateSymbolsAfter}
           />
-          <PaddingSymbols
-            value={builder.paddingSymbols}
-            onChange={builder.updatePaddingSymbols}
-          />
+          {(builder.symbolsBefore > 0 || builder.symbolsAfter > 0) && (
+            <PaddingSymbols
+              value={builder.paddingSymbols}
+              onChange={builder.updatePaddingSymbols}
+            />
+          )}
         </span>,
         <PaddingStrategy
           key="padding-strategy"
