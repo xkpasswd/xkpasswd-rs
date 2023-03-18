@@ -1,4 +1,4 @@
-import passwordImage from '/logo-64x64.png';
+import passwordImage from '../assets/logo-64x64.png';
 import './styles.css';
 
 const Header = () => {
