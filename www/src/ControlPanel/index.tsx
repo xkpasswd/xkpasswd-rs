@@ -9,7 +9,12 @@ import { useSettings } from '../contexts';
 
 import Presets from './Presets';
 import { Separators, PaddingSymbols } from './SymbolsInput';
-import { WordsCount, PaddingDigits, PaddingSymbolCounts } from './CountSlider';
+import {
+  WordsCount,
+  PaddingDigits,
+  PaddingSymbolCounts,
+  PaddingStrategy,
+} from './CountSlider';
 import WordTransforms from './WordTransforms';
 import './styles.css';
 
@@ -20,6 +25,7 @@ const DEFAULT_SEPARATORS = '.';
 const DEFAULT_DIGITS_AFTER = 2;
 const DEFAULT_SYMBOLS_AFTER = 2;
 const DEFAULT_PADDING_SYMBOLS = '~@$%^&*-_+=:|?/.;';
+const DEFAULT_ADAPTIVE_COUNT = 32;
 
 type Props = {
   onGenerate: () => void;
@@ -37,6 +43,8 @@ const ControlPanel = ({ onGenerate }: Props) => {
   const [symbolsBefore, setSymbolsBefore] = useState(0);
   const [symbolsAfter, setSymbolsAfter] = useState(DEFAULT_SYMBOLS_AFTER);
   const [paddingSymbols, setPaddingSymbols] = useState(DEFAULT_PADDING_SYMBOLS);
+  const [adaptivePadding, setAdaptivePadding] = useState(false);
+  const [adaptiveCount, setAdaptiveCount] = useState(DEFAULT_ADAPTIVE_COUNT);
 
   useEffect(() => {
     if (preset != null) {
@@ -51,7 +59,10 @@ const ControlPanel = ({ onGenerate }: Props) => {
       .withPaddingDigits(digitsBefore, digitsAfter)
       .withPaddingSymbols(paddingSymbols)
       .withPaddingSymbolLengths(symbolsBefore, symbolsAfter);
-    updateSettings(settings);
+    const includingPaddingStrategy = adaptivePadding
+      ? settings.withAdaptivePadding(adaptiveCount)
+      : settings.withFixedPadding();
+    updateSettings(includingPaddingStrategy);
   }, [
     updateSettings,
     preset,
@@ -63,11 +74,18 @@ const ControlPanel = ({ onGenerate }: Props) => {
     paddingSymbols,
     symbolsBefore,
     symbolsAfter,
+    adaptivePadding,
+    adaptiveCount,
   ]);
 
-  const onExpand = useCallback(
+  const toggleExpanded = useCallback(
     () => setExpanded((expanded) => !expanded),
     [setExpanded]
+  );
+
+  const toggleAdaptivePadding = useCallback(
+    () => setAdaptivePadding((adaptive) => !adaptive),
+    [setAdaptivePadding]
   );
 
   const presetText = preset == null && expanded ? ' preset, with?' : ' preset?';
@@ -105,6 +123,13 @@ const ControlPanel = ({ onGenerate }: Props) => {
           />
           <PaddingSymbols value={paddingSymbols} onChange={setPaddingSymbols} />
         </span>,
+        <PaddingStrategy
+          key="padding-strategy"
+          adaptive={adaptivePadding}
+          onToggleAdaptive={toggleAdaptivePadding}
+          adaptiveCount={adaptiveCount}
+          onChangeAdaptiveCount={setAdaptiveCount}
+        />,
       ].map((element) => (
         <li key={`${element.key}-wrapper`} className="custom-section">
           {element}
@@ -125,7 +150,7 @@ const ControlPanel = ({ onGenerate }: Props) => {
         {presetText}
         {preset == null && (
           <>
-            <button className="btn btn-expand" onClick={onExpand}>
+            <button className="btn btn-expand" onClick={toggleExpanded}>
               {expanded ? (
                 <BarsArrowUpIcon className="expand-icon" />
               ) : (
