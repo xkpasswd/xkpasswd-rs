@@ -9,7 +9,7 @@ import { useSettings } from '../contexts';
 
 import Presets from './Presets';
 import { Separators, PaddingSymbols } from './SymbolsInput';
-import { PaddingDigits, WordsCount } from './CountSlider';
+import { WordsCount, PaddingDigits, PaddingSymbolCounts } from './CountSlider';
 import WordTransforms from './WordTransforms';
 import './styles.css';
 
@@ -18,6 +18,7 @@ const DEFAULT_WORD_TRANSFORMS =
   xkpasswd.WordTransform.Lowercase | xkpasswd.WordTransform.Uppercase;
 const DEFAULT_SEPARATORS = '.';
 const DEFAULT_DIGITS_AFTER = 2;
+const DEFAULT_SYMBOLS_AFTER = 2;
 const DEFAULT_PADDING_SYMBOLS = '~@$%^&*-_+=:|?/.;';
 
 type Props = {
@@ -33,6 +34,8 @@ const ControlPanel = ({ onGenerate }: Props) => {
   const [separators, setSeparators] = useState(DEFAULT_SEPARATORS);
   const [digitsBefore, setDigitsBefore] = useState(0);
   const [digitsAfter, setDigitsAfter] = useState(DEFAULT_DIGITS_AFTER);
+  const [symbolsBefore, setSymbolsBefore] = useState(0);
+  const [symbolsAfter, setSymbolsAfter] = useState(DEFAULT_SYMBOLS_AFTER);
   const [paddingSymbols, setPaddingSymbols] = useState(DEFAULT_PADDING_SYMBOLS);
 
   useEffect(() => {
@@ -46,7 +49,8 @@ const ControlPanel = ({ onGenerate }: Props) => {
       .withWordTransforms(wordTransforms)
       .withSeparators(separators)
       .withPaddingDigits(digitsBefore, digitsAfter)
-      .withPaddingSymbols(paddingSymbols);
+      .withPaddingSymbols(paddingSymbols)
+      .withPaddingSymbolLengths(symbolsBefore, symbolsAfter);
     updateSettings(settings);
   }, [
     updateSettings,
@@ -57,6 +61,8 @@ const ControlPanel = ({ onGenerate }: Props) => {
     digitsBefore,
     digitsAfter,
     paddingSymbols,
+    symbolsBefore,
+    symbolsAfter,
   ]);
 
   const onExpand = useCallback(
@@ -85,16 +91,20 @@ const ControlPanel = ({ onGenerate }: Props) => {
         />,
         <PaddingDigits
           key="padding-digits"
-          digitsBefore={digitsBefore}
-          onChangeDigitsBefore={setDigitsBefore}
-          digitsAfter={digitsAfter}
-          onChangeDigitsAfter={setDigitsAfter}
+          before={digitsBefore}
+          onChangeBefore={setDigitsBefore}
+          after={digitsAfter}
+          onChangeAfter={setDigitsAfter}
         />,
-        <PaddingSymbols
-          key="padding-symbols"
-          value={paddingSymbols}
-          onChange={setPaddingSymbols}
-        />,
+        <span key="padding-symbols">
+          <PaddingSymbolCounts
+            before={symbolsBefore}
+            onChangeBefore={setSymbolsBefore}
+            after={symbolsAfter}
+            onChangeAfter={setSymbolsAfter}
+          />
+          <PaddingSymbols value={paddingSymbols} onChange={setPaddingSymbols} />
+        </span>,
       ].map((element) => (
         <li key={`${element.key}-wrapper`} className="custom-section">
           {element}

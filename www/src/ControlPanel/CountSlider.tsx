@@ -20,11 +20,11 @@ type Props = {
   onChange: (count: number) => void;
 };
 
-type PaddingDigitsProps = {
-  digitsBefore: number;
-  onChangeDigitsBefore: (value: number) => void;
-  digitsAfter: number;
-  onChangeDigitsAfter: (value: number) => void;
+type PaddingCountsProps = {
+  before: number;
+  onChangeBefore: (value: number) => void;
+  after: number;
+  onChangeAfter: (value: number) => void;
 };
 
 const CountSlider = ({
@@ -78,36 +78,63 @@ const CountSlider = ({
 
 export const WordsCount = (props: Props) => (
   <CountSlider
+    {...props}
     name="words"
     renderTitle={(value) => STRINGIFIED_NUMBERS[value]}
     renderSuffix={(value) => ` ${pluralize(value, 'word')}`}
-    {...props}
   />
 );
 
 export const PaddingDigits = ({
-  digitsBefore,
-  onChangeDigitsBefore,
-  digitsAfter,
-  onChangeDigitsAfter,
-}: PaddingDigitsProps) => (
+  before,
+  onChangeBefore,
+  after,
+  onChangeAfter,
+}: PaddingCountsProps) => (
   <span>
     <CountSlider
       allowZero
       name="digits-before"
       renderTitle={(value) => STRINGIFIED_NUMBERS[value]}
       renderSuffix={(value) => ` ${pluralize(value, 'digit')} before`}
-      value={digitsBefore}
-      onChange={onChangeDigitsBefore}
+      value={before}
+      onChange={onChangeBefore}
     />
-    {' and '}
+    {' & '}
     <CountSlider
       allowZero
       name="digits-after"
       renderTitle={(value) => STRINGIFIED_NUMBERS[value]}
       renderSuffix={(value) => ` ${pluralize(value, 'digit')} after`}
-      value={digitsAfter}
-      onChange={onChangeDigitsAfter}
+      value={after}
+      onChange={onChangeAfter}
     />
   </span>
+);
+
+export const PaddingSymbolCounts = ({
+  before,
+  onChangeBefore,
+  after,
+  onChangeAfter,
+}: PaddingCountsProps) => (
+  <>
+    <CountSlider
+      allowZero
+      name="symbols-before"
+      renderTitle={(value) => STRINGIFIED_NUMBERS[value]}
+      renderSuffix={(value) => ` ${pluralize(value, 'symbol')} before`}
+      value={before}
+      onChange={onChangeBefore}
+    />
+    {' & '}
+    <CountSlider
+      allowZero
+      name="symbols-after"
+      renderTitle={(value) => STRINGIFIED_NUMBERS[value]}
+      renderSuffix={(value) => ` ${pluralize(value, 'symbol')} after`}
+      value={after}
+      onChange={onChangeAfter}
+    />
+  </>
 );

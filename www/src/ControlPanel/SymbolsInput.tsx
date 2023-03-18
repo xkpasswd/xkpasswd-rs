@@ -66,28 +66,30 @@ const SymbolsInput = ({
 
 export const Separators = (props: Props) => (
   <SymbolsInput
+    {...props}
     name="separators"
     renderPrefix={(symbols) => (
       <>
+        {symbols.length > 1 ? 'one of ' : 'only '}
         <span className="formatted-symbols">{symbols}</span>
         {' as '}
       </>
     )}
     renderTitle={(symbols) => (symbols.length > 1 ? 'separators' : 'separator')}
-    {...props}
   />
 );
 
 export const PaddingSymbols = (props: Props) => (
   <SymbolsInput
+    {...props}
     name="padding-symbols"
-    renderTitle={() => 'padding'}
+    renderPrefix={() => ' '}
+    renderTitle={() => 'using'}
     renderSuffix={(symbols) => (
       <>
-        {' with '}
+        {symbols.length > 1 ? ' one of ' : ' only '}
         <span className="formatted-symbols">{symbols}</span>
       </>
     )}
-    {...props}
   />
 );
