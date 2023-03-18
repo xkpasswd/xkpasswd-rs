@@ -17,6 +17,12 @@
   @apply text-left pl-1 pr-2;
   @apply no-underline !important;
 }
+.btn-expand:hover svg {
+  @apply stroke-blue;
+}
+.expand-icon {
+  @apply h-5 inline-block stroke-black;
+}
 
 .custom-section {
   @apply px-2;
