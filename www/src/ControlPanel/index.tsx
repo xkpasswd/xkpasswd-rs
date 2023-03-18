@@ -9,7 +9,7 @@ import { useSettings } from '../contexts';
 
 import Presets from './Presets';
 import { Separators, PaddingSymbols } from './SymbolsInput';
-import WordsCount from './WordsCount';
+import { PaddingDigits, WordsCount } from './CountSlider';
 import WordTransforms from './WordTransforms';
 import './styles.css';
 
@@ -17,6 +17,7 @@ const DEFAULT_WORDS_COUNT = 3;
 const DEFAULT_WORD_TRANSFORMS =
   xkpasswd.WordTransform.Lowercase | xkpasswd.WordTransform.Uppercase;
 const DEFAULT_SEPARATORS = '.';
+const DEFAULT_DIGITS_AFTER = 2;
 const DEFAULT_PADDING_SYMBOLS = '~@$%^&*-_+=:|?/.;';
 
 type Props = {
@@ -30,6 +31,8 @@ const ControlPanel = ({ onGenerate }: Props) => {
   const [wordsCount, setWordsCount] = useState(DEFAULT_WORDS_COUNT);
   const [wordTransforms, setWordTransforms] = useState(DEFAULT_WORD_TRANSFORMS);
   const [separators, setSeparators] = useState(DEFAULT_SEPARATORS);
+  const [digitsBefore, setDigitsBefore] = useState(0);
+  const [digitsAfter, setDigitsAfter] = useState(DEFAULT_DIGITS_AFTER);
   const [paddingSymbols, setPaddingSymbols] = useState(DEFAULT_PADDING_SYMBOLS);
 
   useEffect(() => {
@@ -42,6 +45,7 @@ const ControlPanel = ({ onGenerate }: Props) => {
       .withWordsCount(wordsCount)
       .withWordTransforms(wordTransforms)
       .withSeparators(separators)
+      .withPaddingDigits(digitsBefore, digitsAfter)
       .withPaddingSymbols(paddingSymbols);
     updateSettings(settings);
   }, [
@@ -50,6 +54,8 @@ const ControlPanel = ({ onGenerate }: Props) => {
     wordsCount,
     wordTransforms,
     separators,
+    digitsBefore,
+    digitsAfter,
     paddingSymbols,
   ]);
 
@@ -76,6 +82,13 @@ const ControlPanel = ({ onGenerate }: Props) => {
           key="separators"
           value={separators}
           onChange={setSeparators}
+        />,
+        <PaddingDigits
+          key="padding-digits"
+          digitsBefore={digitsBefore}
+          onChangeDigitsBefore={setDigitsBefore}
+          digitsAfter={digitsAfter}
+          onChangeDigitsAfter={setDigitsAfter}
         />,
         <PaddingSymbols
           key="padding-symbols"
