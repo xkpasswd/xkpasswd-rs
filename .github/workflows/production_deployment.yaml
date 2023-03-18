@@ -1,10 +1,12 @@
-name: Staging deployment
+name: Production deployment
 
-on: [pull_request]
+on:
+  push:
+    branches:
+      - master
 
 jobs:
-  deploy:
-    name: Deploy
+  build:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -26,7 +28,12 @@ jobs:
           npm install
           npm run build
 
-      - name: Deploy
-        run: |
-          npm install -g surge
-          surge www/dist ${{ secrets.SURGE_DOMAIN }} --token ${{ secrets.SURGE_TOKEN }}
+      - name: Deploy to GitHub Pages
+        uses: JamesIves/github-pages-deploy-action@v4.4.1
+        with:
+          token: ${{ secrets.GHPAGES_TOKEN }}
+          repository-name: xkpasswd/xkpasswd.github.io
+          branch: gh-pages
+          folder: www/dist
+          clean: true
+
