@@ -32,10 +32,10 @@
   @apply pr-1;
 }
 
-.words-count-dropdown {
+.count-slider-dropdown {
   @apply h-8 p-4 pt-3 w-44;
 }
-.words-count-slider {
+.count-slider {
   @apply appearance-none h-2 p-0 bg-blue cursor-pointer rounded-lg;
 }
 .words-count-slider:focus {
