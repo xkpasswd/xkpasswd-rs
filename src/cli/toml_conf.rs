@@ -348,7 +348,7 @@ mod tests {
 
         if let ConfigParseError::InvalidConfig(field, message) = result.err().unwrap() {
             assert_eq!("preset", field);
-            assert_eq!("Invalid variant: apple_id", message);
+            assert_eq!("invalid variant: apple_id", message);
         } else {
             panic!("shouldn't be invoked")
         }
@@ -388,7 +388,7 @@ mod tests {
 
         if let ConfigParseError::InvalidConfig(field, message) = result.err().unwrap() {
             assert_eq!("padding", field);
-            assert_eq!("Invalid variant: fixed_padding", message);
+            assert_eq!("invalid variant: fixed_padding", message);
         } else {
             panic!("shouldn't be invoked")
         }
@@ -423,7 +423,7 @@ mod tests {
         let result = parse_transforms(false, &config, |_| panic!("shouldn't be invoked"));
         if let ConfigParseError::InvalidConfig(field, message) = result.err().unwrap() {
             assert_eq!("transforms", field);
-            assert_eq!("Invalid variant: inversed_titlecase", message);
+            assert_eq!("invalid variant: inversed_titlecase", message);
         } else {
             panic!("shouldn't be invoked")
         }
