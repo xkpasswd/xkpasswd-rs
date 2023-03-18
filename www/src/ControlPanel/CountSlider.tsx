@@ -4,12 +4,15 @@ import { pluralize, STRINGIFIED_NUMBERS } from '../utils';
 import DropdownButton from '../DropdownButton';
 import './styles.css';
 
-const MIN_COUNT = 1;
-const MAX_COUNT = 12;
+const MAX_WORDS_COUNT = 12;
+const MAX_PADDING_COUNT = 10;
+const MIN_ADAPTIVE_COUNT = 10;
+const MAX_ADAPTIVE_COUNT = 64;
 
 type RenderProps = {
-  allowZero?: boolean;
   name: string;
+  minCount: number;
+  maxCount: number;
   renderPrefix?: (value: number) => ComponentChildren;
   renderTitle?: (value: number) => ComponentChildren;
   renderSuffix?: (value: number) => ComponentChildren;
@@ -27,28 +30,34 @@ type PaddingCountsProps = {
   onChangeAfter: (value: number) => void;
 };
 
+type PaddingStrategyProps = {
+  adaptive: boolean;
+  onToggleAdaptive: () => void;
+  adaptiveCount: number;
+  onChangeAdaptiveCount: (value: number) => void;
+};
+
 const CountSlider = ({
-  allowZero = false,
-  name,
   value,
   onChange,
+  name,
+  minCount,
+  maxCount,
   renderPrefix,
   renderTitle,
   renderSuffix,
 }: Props & RenderProps) => {
-  const minCount = allowZero ? 0 : MIN_COUNT;
-
   const updateCount = useCallback(
     (event: Event) => {
       const target = event.target as HTMLInputElement;
       const wordsCount = Math.min(
         Math.max(parseInt(target.value, 10), minCount),
-        MAX_COUNT
+        maxCount
       );
 
       onChange(wordsCount);
     },
-    [onChange, minCount]
+    [onChange, minCount, maxCount]
   );
 
   return (
@@ -64,7 +73,7 @@ const CountSlider = ({
             className="count-slider"
             type="range"
             min={minCount}
-            max={MAX_COUNT}
+            max={maxCount}
             step={1}
             value={value}
             onChange={updateCount}
@@ -80,6 +89,8 @@ export const WordsCount = (props: Props) => (
   <CountSlider
     {...props}
     name="words"
+    minCount={1}
+    maxCount={MAX_WORDS_COUNT}
     renderTitle={(value) => STRINGIFIED_NUMBERS[value]}
     renderSuffix={(value) => ` ${pluralize(value, 'word')}`}
   />
@@ -93,21 +104,23 @@ export const PaddingDigits = ({
 }: PaddingCountsProps) => (
   <span>
     <CountSlider
-      allowZero
-      name="digits-before"
-      renderTitle={(value) => STRINGIFIED_NUMBERS[value]}
-      renderSuffix={(value) => ` ${pluralize(value, 'digit')} before`}
       value={before}
       onChange={onChangeBefore}
+      name="digits-before"
+      minCount={0}
+      maxCount={MAX_PADDING_COUNT}
+      renderTitle={(value) => STRINGIFIED_NUMBERS[value]}
+      renderSuffix={(value) => ` ${pluralize(value, 'digit')} before`}
     />
     {' & '}
     <CountSlider
-      allowZero
-      name="digits-after"
-      renderTitle={(value) => STRINGIFIED_NUMBERS[value]}
-      renderSuffix={(value) => ` ${pluralize(value, 'digit')} after`}
       value={after}
       onChange={onChangeAfter}
+      name="digits-after"
+      minCount={0}
+      maxCount={MAX_PADDING_COUNT}
+      renderTitle={(value) => STRINGIFIED_NUMBERS[value]}
+      renderSuffix={(value) => ` ${pluralize(value, 'digit')} after`}
     />
   </span>
 );
@@ -120,21 +133,55 @@ export const PaddingSymbolCounts = ({
 }: PaddingCountsProps) => (
   <>
     <CountSlider
-      allowZero
-      name="symbols-before"
-      renderTitle={(value) => STRINGIFIED_NUMBERS[value]}
-      renderSuffix={(value) => ` ${pluralize(value, 'symbol')} before`}
       value={before}
       onChange={onChangeBefore}
+      name="symbols-before"
+      minCount={0}
+      maxCount={MAX_PADDING_COUNT}
+      renderTitle={(value) => STRINGIFIED_NUMBERS[value]}
+      renderSuffix={(value) => ` ${pluralize(value, 'symbol')} before`}
     />
     {' & '}
     <CountSlider
-      allowZero
-      name="symbols-after"
-      renderTitle={(value) => STRINGIFIED_NUMBERS[value]}
-      renderSuffix={(value) => ` ${pluralize(value, 'symbol')} after`}
       value={after}
       onChange={onChangeAfter}
+      name="symbols-after"
+      minCount={0}
+      maxCount={MAX_PADDING_COUNT}
+      renderTitle={(value) => STRINGIFIED_NUMBERS[value]}
+      renderSuffix={(value) => ` ${pluralize(value, 'symbol')} after`}
     />
   </>
 );
+
+export const PaddingStrategy = ({
+  adaptive,
+  onToggleAdaptive,
+  adaptiveCount,
+  onChangeAdaptiveCount,
+}: PaddingStrategyProps) => {
+  if (!adaptive) {
+    return (
+      <button className="btn" onClick={onToggleAdaptive}>
+        {'no justifying'}
+      </button>
+    );
+  }
+
+  return (
+    <span>
+      <button className="btn" onClick={onToggleAdaptive}>
+        {'justifying'}
+      </button>
+      <CountSlider
+        value={adaptiveCount}
+        onChange={onChangeAdaptiveCount}
+        name="adaptive-padding"
+        minCount={MIN_ADAPTIVE_COUNT}
+        maxCount={MAX_ADAPTIVE_COUNT}
+        renderPrefix={() => ' to fit '}
+        renderTitle={(value) => `${value} ${pluralize(value, 'character')}`}
+      />
+    </span>
+  );
+};
