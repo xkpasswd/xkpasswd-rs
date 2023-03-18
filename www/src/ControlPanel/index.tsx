@@ -1,10 +1,16 @@
 import { useCallback, useEffect, useState } from 'preact/hooks';
+import {
+  BarsArrowDownIcon,
+  BarsArrowUpIcon,
+} from '@heroicons/react/24/outline';
+
 import * as xkpasswd from '../../xkpasswd/xkpasswd';
+import { useSettings } from '../contexts';
+
 import Presets from './Presets';
 import { Separators, PaddingSymbols } from './SymbolsInput';
 import WordsCount from './WordsCount';
 import WordTransforms from './WordTransforms';
-import { useSettings } from '../contexts';
 import './styles.css';
 
 const DEFAULT_WORDS_COUNT = 3;
@@ -53,7 +59,6 @@ const ControlPanel = ({ onGenerate }: Props) => {
   );
 
   const presetText = preset == null && expanded ? ' preset, with?' : ' preset?';
-  const expandArrow = expanded ? '⯆' : '⯇';
   const expandConfigs = (
     <ul>
       {[
@@ -98,7 +103,11 @@ const ControlPanel = ({ onGenerate }: Props) => {
         {preset == null && (
           <>
             <button className="btn btn-expand" onClick={onExpand}>
-              {expandArrow}
+              {expanded ? (
+                <BarsArrowUpIcon className="expand-icon" />
+              ) : (
+                <BarsArrowDownIcon className="expand-icon" />
+              )}
             </button>
             {expanded && expandConfigs}
           </>
