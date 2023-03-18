@@ -32,6 +32,7 @@ const ControlPanel = ({ onGenerate }: Props) => {
 
   const presetText =
     builder.preset == null && expanded ? ' preset, with?' : ' preset?';
+  const ExpandIcon = expanded ? BarsArrowUpIcon : BarsArrowDownIcon;
   const expandConfigs = (
     <ul>
       {[
@@ -97,11 +98,7 @@ const ControlPanel = ({ onGenerate }: Props) => {
         {builder.preset == null && (
           <>
             <button className="btn btn-expand" onClick={toggleExpanded}>
-              {expanded ? (
-                <BarsArrowUpIcon className="expand-icon" />
-              ) : (
-                <BarsArrowDownIcon className="expand-icon" />
-              )}
+              <ExpandIcon className="expand-icon" />
             </button>
             {expanded && expandConfigs}
           </>
