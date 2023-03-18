@@ -1,8 +1,8 @@
 import { InformationCircleIcon } from '@heroicons/react/24/outline';
 import * as xkpasswd from '../../xkpasswd/xkpasswd';
-import feelsGoodImage from '/feels-good.png';
-import notBadImage from '/not-bad.png';
-import rageFaceImage from '/rage-face.png';
+import feelsGoodImage from '../assets/feels-good.png';
+import notBadImage from '../assets/not-bad.png';
+import rageFaceImage from '../assets/rage-face.png';
 import './styles.css';
 import { pluralize } from '../utils';
 
