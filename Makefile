@@ -1,4 +1,5 @@
-.PHONY: all clean lint test test-cli test-wasm build build-cli build-wasm
+.PHONY: all clean lint languages test test-cli test-wasm build build-cli build-wasm
+LANGUAGES = en fr pt
 
 all: clean lint test build
 
@@ -27,3 +28,10 @@ build-cli:
 
 build-wasm:
 	@wasm-pack build --no-default-features --features=wasm
+
+languages: $(LANGUAGES)
+
+$(LANGUAGES): 
+	@cd raw_assets; \
+	DICT=$@ ./convert_dict.py; \
+	mv "dict_$@.txt" "../src/assets"
