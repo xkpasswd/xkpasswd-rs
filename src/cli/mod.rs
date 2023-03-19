@@ -99,7 +99,7 @@ pub struct Cli {
 }
 
 impl Cli {
-    pub fn parse_and_build<B: Builder + Randomizer>() -> B {
+    pub fn parse_and_build_settings<B: Builder + Randomizer>() -> B {
         let mut cli = Self::parse();
         cli.init_logger();
 
