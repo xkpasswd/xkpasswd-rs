@@ -1,4 +1,4 @@
-.PHONY: all clean lint languages test test-cli test-wasm build build-cli build-wasm
+.PHONY: all clean lint test test-cli test-wasm build build-cli build-wasm languages en fr pt
 LANGUAGES = en fr pt
 
 all: clean lint test build
@@ -16,18 +16,26 @@ lint:
 test: test-cli test-wasm
 
 test-cli:
-	@cargo test --features=cli_dev
+	@cargo test --features=cli_dev --features=all_langs
 
 test-wasm:
-	@wasm-pack test --headless --firefox --features=wasm_dev
+	@wasm-pack test --headless --firefox --features=wasm_dev --features=all_langs
 
 build: build-cli build-wasm
 
 build-cli:
-	@cargo build --release --no-default-features --features=cli
+	@cargo build --release --no-default-features --features=cli --features=all_langs
 
-build-wasm:
-	@wasm-pack build --no-default-features --features=wasm
+build-wasm: build-wasm-en build-wasm-fr build-wasm-pt
+
+build-wasm-en:
+	@wasm-pack build --out-name=xkpasswd-en --no-default-features --features=wasm --features=lang_en
+
+build-wasm-fr:
+	@wasm-pack build --out-name=xkpasswd-fr --no-default-features --features=wasm --features=lang_fr
+
+build-wasm-pt:
+	@wasm-pack build --out-name=xkpasswd-pt --no-default-features --features=wasm --features=lang_pt
 
 languages: $(LANGUAGES)
 

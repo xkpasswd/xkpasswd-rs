@@ -82,9 +82,10 @@ fn test_load_dict_invalid_data() {
     load_dict(dict_bytes);
 }
 
+#[cfg(feature = "lang_en")]
 #[test]
-fn test_xkpasswd_default() {
-    let pass = Xkpasswd::default();
+fn test_xkpasswd_for_en() {
+    let pass = Xkpasswd::for_language("en");
     assert_eq!(false, pass.dict.is_empty());
 
     // by default, Xkpasswd loads dict_en.txt
@@ -97,6 +98,44 @@ fn test_xkpasswd_default() {
     assert_eq!(1167, pass.dict.get(&8).unwrap().len());
     assert_eq!(912, pass.dict.get(&9).unwrap().len());
     assert_eq!(611, pass.dict.get(&10).unwrap().len());
+    assert!(pass.dict.get(&11).is_none());
+}
+
+#[cfg(feature = "lang_fr")]
+#[test]
+fn test_xkpasswd_for_fr() {
+    let pass = Xkpasswd::for_language("fr");
+    assert_eq!(false, pass.dict.is_empty());
+
+    // by default, Xkpasswd loads dict_en.txt
+    assert!(pass.dict.get(&2).is_none());
+    assert!(pass.dict.get(&3).is_none());
+    assert_eq!(1500, pass.dict.get(&4).unwrap().len());
+    assert_eq!(1500, pass.dict.get(&5).unwrap().len());
+    assert_eq!(1500, pass.dict.get(&6).unwrap().len());
+    assert_eq!(1500, pass.dict.get(&7).unwrap().len());
+    assert_eq!(1500, pass.dict.get(&8).unwrap().len());
+    assert_eq!(1500, pass.dict.get(&9).unwrap().len());
+    assert_eq!(1500, pass.dict.get(&10).unwrap().len());
+    assert!(pass.dict.get(&11).is_none());
+}
+
+#[cfg(feature = "lang_pt")]
+#[test]
+fn test_xkpasswd_for_pt() {
+    let pass = Xkpasswd::for_language("pt");
+    assert_eq!(false, pass.dict.is_empty());
+
+    // by default, Xkpasswd loads dict_en.txt
+    assert!(pass.dict.get(&2).is_none());
+    assert!(pass.dict.get(&3).is_none());
+    assert_eq!(1500, pass.dict.get(&4).unwrap().len());
+    assert_eq!(1500, pass.dict.get(&5).unwrap().len());
+    assert_eq!(1500, pass.dict.get(&6).unwrap().len());
+    assert_eq!(1500, pass.dict.get(&7).unwrap().len());
+    assert_eq!(1500, pass.dict.get(&8).unwrap().len());
+    assert_eq!(1500, pass.dict.get(&9).unwrap().len());
+    assert_eq!(1500, pass.dict.get(&10).unwrap().len());
     assert!(pass.dict.get(&11).is_none());
 }
 

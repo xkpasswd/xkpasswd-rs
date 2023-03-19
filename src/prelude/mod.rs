@@ -154,6 +154,10 @@ impl fmt::Display for Entropy {
 
 type Dict<'a> = HashMap<u8, Vec<&'a str>>;
 
+pub trait L10n {
+    fn for_language(language: &str) -> Self;
+}
+
 pub trait Builder: Default + fmt::Display + Sized {
     fn with_words_count(&self, words_count: u8) -> Result<Self, String>;
     fn with_word_lengths(
@@ -187,8 +191,31 @@ pub struct Xkpasswd {
 
 impl Default for Xkpasswd {
     fn default() -> Self {
-        let dict_en_bytes = include_bytes!("../assets/dict_en.txt");
-        let dict = load_dict(&dict_en_bytes[..]);
+        if cfg!(feature = "lang_en") {
+            Xkpasswd::for_language("en")
+        } else if cfg!(feature = "lang_fr") {
+            Xkpasswd::for_language("fr")
+        } else if cfg!(feature = "lang_pt") {
+            Xkpasswd::for_language("pt")
+        } else {
+            panic!("no language bundled")
+        }
+    }
+}
+
+impl L10n for Xkpasswd {
+    fn for_language(language: &str) -> Self {
+        let dict_bytes: &[u8] = match language {
+            #[cfg(feature = "lang_en")]
+            "en" => include_bytes!("../assets/dict_en.txt"),
+            #[cfg(feature = "lang_fr")]
+            "fr" => include_bytes!("../assets/dict_fr.txt"),
+            #[cfg(feature = "lang_pt")]
+            "pt" => include_bytes!("../assets/dict_pt.txt"),
+            _ => panic!("language not supported"),
+        };
+
+        let dict = load_dict(dict_bytes);
         Xkpasswd { dict }
     }
 }

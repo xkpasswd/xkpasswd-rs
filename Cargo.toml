@@ -24,11 +24,15 @@ path = "src/lib.rs"
 crate-type = ["cdylib", "rlib"]
 
 [features]
-default = ["cli", "wasm"]
+default = ["cli", "wasm", "lang_en"]
 cli = ["clap", "log", "stderrlog", "toml", "dirs"]
 cli_dev = ["cli"]
 wasm = ["getrandom", "log"]
 wasm_dev = ["wasm", "console_error_panic_hook", "web-sys"]
+all_langs = ["lang_en", "lang_fr", "lang_pt"]
+lang_en = []
+lang_fr = []
+lang_pt = []
 
 [dependencies]
 clap = { version = "4.0.26", features = ["derive"], optional = true }
