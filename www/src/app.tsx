@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from 'preact/hooks';
-import * as xkpasswd from '../xkpasswd/xkpasswd';
+import xkpasswd from './wasm';
 import ControlPanel from './ControlPanel';
 import Entropy from './Entropy';
 import Header from './Header';

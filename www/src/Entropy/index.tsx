@@ -1,5 +1,5 @@
 import { InformationCircleIcon } from '@heroicons/react/24/outline';
-import * as xkpasswd from '../../xkpasswd/xkpasswd';
+import xkpasswd from '../wasm';
 import feelsGoodImage from '../assets/feels-good.png';
 import notBadImage from '../assets/not-bad.png';
 import rageFaceImage from '../assets/rage-face.png';

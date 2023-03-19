@@ -26,7 +26,17 @@ jobs:
       - name: Install wasm-pack
         run: curl https://rustwasm.github.io/wasm-pack/installer/init.sh -sSf | sh
 
-      - name: Build
-        run: wasm-pack build --features=wasm
-      - name: Calculate gzip size
-        run: 'if [[ $(gzip -9 < pkg/xkpasswd_bg.wasm | wc -c) -gt 100000 ]]; then echo "gzipped wasm size exceeds 100KB"; exit 1; fi'
+      - name: Assert gzip size - EN
+        run: |
+          wasm-pack build --out-name=xkpasswd-en --no-default-features --features=wasm --features=lang_en
+          if [[ $(gzip -9 < pkg/xkpasswd-en_bg.wasm | wc -c) -gt 100000 ]]; then echo "gzipped wasm size for EN exceeds 100KB"; exit 1; fi
+
+      - name: Assert gzip size - FR
+        run: |
+          wasm-pack build --out-name=xkpasswd-fr --no-default-features --features=wasm --features=lang_fr
+          if [[ $(gzip -9 < pkg/xkpasswd-fr_bg.wasm | wc -c) -gt 150000 ]]; then echo "gzipped wasm size for FR exceeds 150KB"; exit 1; fi
+
+      - name: Assert gzip size - PT
+        run: |
+          wasm-pack build --out-name=xkpasswd-pt --no-default-features --features=wasm --features=lang_pt
+          if [[ $(gzip -9 < pkg/xkpasswd-pt_bg.wasm | wc -c) -gt 150000 ]]; then echo "gzipped wasm size for PT exceeds 150KB"; exit 1; fi
