@@ -6,7 +6,7 @@ import {
   useState,
   StateUpdater,
 } from 'preact/hooks';
-import * as xkpasswd from '../xkpasswd/xkpasswd';
+import xkpasswd from './wasm';
 import './app.css';
 
 const DEFAULT_WORDS_COUNT = 3;

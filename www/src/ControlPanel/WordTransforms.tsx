@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from 'preact/hooks';
-import * as xkpasswd from '../../xkpasswd/xkpasswd';
+import xkpasswd from '../wasm';
 import './styles.css';
 import DropdownButton from '../DropdownButton';
 
