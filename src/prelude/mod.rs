@@ -152,10 +152,27 @@ impl fmt::Display for Entropy {
     }
 }
 
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub enum Language {
+    English,
+    French,
+    Portuguese,
+}
+
+/*impl Language {
+    pub fn from_code(code: &str) -> Self {
+        match code {
+            "fr" => Language::French,
+            "pt" => Language::Portuguese,
+            _ => Language::English,
+        }
+    }
+}*/
+
 type Dict<'a> = HashMap<u8, Vec<&'a str>>;
 
 pub trait L10n {
-    fn for_language(language: &str) -> Self;
+    fn for_language(language: Language) -> Self;
 }
 
 pub trait Builder: Default + fmt::Display + Sized {
@@ -192,11 +209,11 @@ pub struct Xkpasswd {
 impl Default for Xkpasswd {
     fn default() -> Self {
         if cfg!(feature = "lang_en") {
-            Xkpasswd::for_language("en")
+            Xkpasswd::for_language(Language::English)
         } else if cfg!(feature = "lang_fr") {
-            Xkpasswd::for_language("fr")
+            Xkpasswd::for_language(Language::French)
         } else if cfg!(feature = "lang_pt") {
-            Xkpasswd::for_language("pt")
+            Xkpasswd::for_language(Language::Portuguese)
         } else {
             panic!("no language bundled")
         }
@@ -204,15 +221,13 @@ impl Default for Xkpasswd {
 }
 
 impl L10n for Xkpasswd {
-    fn for_language(language: &str) -> Self {
+    fn for_language(language: Language) -> Self {
         let dict_bytes: &[u8] = match language {
-            #[cfg(feature = "lang_en")]
-            "en" => include_bytes!("../assets/dict_en.txt"),
             #[cfg(feature = "lang_fr")]
-            "fr" => include_bytes!("../assets/dict_fr.txt"),
+            Language::French => include_bytes!("../assets/dict_fr.txt"),
             #[cfg(feature = "lang_pt")]
-            "pt" => include_bytes!("../assets/dict_pt.txt"),
-            _ => panic!("language not supported"),
+            Language::Portuguese => include_bytes!("../assets/dict_pt.txt"),
+            _ => include_bytes!("../assets/dict_en.txt"),
         };
 
         let dict = load_dict(dict_bytes);

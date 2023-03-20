@@ -85,7 +85,7 @@ fn test_load_dict_invalid_data() {
 #[cfg(feature = "lang_en")]
 #[test]
 fn test_xkpasswd_for_en() {
-    let pass = Xkpasswd::for_language("en");
+    let pass = Xkpasswd::for_language(Language::English);
     assert_eq!(false, pass.dict.is_empty());
 
     // by default, Xkpasswd loads dict_en.txt
@@ -104,7 +104,7 @@ fn test_xkpasswd_for_en() {
 #[cfg(feature = "lang_fr")]
 #[test]
 fn test_xkpasswd_for_fr() {
-    let pass = Xkpasswd::for_language("fr");
+    let pass = Xkpasswd::for_language(Language::French);
     assert_eq!(false, pass.dict.is_empty());
 
     // by default, Xkpasswd loads dict_en.txt
@@ -123,7 +123,7 @@ fn test_xkpasswd_for_fr() {
 #[cfg(feature = "lang_pt")]
 #[test]
 fn test_xkpasswd_for_pt() {
-    let pass = Xkpasswd::for_language("pt");
+    let pass = Xkpasswd::for_language(Language::Portuguese);
     assert_eq!(false, pass.dict.is_empty());
 
     // by default, Xkpasswd loads dict_en.txt

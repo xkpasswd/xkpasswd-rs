@@ -16,6 +16,7 @@ const DEFAULT_CLI: Cli = Cli {
     adaptive_length: None,
     preset: None,
     verbosity: 0,
+    language: None,
     config_file: None,
 };
 
