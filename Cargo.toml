@@ -24,7 +24,7 @@ path = "src/lib.rs"
 crate-type = ["cdylib", "rlib"]
 
 [features]
-default = ["cli", "wasm", "lang_en"]
+default = ["cli", "wasm", "all_langs"]
 cli = ["clap", "log", "stderrlog", "toml", "dirs"]
 cli_dev = ["cli"]
 wasm = ["getrandom", "log"]

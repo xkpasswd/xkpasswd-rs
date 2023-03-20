@@ -16,10 +16,10 @@ lint:
 test: test-cli test-wasm
 
 test-cli:
-	@cargo test --features=cli_dev --features=all_langs
+	@cargo test --features=cli_dev
 
 test-wasm:
-	@wasm-pack test --headless --firefox --features=wasm_dev --features=all_langs
+	@wasm-pack test --headless --firefox --features=wasm_dev
 
 build: build-cli build-wasm
 

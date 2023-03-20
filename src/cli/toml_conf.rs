@@ -95,6 +95,10 @@ impl ConfigParser for Cli {
             self.preset = Some(value)
         })?;
 
+        parse_enum_config(self.language.is_some(), &config, "lang", |value| {
+            self.language = Some(value)
+        })?;
+
         Ok(())
     }
 }

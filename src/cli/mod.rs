@@ -94,30 +94,46 @@ pub struct Cli {
     #[arg(short = 'v', long = "verbose", help = "Verbosity: 1 = info, 2+ = debug", action = ArgAction::Count)]
     verbosity: u8,
 
+    #[arg(short = 'z', long = "lang", help = "Language of generated words")]
+    language: Option<Language>,
+
     #[arg(short = 'c', long = "config", help = "Path to .toml config file")]
     config_file: Option<String>,
 }
 
 impl Cli {
-    pub fn parse_and_build_settings<B: Builder + Randomizer>() -> B {
-        let mut cli = Self::parse();
+    pub fn init() -> Self {
+        let cli = Self::parse();
         cli.init_logger();
+        cli
+    }
 
-        let settings_builder = move |cli: Self| match cli.build_settings::<B>() {
-            Err(err) => Err(format!("Invalid settings: {}", err)),
-            Ok(settings) => Ok(settings),
-        };
+    pub fn language(&self) -> Language {
+        match self.language {
+            Some(language) => language,
+            None => Language::English,
+        }
+    }
 
-        let result = match cli.parse_config_file() {
-            Ok(_) => settings_builder(cli),
+    pub fn parse_settings<B: Builder + Randomizer>(&mut self) -> B {
+        let parse_result = match self.parse_config_file() {
+            Ok(_) => Ok(()),
             Err(err) => match err {
-                ConfigParseError::Ignore => settings_builder(cli),
+                ConfigParseError::Ignore => Ok(()),
                 ConfigParseError::InvalidFile(err) => {
                     Err(format!("Error parsing config file: {}", err))
                 }
                 ConfigParseError::InvalidConfig(field, err) => {
                     Err(format!("Error parsing config file at '{}': {}", field, err))
                 }
+            },
+        };
+
+        let result = match parse_result {
+            Err(message) => Err(message),
+            Ok(_) => match self.build_settings::<B>() {
+                Err(err) => Err(format!("Invalid settings: {}", err)),
+                Ok(settings) => Ok(settings),
             },
         };
 
@@ -277,6 +293,20 @@ impl ValueEnum for WordTransform {
             Self::AltercaseUpperFirst => {
                 PossibleValue::new("altercase-upper-first").help(self.to_string())
             }
+        })
+    }
+}
+
+impl ValueEnum for Language {
+    fn value_variants<'a>() -> &'a [Self] {
+        &[Self::English, Self::French, Self::Portuguese]
+    }
+
+    fn to_possible_value(&self) -> Option<PossibleValue> {
+        Some(match self {
+            Self::English => PossibleValue::new("en").help("English"),
+            Self::French => PossibleValue::new("fr").help("French"),
+            Self::Portuguese => PossibleValue::new("pt").help("Portuguese"),
         })
     }
 }
