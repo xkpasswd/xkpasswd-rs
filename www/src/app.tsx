@@ -1,17 +1,19 @@
 import { useCallback, useEffect, useState } from 'preact/hooks';
-import xkpasswd from './wasm';
 import ControlPanel from './ControlPanel';
 import Entropy from './Entropy';
 import Header from './Header';
 import PasswordBox from './PasswordBox';
 import Version from './Version';
 import { SettingsProvider, useSettings } from './contexts';
+import xkpasswd from './wasm';
 import './app.css';
+
+import type * as xktypes from 'src/types/xkpasswd';
 
 const App = () => {
   const { settings } = useSettings();
   const [passGenerator] = useState(new xkpasswd.Xkpasswd());
-  const [entropy, setEntropy] = useState<xkpasswd.Entropy | undefined>(
+  const [entropy, setEntropy] = useState<xktypes.Entropy | undefined>(
     undefined
   );
   const [passwd, setPasswd] = useState<string>('');
