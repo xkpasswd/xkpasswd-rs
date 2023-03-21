@@ -4,7 +4,7 @@ import {
   BarsArrowUpIcon,
 } from '@heroicons/react/24/outline';
 
-import { useSettings } from '../contexts';
+import { useSettings } from 'src/contexts';
 
 import Presets from './Presets';
 import { Separators, PaddingSymbols } from './SymbolsInput';
@@ -15,6 +15,7 @@ import {
   PaddingStrategy,
 } from './CountSlider';
 import WordTransforms from './WordTransforms';
+import Languages from './Languages';
 import './styles.css';
 
 type Props = {
@@ -94,7 +95,9 @@ const ControlPanel = ({ onGenerate }: Props) => {
         <button className="btn" onClick={onGenerate}>
           {'generate'}
         </button>
-        {' a password using '}
+        {' a password in '}
+        <Languages />
+        {' using '}
         <Presets preset={builder.preset} onSelect={builder.updatePreset} />
         {presetText}
         {builder.preset == null && (

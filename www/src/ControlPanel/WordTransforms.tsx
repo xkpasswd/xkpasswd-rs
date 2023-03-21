@@ -1,7 +1,9 @@
 import { useCallback, useEffect, useState } from 'preact/hooks';
-import xkpasswd from '../wasm';
+import DropdownButton from 'src/DropdownButton';
+import xkpasswd from 'src/wasm';
 import './styles.css';
-import DropdownButton from '../DropdownButton';
+
+import type * as xktypes from 'src/types/xkpasswd';
 
 const SINGLE_WORD_TRANSFORMS = [
   {
@@ -45,7 +47,7 @@ type Props = {
 };
 
 const WordTransforms = ({ value, onChange }: Props) => {
-  const [transforms, setTransforms] = useState<Set<xkpasswd.WordTransform>>(
+  const [transforms, setTransforms] = useState<Set<xktypes.WordTransform>>(
     parseTransforms(value)
   );
   const [oneSingleTransformSelected, setOneSingleTransformSelected] =
@@ -155,7 +157,7 @@ const parseTransforms = (transforms: number) => {
   );
 };
 
-const buildTransformsText = (transforms: Set<xkpasswd.WordTransform>) => {
+const buildTransformsText = (transforms: Set<xktypes.WordTransform>) => {
   const texts = [...GROUP_WORD_TRANSFORMS, ...SINGLE_WORD_TRANSFORMS]
     .filter(({ value }) => transforms.has(value))
     .map(({ text }) => text);

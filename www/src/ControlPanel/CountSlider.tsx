@@ -1,7 +1,7 @@
 import { ComponentChildren } from 'preact';
 import { useCallback } from 'preact/hooks';
-import { pluralize, STRINGIFIED_NUMBERS } from '../utils';
-import DropdownButton from '../DropdownButton';
+import { pluralize, STRINGIFIED_NUMBERS } from 'src/utils';
+import DropdownButton from 'src/DropdownButton';
 import './styles.css';
 
 const MAX_WORDS_COUNT = 12;

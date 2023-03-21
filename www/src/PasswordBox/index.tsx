@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'preact/hooks';
-import { copyToClipboard } from '../utils';
+import { copyToClipboard } from 'src/utils';
 import './styles.css';
 
 type Props = {

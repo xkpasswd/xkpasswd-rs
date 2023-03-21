@@ -1,6 +1,6 @@
 import { ComponentChildren } from 'preact';
 import { useCallback, useRef } from 'preact/hooks';
-import DropdownButton from '../DropdownButton';
+import DropdownButton from 'src/DropdownButton';
 import './styles.css';
 
 type RenderProps = {

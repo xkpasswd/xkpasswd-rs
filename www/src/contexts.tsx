@@ -4,10 +4,12 @@ import {
   useContext,
   useEffect,
   useState,
-  StateUpdater,
+  type StateUpdater,
 } from 'preact/hooks';
 import xkpasswd from './wasm';
 import './app.css';
+
+import type * as xktypes from 'src/types/xkpasswd';
 
 const DEFAULT_WORDS_COUNT = 3;
 const DEFAULT_WORD_TRANSFORMS =
@@ -19,13 +21,13 @@ const DEFAULT_PADDING_SYMBOLS = '~@$%^&*-_+=:|?/.;';
 const DEFAULT_ADAPTIVE_COUNT = 32;
 
 type SettingsContextType = {
-  settings: xkpasswd.Settings;
-  updateSettings: (settings: xkpasswd.Settings) => void;
+  settings: xktypes.Settings;
+  updateSettings: (settings: xktypes.Settings) => void;
 };
 
 type SettingsBuilderType = {
-  preset?: xkpasswd.Preset;
-  updatePreset: StateUpdater<xkpasswd.Preset | undefined>;
+  preset?: xktypes.Preset;
+  updatePreset: StateUpdater<xktypes.Preset | undefined>;
   wordsCount: number;
   updateWordsCount: StateUpdater<number>;
   wordTransforms: number;
@@ -48,8 +50,8 @@ type SettingsBuilderType = {
   updateAdaptiveCount: StateUpdater<number>;
 };
 
-type UseSettingsType = {
-  settings: xkpasswd.Settings;
+export type UseSettingsType = {
+  settings: xktypes.Settings;
   builder: SettingsBuilderType;
 };
 
@@ -65,9 +67,7 @@ export const useSettings = (): UseSettingsType => {
   }
 
   const { settings, updateSettings } = context;
-  const [preset, updatePreset] = useState<xkpasswd.Preset | undefined>(
-    undefined
-  );
+  const [preset, updatePreset] = useState<number | undefined>(undefined);
   const [wordsCount, updateWordsCount] = useState(DEFAULT_WORDS_COUNT);
   const [wordTransforms, updateWordTransforms] = useState(
     DEFAULT_WORD_TRANSFORMS
@@ -154,7 +154,7 @@ type SettingsProviderProps = {
 };
 
 export const SettingsProvider = ({ children }: SettingsProviderProps) => {
-  const [settings, updateSettings] = useState<xkpasswd.Settings>(
+  const [settings, updateSettings] = useState<xktypes.Settings>(
     xkpasswd.Settings.fromPreset(xkpasswd.Preset.Default)
   );
 

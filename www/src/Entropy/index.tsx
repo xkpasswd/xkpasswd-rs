@@ -1,10 +1,11 @@
 import { InformationCircleIcon } from '@heroicons/react/24/outline';
-import xkpasswd from '../wasm';
-import feelsGoodImage from '../assets/feels-good.png';
-import notBadImage from '../assets/not-bad.png';
-import rageFaceImage from '../assets/rage-face.png';
+import feelsGoodImage from 'src/assets/feels-good.png';
+import notBadImage from 'src/assets/not-bad.png';
+import rageFaceImage from 'src/assets/rage-face.png';
+import { pluralize } from 'src/utils';
 import './styles.css';
-import { pluralize } from '../utils';
+
+import type * as xktypes from 'src/types/xkpasswd';
 
 const NOT_BAD_ENTROPY_BLIND = 78;
 const NOT_BAD_ENTROPY_SEEN = 52;
@@ -12,7 +13,7 @@ const GREAT_ENTROPY_BLIND = NOT_BAD_ENTROPY_BLIND * 1.5;
 const GREAT_ENTROPY_SEEN = NOT_BAD_ENTROPY_SEEN * 1.5;
 
 type Props = {
-  entropy?: xkpasswd.Entropy;
+  entropy?: xktypes.Entropy;
 };
 
 type BitsProps = {
@@ -88,7 +89,7 @@ const calcExceptionalTime = (years: number) => {
   return null;
 };
 
-const GuessTime = ({ value }: { value: xkpasswd.GuessTime }) => {
+const GuessTime = ({ value }: { value: xktypes.GuessTime }) => {
   const prefix = 'which takes computer ';
   const suffix = ' to break at 1000 guesses/sec';
   const exceptionalTime = calcExceptionalTime(value.years);
@@ -143,7 +144,7 @@ const GuessTime = ({ value }: { value: xkpasswd.GuessTime }) => {
   );
 };
 
-const Ratings = ({ entropy }: { entropy: xkpasswd.Entropy }) => {
+const Ratings = ({ entropy }: { entropy: xktypes.Entropy }) => {
   if (
     entropy.blind_min < NOT_BAD_ENTROPY_BLIND ||
     entropy.seen < NOT_BAD_ENTROPY_SEEN

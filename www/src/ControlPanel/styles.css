@@ -9,8 +9,14 @@
   @apply px-4 py-2 text-left w-44;
 }
 .preset-option:hover,
-.preset-option:focus {
+.preset-option:focus,
+.language-option:hover,
+.language-option:focus {
   @apply bg-blue text-white;
+}
+
+.language-option {
+  @apply px-4 py-2 text-left w-32;
 }
 
 .btn-expand {

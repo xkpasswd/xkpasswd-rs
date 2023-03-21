@@ -1,7 +1,9 @@
 import { useState } from 'preact/hooks';
-import xkpasswd from '../wasm';
-import DropdownButton from '../DropdownButton';
+import DropdownButton from 'src/DropdownButton';
+import xkpasswd from 'src/wasm';
 import './styles.css';
+
+import type * as xktypes from 'src/types/xkpasswd';
 
 const PRESET_OPTIONS = [
   { text: 'Custom', preset: undefined },
@@ -19,8 +21,8 @@ const PRESET_OPTIONS = [
 ];
 
 type Props = {
-  preset?: xkpasswd.Preset;
-  onSelect: (preset?: xkpasswd.Preset) => void;
+  preset?: xktypes.Preset;
+  onSelect: (preset?: xktypes.Preset) => void;
 };
 
 const Presets = ({ preset, onSelect }: Props) => {
