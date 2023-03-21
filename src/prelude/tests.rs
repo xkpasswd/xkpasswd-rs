@@ -82,61 +82,34 @@ fn test_load_dict_invalid_data() {
     load_dict(dict_bytes);
 }
 
-#[cfg(feature = "lang_en")]
 #[test]
-fn test_xkpasswd_for_en() {
-    let pass = Xkpasswd::for_language(Language::English);
-    assert_eq!(false, pass.dict.is_empty());
+fn test_xkpasswd_languages() {
+    let languages = [
+        #[cfg(feature = "lang_en")]
+        Language::English,
+        #[cfg(feature = "lang_fr")]
+        Language::French,
+        #[cfg(feature = "lang_de")]
+        Language::German,
+        #[cfg(feature = "lang_pt")]
+        Language::Portuguese,
+        #[cfg(feature = "lang_es")]
+        Language::Spanish,
+    ];
 
-    // by default, Xkpasswd loads dict_en.txt
-    assert!(pass.dict.get(&2).is_none());
-    assert!(pass.dict.get(&3).is_none());
-    assert_eq!(1113, pass.dict.get(&4).unwrap().len());
-    assert_eq!(1380, pass.dict.get(&5).unwrap().len());
-    assert_eq!(1500, pass.dict.get(&6).unwrap().len());
-    assert_eq!(1461, pass.dict.get(&7).unwrap().len());
-    assert_eq!(1167, pass.dict.get(&8).unwrap().len());
-    assert_eq!(912, pass.dict.get(&9).unwrap().len());
-    assert_eq!(611, pass.dict.get(&10).unwrap().len());
-    assert!(pass.dict.get(&11).is_none());
-}
+    for lang in languages {
+        let pass = Xkpasswd::for_language(lang);
+        assert_eq!(false, pass.dict.is_empty());
 
-#[cfg(feature = "lang_fr")]
-#[test]
-fn test_xkpasswd_for_fr() {
-    let pass = Xkpasswd::for_language(Language::French);
-    assert_eq!(false, pass.dict.is_empty());
+        assert!(pass.dict.get(&2).is_none());
+        assert!(pass.dict.get(&3).is_none());
 
-    // by default, Xkpasswd loads dict_en.txt
-    assert!(pass.dict.get(&2).is_none());
-    assert!(pass.dict.get(&3).is_none());
-    assert_eq!(1500, pass.dict.get(&4).unwrap().len());
-    assert_eq!(1500, pass.dict.get(&5).unwrap().len());
-    assert_eq!(1500, pass.dict.get(&6).unwrap().len());
-    assert_eq!(1500, pass.dict.get(&7).unwrap().len());
-    assert_eq!(1500, pass.dict.get(&8).unwrap().len());
-    assert_eq!(1500, pass.dict.get(&9).unwrap().len());
-    assert_eq!(1500, pass.dict.get(&10).unwrap().len());
-    assert!(pass.dict.get(&11).is_none());
-}
+        for length in 4..10 {
+            assert_eq!(1500, pass.dict.get(&length).unwrap().len());
+        }
 
-#[cfg(feature = "lang_pt")]
-#[test]
-fn test_xkpasswd_for_pt() {
-    let pass = Xkpasswd::for_language(Language::Portuguese);
-    assert_eq!(false, pass.dict.is_empty());
-
-    // by default, Xkpasswd loads dict_en.txt
-    assert!(pass.dict.get(&2).is_none());
-    assert!(pass.dict.get(&3).is_none());
-    assert_eq!(1500, pass.dict.get(&4).unwrap().len());
-    assert_eq!(1500, pass.dict.get(&5).unwrap().len());
-    assert_eq!(1500, pass.dict.get(&6).unwrap().len());
-    assert_eq!(1500, pass.dict.get(&7).unwrap().len());
-    assert_eq!(1500, pass.dict.get(&8).unwrap().len());
-    assert_eq!(1500, pass.dict.get(&9).unwrap().len());
-    assert_eq!(1500, pass.dict.get(&10).unwrap().len());
-    assert!(pass.dict.get(&11).is_none());
+        assert!(pass.dict.get(&11).is_none());
+    }
 }
 
 #[test]

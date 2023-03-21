@@ -156,18 +156,10 @@ impl fmt::Display for Entropy {
 pub enum Language {
     English,
     French,
+    German,
     Portuguese,
+    Spanish,
 }
-
-/*impl Language {
-    pub fn from_code(code: &str) -> Self {
-        match code {
-            "fr" => Language::French,
-            "pt" => Language::Portuguese,
-            _ => Language::English,
-        }
-    }
-}*/
 
 type Dict<'a> = HashMap<u8, Vec<&'a str>>;
 
@@ -210,6 +202,10 @@ impl Default for Xkpasswd {
     fn default() -> Self {
         if cfg!(feature = "lang_en") {
             Xkpasswd::for_language(Language::English)
+        } else if cfg!(feature = "lang_de") {
+            Xkpasswd::for_language(Language::German)
+        } else if cfg!(feature = "lang_es") {
+            Xkpasswd::for_language(Language::Spanish)
         } else if cfg!(feature = "lang_fr") {
             Xkpasswd::for_language(Language::French)
         } else if cfg!(feature = "lang_pt") {
@@ -223,6 +219,10 @@ impl Default for Xkpasswd {
 impl L10n for Xkpasswd {
     fn for_language(language: Language) -> Self {
         let dict_bytes: &[u8] = match language {
+            #[cfg(feature = "lang_de")]
+            Language::German => include_bytes!("../assets/dict_de.txt"),
+            #[cfg(feature = "lang_es")]
+            Language::Spanish => include_bytes!("../assets/dict_es.txt"),
             #[cfg(feature = "lang_fr")]
             Language::French => include_bytes!("../assets/dict_fr.txt"),
             #[cfg(feature = "lang_pt")]

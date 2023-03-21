@@ -1,5 +1,7 @@
 const LANGUAGE_MAPPING = {
+  de: 'German',
   en: 'English',
+  es: 'Spanish',
   fr: 'French',
   pt: 'Portuguese',
 };
@@ -9,6 +11,22 @@ async function lazyLoad() {
   const language = params.get('lang');
 
   switch (language) {
+    case 'de': {
+      const { default: initWasm, ...xkpasswd } = await import(
+        '../xkpasswd/xkpasswd-de'
+      );
+
+      return { initWasm, xkpasswd, language };
+    }
+
+    case 'es': {
+      const { default: initWasm, ...xkpasswd } = await import(
+        '../xkpasswd/xkpasswd-es'
+      );
+
+      return { initWasm, xkpasswd, language };
+    }
+
     case 'fr': {
       const { default: initWasm, ...xkpasswd } = await import(
         '../xkpasswd/xkpasswd-fr'
