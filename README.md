@@ -5,13 +5,16 @@ XKCD Password Generator, written in Rust with supports for WASM in mind.
 ## Acknowledgement
 
 This project is highly inspired by:
+
 * XKCD's [Password Strength](https://xkcd.com/936/) comic,
 * [xkpasswd.net](https://xkpasswd.net/s/) and
 * [HSXKPasswd](https://www.bartbusschots.ie/s/publications/software/xkpasswd/) Perl module.
 
 ![](./docs/xkcd-936.png)
 
-Web app assets:
+Words list for different languages are reused from [FrequencyWords](https://github.com/hermitdave/FrequencyWords).
+
+Assets for the Web app:
 
 * Logo from [infos-geek.com](https://infos-geek.com/en/how-to-change-the-password-on-wiko-view-2/).
 * Memes from the Internet.
@@ -20,7 +23,9 @@ Web app assets:
 
 * [English](https://github.com/xkpasswd/xkpasswd-rs/blob/main/src/assets/dict_en.txt)
 * [French](https://github.com/xkpasswd/xkpasswd-rs/blob/main/src/assets/dict_fr.txt)
+* [German](https://github.com/xkpasswd/xkpasswd-rs/blob/main/src/assets/dict_de.txt)
 * [Portuguese](https://github.com/xkpasswd/xkpasswd-rs/blob/main/src/assets/dict_pt.txt)
+* [Spanish](https://github.com/xkpasswd/xkpasswd-rs/blob/main/src/assets/dict_es.txt)
 
 ## CLI app
 
@@ -119,7 +124,9 @@ Options:
           Possible values:
           - en: English
           - fr: French
+          - de: German
           - pt: Portuguese
+          - es: Spanish
 
   -c, --config <CONFIG_FILE>
           Path to .toml config file

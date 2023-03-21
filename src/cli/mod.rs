@@ -299,14 +299,22 @@ impl ValueEnum for WordTransform {
 
 impl ValueEnum for Language {
     fn value_variants<'a>() -> &'a [Self] {
-        &[Self::English, Self::French, Self::Portuguese]
+        &[
+            Self::English,
+            Self::French,
+            Self::German,
+            Self::Portuguese,
+            Self::Spanish,
+        ]
     }
 
     fn to_possible_value(&self) -> Option<PossibleValue> {
         Some(match self {
             Self::English => PossibleValue::new("en").help("English"),
             Self::French => PossibleValue::new("fr").help("French"),
+            Self::German => PossibleValue::new("de").help("German"),
             Self::Portuguese => PossibleValue::new("pt").help("Portuguese"),
+            Self::Spanish => PossibleValue::new("es").help("Spanish"),
         })
     }
 }
