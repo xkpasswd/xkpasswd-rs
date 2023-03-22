@@ -82,34 +82,104 @@ fn test_load_dict_invalid_data() {
     load_dict(dict_bytes);
 }
 
+#[cfg(feature = "lang_en")]
 #[test]
-fn test_xkpasswd_languages() {
-    let languages = [
-        #[cfg(feature = "lang_en")]
-        Language::English,
-        #[cfg(feature = "lang_fr")]
-        Language::French,
-        #[cfg(feature = "lang_de")]
-        Language::German,
-        #[cfg(feature = "lang_pt")]
-        Language::Portuguese,
-        #[cfg(feature = "lang_es")]
-        Language::Spanish,
-    ];
+fn test_xkpasswd_for_en() {
+    let pass = Xkpasswd::for_language(Language::English);
+    assert_eq!(false, pass.dict.is_empty());
 
-    for lang in languages {
-        let pass = Xkpasswd::for_language(lang);
-        assert_eq!(false, pass.dict.is_empty());
+    assert!(pass.dict.get(&2).is_none());
+    assert!(pass.dict.get(&3).is_none());
 
-        assert!(pass.dict.get(&2).is_none());
-        assert!(pass.dict.get(&3).is_none());
+    assert_eq!(1500, pass.dict.get(&4).unwrap().len());
+    assert_eq!(1500, pass.dict.get(&5).unwrap().len());
+    assert_eq!(1500, pass.dict.get(&6).unwrap().len());
+    assert_eq!(1500, pass.dict.get(&7).unwrap().len());
+    assert_eq!(1500, pass.dict.get(&8).unwrap().len());
+    assert_eq!(1338, pass.dict.get(&9).unwrap().len());
+    assert_eq!(807, pass.dict.get(&10).unwrap().len());
 
-        for length in 4..10 {
-            assert_eq!(1500, pass.dict.get(&length).unwrap().len());
-        }
+    assert!(pass.dict.get(&11).is_none());
+}
 
-        assert!(pass.dict.get(&11).is_none());
-    }
+#[cfg(feature = "lang_de")]
+#[test]
+fn test_xkpasswd_for_de() {
+    let pass = Xkpasswd::for_language(Language::German);
+    assert_eq!(false, pass.dict.is_empty());
+
+    assert!(pass.dict.get(&2).is_none());
+    assert!(pass.dict.get(&3).is_none());
+
+    assert_eq!(1277, pass.dict.get(&4).unwrap().len());
+    assert_eq!(1500, pass.dict.get(&5).unwrap().len());
+    assert_eq!(1500, pass.dict.get(&6).unwrap().len());
+    assert_eq!(1500, pass.dict.get(&7).unwrap().len());
+    assert_eq!(1500, pass.dict.get(&8).unwrap().len());
+    assert_eq!(1500, pass.dict.get(&9).unwrap().len());
+    assert_eq!(1185, pass.dict.get(&10).unwrap().len());
+
+    assert!(pass.dict.get(&11).is_none());
+}
+
+#[cfg(feature = "lang_es")]
+#[test]
+fn test_xkpasswd_for_es() {
+    let pass = Xkpasswd::for_language(Language::Spanish);
+    assert_eq!(false, pass.dict.is_empty());
+
+    assert!(pass.dict.get(&2).is_none());
+    assert!(pass.dict.get(&3).is_none());
+
+    assert_eq!(1111, pass.dict.get(&4).unwrap().len());
+    assert_eq!(1500, pass.dict.get(&5).unwrap().len());
+    assert_eq!(1500, pass.dict.get(&6).unwrap().len());
+    assert_eq!(1500, pass.dict.get(&7).unwrap().len());
+    assert_eq!(1500, pass.dict.get(&8).unwrap().len());
+    assert_eq!(1500, pass.dict.get(&9).unwrap().len());
+    assert_eq!(1129, pass.dict.get(&10).unwrap().len());
+
+    assert!(pass.dict.get(&11).is_none());
+}
+
+#[cfg(feature = "lang_fr")]
+#[test]
+fn test_xkpasswd_for_fr() {
+    let pass = Xkpasswd::for_language(Language::French);
+    assert_eq!(false, pass.dict.is_empty());
+
+    assert!(pass.dict.get(&2).is_none());
+    assert!(pass.dict.get(&3).is_none());
+
+    assert_eq!(1212, pass.dict.get(&4).unwrap().len());
+    assert_eq!(1500, pass.dict.get(&5).unwrap().len());
+    assert_eq!(1500, pass.dict.get(&6).unwrap().len());
+    assert_eq!(1500, pass.dict.get(&7).unwrap().len());
+    assert_eq!(1500, pass.dict.get(&8).unwrap().len());
+    assert_eq!(1438, pass.dict.get(&9).unwrap().len());
+    assert_eq!(902, pass.dict.get(&10).unwrap().len());
+
+    assert!(pass.dict.get(&11).is_none());
+}
+
+#[cfg(feature = "lang_pt")]
+#[test]
+fn test_xkpasswd_for_pt() {
+    let pass = Xkpasswd::for_language(Language::Portuguese);
+    assert_eq!(false, pass.dict.is_empty());
+
+    assert!(pass.dict.get(&2).is_none());
+    assert!(pass.dict.get(&3).is_none());
+
+    assert_eq!(1130, pass.dict.get(&4).unwrap().len());
+    assert_eq!(1500, pass.dict.get(&5).unwrap().len());
+    assert_eq!(1500, pass.dict.get(&6).unwrap().len());
+    assert_eq!(1500, pass.dict.get(&7).unwrap().len());
+    assert_eq!(1500, pass.dict.get(&8).unwrap().len());
+    assert_eq!(1397, pass.dict.get(&9).unwrap().len());
+    assert_eq!(925, pass.dict.get(&10).unwrap().len());
+
+    assert!(pass.dict.get(&11).is_none());
 }
 
 #[test]
