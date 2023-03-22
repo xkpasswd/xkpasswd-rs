@@ -1,7 +1,8 @@
 .left-align {
   @apply left-0 origin-top-left;
 }
-.presets-dropdown.right-align {
+.presets-dropdown.right-align,
+.languages-dropdown.right-align {
   @apply right-0 origin-top-right;
 }
 
@@ -24,10 +25,10 @@
   @apply no-underline !important;
 }
 .btn-expand:hover svg {
-  @apply stroke-blue;
+  @apply stroke-black;
 }
 .expand-icon {
-  @apply h-5 inline-block stroke-black;
+  @apply h-5 inline-block stroke-red;
 }
 
 .custom-section {
@@ -49,7 +50,7 @@
 }
 
 .formatted-symbols {
-  @apply font-bold text-red;
+  @apply font-bold text-blue;
 }
 
 .separators-dropdown {

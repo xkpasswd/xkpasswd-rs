@@ -24,7 +24,7 @@ type Props = {
 
 const ControlPanel = ({ onGenerate }: Props) => {
   const { builder } = useSettings();
-  const [expanded, setExpanded] = useState(true);
+  const [expanded, setExpanded] = useState(false);
 
   const toggleExpanded = useCallback(
     () => setExpanded((expanded) => !expanded),
