@@ -1,18 +1,21 @@
 name: Production deployment
 
-on:
-  push:
-    branches:
-      - main
+on: [pull_request]
+#on:
+  #push:
+    #branches:
+      #- main
 
 jobs:
-  build:
+  deploy:
+    name: Deploy
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
         uses: actions/checkout@v3
         with:
           persist-credentials: false
+          lfs: true
 
       - name: Setup Node.js
         uses: actions/setup-node@v3.1.1
@@ -36,4 +39,3 @@ jobs:
           branch: gh-pages
           folder: www/dist
           clean: true
-
