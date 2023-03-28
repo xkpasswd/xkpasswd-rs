@@ -1,6 +1,6 @@
 # xkpasswd-rs
 
-XKCD Password Generator, written in Rust with supports for WASM in mind.
+XKCD password generator, written in Rust with supports for Wasm in mind.
 
 ## Acknowledgement
 
