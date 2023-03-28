@@ -7,7 +7,7 @@ arch=(x86_64)
 url='https://github.com/xkpasswd/xkpasswd-rs'
 license=(GPL-3.0)
 depends=()
-makedepends=(cargo git)
+makedepends=(cargo)
 source=("$pkgname-$pkgver.tar.gz::https://github.com/xkpasswd/xkpasswd-rs/archive/v$pkgver.tar.gz")
 sha512sums=('a555272603fc9eb55916124042ce7604e93361192381da4cf58baaeb612a7397ac14f31272f9f4f0d749dd18bcc29987156dd44344fa487eaaa6e7ddf8943d1a')
 
@@ -18,12 +18,19 @@ prepare() {
 
 build() {
   cd $pkgname-$pkgver
+  export RUSTUP_TOOLCHAIN=stable
+  export CARGO_TARGET_DIR=target
   make clean
+  make build-cli
+}
+
+check() {
+  cd $pkgname-$pkgver
+  export RUSTUP_TOOLCHAIN=stable
   make test-cli
-  make build
 }
 
 package() {
   cd $pkgname-$pkgver
-  install -Dm755 target/release/xkpasswd -t "$pkgdir/usr/bin"
+  install -Dm755 -t "$pkgdir/usr/bin" "target/release/$pkgname"
 }
