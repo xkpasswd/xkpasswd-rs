@@ -27,6 +27,12 @@ Assets for the Web app:
 * [Portuguese](https://github.com/xkpasswd/xkpasswd-rs/blob/main/src/assets/dict_pt.txt)
 * [Spanish](https://github.com/xkpasswd/xkpasswd-rs/blob/main/src/assets/dict_es.txt)
 
+To update or add language assets, run:
+
+```shell
+$ make language-assets
+```
+
 ## CLI app
 
 ### Test and build

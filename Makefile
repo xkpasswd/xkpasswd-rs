@@ -46,5 +46,5 @@ build-wasm: $(addprefix build-wasm-, $(LANGUAGES))
 
 language-assets:
 	@cd raw_assets; \
-		./raw_dict_converter.py; \
-		mv dict_*.txt "../src/assets"
+	./raw_dict_converter.py; \
+	mv dict_*.txt "../src/assets"
