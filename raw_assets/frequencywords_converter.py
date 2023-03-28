@@ -11,13 +11,15 @@ OUT_FILE_SUFFIX = ".txt"
 
 MIN_WORD_LENGTH = 4
 WHITELISTED_PATTERN_EN = r"[^a-zA-Z]"
-WHITELISTED_PATTERN_OTHERS = r"[^a-zA-Zà-úÀ-Úä-üÄ-Üàáâãäåèéêëìíîïòóôõöùúûüßæçñœ]"  # noqa: E501
+WHITELISTED_PATTERN_OTHERS = (
+    r"[^a-zA-Zà-úÀ-Úä-üÄ-Üàáâãäåèéêëìíîïòóôõöùúûüßæçñœ]"  # noqa: E501
+)
 
 
 def read_file(lang: str) -> List[str]:
     def _pre_filter(line: str) -> bool:
         is_comment = line.startswith("#")
-        too_short = len(line.split(' ')[0]) < MIN_WORD_LENGTH
+        too_short = len(line.split(" ")[0]) < MIN_WORD_LENGTH
         return not is_comment and not too_short
 
     def _post_filter(line: str) -> bool:

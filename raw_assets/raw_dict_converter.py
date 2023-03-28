@@ -67,6 +67,8 @@ if __name__ == "__main__":
         grouped_words = group_words_by_length(all_words)
 
         with open(f"dict_{lang}.txt", "w") as file:
-            for length, words in grouped_words.items():
+            for length, words_set in grouped_words.items():
+                words = list(words_set.copy())
+                words.sort()
                 print(f"Writing {len(words)} words with length of {length}")
                 file.write(f"{length}:{','.join(words)}\n")
