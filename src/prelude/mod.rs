@@ -219,6 +219,8 @@ impl Default for Xkpasswd {
 impl L10n for Xkpasswd {
     fn for_language(language: Language) -> Self {
         let dict_bytes: &[u8] = match language {
+            #[cfg(feature = "lang_en")]
+            Language::English => include_bytes!("../assets/dict_en.txt"),
             #[cfg(feature = "lang_de")]
             Language::German => include_bytes!("../assets/dict_de.txt"),
             #[cfg(feature = "lang_es")]
@@ -227,7 +229,8 @@ impl L10n for Xkpasswd {
             Language::French => include_bytes!("../assets/dict_fr.txt"),
             #[cfg(feature = "lang_pt")]
             Language::Portuguese => include_bytes!("../assets/dict_pt.txt"),
-            _ => include_bytes!("../assets/dict_en.txt"),
+            #[allow(unreachable_patterns)]
+            _ => panic!("no language bundled"),
         };
 
         let dict = load_dict(dict_bytes);

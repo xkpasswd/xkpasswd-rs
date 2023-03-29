@@ -1,7 +1,13 @@
-.PHONY: all clean lint test test-cli test-wasm build build-cli build-wasm languages en fr pt
-LANGUAGES = en de es fr pt
+.PHONY: all clean lint test test-cli test-wasm test-wasm-size build build-cli build-wasm language-assets
+
 CARGO_TEST_PARAMS = --frozen --all-features
 CARGO_RELEASE_PARAMS = --frozen --release --no-default-features
+
+# Supported languages
+LANGUAGES = en de es fr pt
+
+# Bundle size limit for Wasm files is 100KB
+WASM_BUNDLE_SIZE_LIMIT = 100000
 
 all: clean lint test build
 
@@ -31,10 +37,9 @@ $(addprefix build-wasm-, $(LANGUAGES)):
 $(addprefix test-wasm-size-, $(LANGUAGES)):
 	@lang=$(@:test-wasm-size-%=%); \
 	bundle_size=$$(gzip -9 < pkg/xkpasswd-"$$lang"_bg.wasm | wc -c); \
-	size_limit=$$([ "$$lang" = en ] && echo 100000 || echo 150000); \
 	printf "wasm build bundle size for '%s': " "$$lang"; \
-	[ "$$bundle_size" -gt "$$size_limit" ] \
-		&& echo "bundle size exceeds limit ($$bundle_size > $$size_limit bytes)" && exit 1 \
+	[ "$$bundle_size" -gt "$(WASM_BUNDLE_SIZE_LIMIT)" ] \
+		&& echo "bundle size exceeds limit ($$bundle_size > $(WASM_BUNDLE_SIZE_LIMIT) bytes)" && exit 1 \
 		|| echo "bundle size ok"
 
 build: build-cli build-wasm
