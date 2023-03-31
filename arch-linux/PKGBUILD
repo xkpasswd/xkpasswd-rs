@@ -1,6 +1,6 @@
 # Maintainer: Thanh Nguyen <xtnguyen605@gmail.com>
 pkgname=xkpasswd
-pkgver=1.0.0
+pkgver=1.0.1
 pkgrel=1
 pkgdesc='XKCD password generator'
 arch=(x86_64)
@@ -8,16 +8,18 @@ url='https://github.com/xkpasswd/xkpasswd-rs'
 license=(GPL-3.0)
 depends=()
 makedepends=(cargo)
-source=("$pkgname-$pkgver.tar.gz::https://github.com/xkpasswd/xkpasswd-rs/archive/v$pkgver.tar.gz")
-sha512sums=('a555272603fc9eb55916124042ce7604e93361192381da4cf58baaeb612a7397ac14f31272f9f4f0d749dd18bcc29987156dd44344fa487eaaa6e7ddf8943d1a')
+_src_dir=("$pkgname-$pkgver")
+source=("$_src_dir.tar.gz::https://github.com/xkpasswd/xkpasswd-rs/archive/v$pkgver.tar.gz")
+sha512sums=('31de9a2652c4857b2b21579438ce07597d89d1f35a79f7a72fa57113f5199dd13906c5d9cbdc4e8c5940148d44d13cb9696117650916206b89003c32a589ed22')
 
 prepare() {
-  mv "$pkgname-rs-$pkgver" "$pkgname-$pkgver"
+  mv "$pkgname-rs-$pkgver" "$_src_dir"
+  cd "$_src_dir"
   cargo fetch --locked --target "$CARCH-unknown-linux-gnu"
 }
 
 build() {
-  cd $pkgname-$pkgver
+  cd "$_src_dir"
   export RUSTUP_TOOLCHAIN=stable
   export CARGO_TARGET_DIR=target
   make clean
@@ -25,12 +27,12 @@ build() {
 }
 
 check() {
-  cd $pkgname-$pkgver
+  cd "$_src_dir"
   export RUSTUP_TOOLCHAIN=stable
   make test-cli
 }
 
 package() {
-  cd $pkgname-$pkgver
+  cd "$_src_dir"
   install -Dm755 -t "$pkgdir/usr/bin" "target/release/$pkgname"
 }
