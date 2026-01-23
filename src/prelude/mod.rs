@@ -1,7 +1,7 @@
 #[cfg(test)]
 mod tests;
 
-#[cfg(test)]
+#[cfg(all(test, not(target_arch = "wasm32")))]
 mod proptest_tests;
 
 use std::collections::HashMap;
