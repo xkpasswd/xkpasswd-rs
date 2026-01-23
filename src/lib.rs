@@ -1,4 +1,7 @@
 pub mod bit_flags;
+#[cfg(feature = "cli")]
+pub mod cli;
+pub mod error;
 pub mod prelude;
 pub mod settings;
 mod wasm;

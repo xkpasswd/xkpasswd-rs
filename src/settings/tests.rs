@@ -73,18 +73,23 @@ fn test_with_words_count() {
 
 #[test]
 fn test_with_word_lengths() {
-    let _err: Result<Settings, String> = Err(MIN_WORD_LENGTH_ERR.to_string());
-
-    // invalid lengths
+    // invalid lengths - min word length too small
     assert!(matches!(
         Settings::default().with_word_lengths(
             Some(Settings::MIN_WORD_LENGTH - 1),
-            Some(Settings::MAX_WORD_LENGTH + 1)
+            Some(Settings::MAX_WORD_LENGTH)
         ),
-        _err
+        Err(crate::error::XkpasswdError::MinWordLengthTooSmall)
     ));
 
-    let _err: Result<Settings, String> = Err(MAX_WORD_LENGTH_ERR.to_string());
+    // invalid lengths - max word length too large
+    assert!(matches!(
+        Settings::default().with_word_lengths(
+            Some(Settings::MIN_WORD_LENGTH),
+            Some(Settings::MAX_WORD_LENGTH + 1)
+        ),
+        Err(crate::error::XkpasswdError::MaxWordLengthTooLarge)
+    ));
 
     // max word length has lower priority
     assert!(matches!(
@@ -375,7 +380,7 @@ fn test_with_word_transforms_single() {
     for transform in table {
         match Settings::default().with_word_transforms(transform) {
             Ok(_) => panic!("unexpected result"),
-            Err(msg) => assert_eq!("invalid transform", msg),
+            Err(err) => assert_eq!(crate::error::XkpasswdError::InvalidTransform, err),
         }
     }
 

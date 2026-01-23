@@ -2,20 +2,30 @@ use std::fmt;
 use std::ops::*;
 use wasm_bindgen::prelude::*;
 
+/// Type alias for bit field operations on word transformations.
 pub type FieldSize = u8;
 
+/// Word transformation options that can be applied to generated passwords.
+///
+/// These transformations change the case and style of words in generated passwords.
+/// Single transforms can be combined using bitwise operations, while group transforms
+/// override all other transforms.
 #[wasm_bindgen]
 #[repr(u8)]
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub enum WordTransform {
-    // single transforms - possible to combine with each other
+    /// Convert words to lowercase
     Lowercase = 0b00000001,
+    /// Convert first letter to uppercase, rest to lowercase
     Titlecase = 0b00000010,
+    /// Convert words to uppercase
     Uppercase = 0b00000100,
+    /// Convert first letter to lowercase, rest to uppercase (iNVERSED tITLECASE)
     InversedTitlecase = 0b00001000,
 
-    // group transforms - overriding other single ones
+    /// Alternating case starting with lowercase (overrides single transforms)
     AltercaseLowerFirst = 0b01000000,
+    /// Alternating case starting with uppercase (overrides single transforms)
     AltercaseUpperFirst = 0b10000000,
 }
 
@@ -34,10 +44,42 @@ impl fmt::Display for WordTransform {
     }
 }
 
+/// Trait for manipulating bit flags representing word transformations.
+///
+/// This trait provides methods for working with bit field representations
+/// of word transformation flags, allowing for efficient storage and
+/// manipulation of transformation combinations.
 pub trait BitFlags {
+    /// Create a bit field from a single transformation flag.
+    ///
+    /// # Arguments
+    ///
+    /// * `flag` - The transformation flag to convert
     fn from_flag(flag: WordTransform) -> Self;
+
+    /// Check if a specific transformation flag is set.
+    ///
+    /// # Arguments
+    ///
+    /// * `flag` - The transformation flag to check
+    ///
+    /// # Returns
+    ///
+    /// `true` if the flag is set, `false` otherwise
     fn has_flag(self, flag: WordTransform) -> bool;
+
+    /// Convert the bit field back to a vector of individual flags.
+    ///
+    /// # Returns
+    ///
+    /// Vector containing all set transformation flags
     fn to_flags(self) -> Vec<WordTransform>;
+
+    /// Convert the bit field to a vector of human-readable strings.
+    ///
+    /// # Returns
+    ///
+    /// Vector of string representations of the set transformations
     fn to_strings(self) -> Vec<String>;
 }
 

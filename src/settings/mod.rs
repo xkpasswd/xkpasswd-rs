@@ -1,11 +1,14 @@
 #[cfg(test)]
+mod proptest_tests;
+#[cfg(test)]
 mod tests;
 
 use crate::bit_flags::{BitFlags, FieldSize, WordTransform};
+use crate::error::XkpasswdError;
 use crate::prelude::{
     Builder, Entropy, GuessTime, PaddingResult, PaddingStrategy, Preset, Randomizer,
 };
-use rand::distributions::{Distribution, Uniform};
+use rand::distr::{Distribution, Uniform};
 use rand::Rng;
 use std::cmp;
 use std::collections::HashMap;
@@ -13,9 +16,12 @@ use std::fmt;
 use std::ops::Range;
 use std::result::Result;
 
-const MIN_WORD_LENGTH_ERR: &str = "min word length must be 4 or higher";
-const MAX_WORD_LENGTH_ERR: &str = "max word length must be 10 or lower";
-
+/// Configuration settings for password generation.
+///
+/// This struct encapsulates all the parameters needed to generate passwords,
+/// including word selection criteria, separators, padding options, and
+/// transformation rules. It implements both the `Builder` and `Randomizer`
+/// traits to provide a complete password generation solution.
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub struct Settings {
     words_count: u8,
@@ -130,9 +136,9 @@ impl fmt::Display for Settings {
 }
 
 impl Builder for Settings {
-    fn with_words_count(&self, words_count: u8) -> Result<Self, String> {
+    fn with_words_count(&self, words_count: u8) -> Result<Self, XkpasswdError> {
         if words_count == 0 {
-            return Err("only positive integer is allowed for words count".to_string());
+            return Err(XkpasswdError::InvalidWordsCount);
         }
 
         let mut cloned = self.clone();
@@ -144,7 +150,7 @@ impl Builder for Settings {
         &self,
         min_length: Option<u8>,
         max_length: Option<u8>,
-    ) -> Result<Self, String> {
+    ) -> Result<Self, XkpasswdError> {
         let min_length = min_length.unwrap_or(self.word_lengths.0);
         let max_length = max_length.unwrap_or(self.word_lengths.1);
 
@@ -152,11 +158,11 @@ impl Builder for Settings {
         let max = cmp::max(min_length, max_length);
 
         if min < Self::MIN_WORD_LENGTH {
-            return Err(MIN_WORD_LENGTH_ERR.to_string());
+            return Err(XkpasswdError::MinWordLengthTooSmall);
         }
 
         if max > Self::MAX_WORD_LENGTH {
-            return Err(MAX_WORD_LENGTH_ERR.to_string());
+            return Err(XkpasswdError::MaxWordLengthTooLarge);
         }
 
         let mut cloned = self.clone();
@@ -203,13 +209,11 @@ impl Builder for Settings {
         cloned
     }
 
-    fn with_padding_strategy(&self, strategy: PaddingStrategy) -> Result<Self, String> {
+    fn with_padding_strategy(&self, strategy: PaddingStrategy) -> Result<Self, XkpasswdError> {
         let mut cloned = self.clone();
 
         match strategy {
-            PaddingStrategy::Adaptive(0) => {
-                return Err("invalid adaptive padding number".to_string())
-            }
+            PaddingStrategy::Adaptive(0) => return Err(XkpasswdError::InvalidAdaptivePadding),
             PaddingStrategy::Adaptive(_) => {
                 cloned.padding_strategy = strategy;
                 cloned.padding_symbol_lengths = (0, 0);
@@ -222,7 +226,7 @@ impl Builder for Settings {
         Ok(cloned)
     }
 
-    fn with_word_transforms(&self, transforms: FieldSize) -> Result<Self, String> {
+    fn with_word_transforms(&self, transforms: u8) -> Result<Self, XkpasswdError> {
         let mut cloned = self.clone();
 
         // handle group transforms first
@@ -242,7 +246,7 @@ impl Builder for Settings {
             && !transforms.has_flag(WordTransform::Uppercase)
             && !transforms.has_flag(WordTransform::InversedTitlecase)
         {
-            return Err("invalid transform".to_string());
+            return Err(XkpasswdError::InvalidTransform);
         }
 
         let mut cloned = self.clone();
@@ -526,8 +530,8 @@ impl Settings {
             return vec![];
         }
 
-        let mut rng = rand::thread_rng();
-        let word_indices = Uniform::from(0..pool.len());
+        let mut rng = rand::rng();
+        let word_indices = Uniform::new(0, pool.len()).unwrap();
 
         // not enough words to distinguishably randomize
         if pool.len() < self.words_count as usize {
@@ -546,8 +550,8 @@ impl Settings {
                 let index: usize = word_indices.sample(&mut rng);
                 let word = pool[index];
 
-                if index_marker.get(&index).is_none() {
-                    index_marker.insert(index, true);
+                if let std::collections::hash_map::Entry::Vacant(e) = index_marker.entry(index) {
+                    e.insert(true);
                     break word;
                 }
             })
@@ -590,8 +594,8 @@ impl Settings {
             .filter(|&&transform| self.word_transforms & transform)
             .collect();
 
-        let mut rng = rand::thread_rng();
-        let transform_indices = Uniform::from(0..whitelisted_transforms.len());
+        let mut rng = rand::rng();
+        let transform_indices = Uniform::new(0, whitelisted_transforms.len()).unwrap();
 
         (0..self.words_count)
             .map(|_| {
@@ -621,8 +625,10 @@ fn rand_digits(count: u8) -> String {
         u64::MAX
     };
 
-    let mut rng = rand::thread_rng();
-    let padding_digits: u64 = Uniform::from(lower_bound..upper_bound).sample(&mut rng);
+    let mut rng = rand::rng();
+    let padding_digits: u64 = Uniform::new(lower_bound, upper_bound)
+        .unwrap()
+        .sample(&mut rng);
     padding_digits.to_string()
 }
 
@@ -631,8 +637,8 @@ fn rand_chars(pool: &str, count: usize) -> String {
         return "".to_string();
     }
 
-    let mut rng = rand::thread_rng();
-    let idx = rng.gen_range(0..pool.len());
+    let mut rng = rand::rng();
+    let idx = rng.random_range(0..pool.len());
     pool.chars()
         .nth(idx)
         .unwrap()

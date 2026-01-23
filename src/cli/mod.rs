@@ -3,6 +3,7 @@ mod tests;
 mod toml_conf;
 
 use crate::bit_flags::*;
+use crate::error::XkpasswdError;
 use crate::prelude::*;
 use toml_conf::*;
 
@@ -119,13 +120,14 @@ impl Cli {
         let parse_result = match self.parse_config_file() {
             Ok(_) => Ok(()),
             Err(err) => match err {
-                ConfigParseError::Ignore => Ok(()),
+                ConfigParseError::Ignored => Ok(()),
                 ConfigParseError::InvalidFile(err) => {
                     Err(format!("Error parsing config file: {}", err))
                 }
-                ConfigParseError::InvalidConfig(field, err) => {
-                    Err(format!("Error parsing config file at '{}': {}", field, err))
-                }
+                ConfigParseError::InvalidConfig { field, message } => Err(format!(
+                    "Error parsing config file at '{}': {}",
+                    field, message
+                )),
             },
         };
 
@@ -188,9 +190,7 @@ impl Cli {
                         settings = settings
                             .with_padding_strategy(PaddingStrategy::Adaptive(*adaptive_length))?
                     } else {
-                        return Err(
-                            "adaptive length is required for adaptive padding strategy".to_string()
-                        );
+                        return Err(XkpasswdError::AdaptiveLengthRequired.into());
                     }
                 }
             }

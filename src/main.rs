@@ -1,5 +1,6 @@
 mod bit_flags;
 mod cli;
+mod error;
 mod prelude;
 mod settings;
 

@@ -1,16 +1,13 @@
 use super::*;
 use crate::bit_flags::*;
+use crate::error::ConfigError;
 use clap::ValueEnum;
 use std::fs;
 
 const CONFIG_FILE_NAME: &str = "xkpasswd.toml";
 
-#[derive(Debug)]
-pub enum ConfigParseError {
-    Ignore,
-    InvalidFile(String),
-    InvalidConfig(String, String),
-}
+// Use ConfigError from error module instead of ConfigParseError
+pub type ConfigParseError = ConfigError;
 
 pub trait ConfigParser {
     fn parse_config_file(&mut self) -> Result<(), ConfigParseError>;
@@ -18,10 +15,7 @@ pub trait ConfigParser {
 
 impl ConfigParser for Cli {
     fn parse_config_file(&mut self) -> Result<(), ConfigParseError> {
-        let config = match read_config_file(&self.config_file) {
-            Err(err) => return Err(err),
-            Ok(config) => config,
-        };
+        let config = read_config_file(&self.config_file)?;
 
         parse_number_config(
             self.words_count.is_some(),
@@ -111,10 +105,7 @@ fn lookup_default_config_path() -> Option<String> {
         path.push(CONFIG_FILE_NAME);
 
         if path.exists() {
-            return match path.into_os_string().into_string() {
-                Ok(config_path) => Some(config_path),
-                Err(_) => None,
-            };
+            return path.into_os_string().into_string().ok();
         }
     }
 
@@ -123,32 +114,32 @@ fn lookup_default_config_path() -> Option<String> {
 
 fn read_config_file(config_file: &Option<String>) -> Result<toml::Value, ConfigParseError> {
     let file_data = match config_file {
-        Some(config_file) => match fs::read(config_file) {
+        Some(config_file) => match fs::read_to_string(config_file) {
             Ok(data) => {
                 log::debug!("found config file at custom path {}", config_file);
                 Ok(data)
             }
-            Err(err) => Err(ConfigParseError::InvalidFile(err.to_string())),
+            Err(err) => Err(ConfigError::InvalidFile(err.to_string())),
         },
         None => match lookup_default_config_path() {
             None => {
                 log::debug!("config file at default path not found, ignoring");
-                Err(ConfigParseError::Ignore)
+                Err(ConfigError::Ignored)
             }
-            Some(config_path) => match fs::read(&config_path) {
+            Some(config_path) => match fs::read_to_string(&config_path) {
                 Ok(data) => {
                     log::debug!("found config file at default path {}", config_path);
                     Ok(data)
                 }
-                Err(err) => Err(ConfigParseError::InvalidFile(err.to_string())),
+                Err(err) => Err(ConfigError::InvalidFile(err.to_string())),
             },
         },
     };
 
     match file_data {
         Err(err) => Err(err),
-        Ok(data) => match toml::from_slice::<toml::Value>(&data) {
-            Err(parse_err) => Err(ConfigParseError::InvalidFile(parse_err.to_string())),
+        Ok(data) => match toml::from_str::<toml::Value>(&data) {
+            Err(parse_err) => Err(ConfigError::InvalidFile(parse_err.to_string())),
             Ok(parsed_data) => Ok(parsed_data),
         },
     }
@@ -172,7 +163,10 @@ fn parse_enum_config<T: ValueEnum, F: FnMut(T)>(
                 log::debug!("loading '{}' from config file", field);
                 Ok(())
             }
-            Err(err) => Err(ConfigParseError::InvalidConfig(field.to_string(), err)),
+            Err(err) => Err(ConfigError::InvalidConfig {
+                field: field.to_string(),
+                message: err,
+            }),
         },
         None => {
             log::debug!("loading default value for '{}'", field);
@@ -196,7 +190,7 @@ fn parse_transforms<F: FnMut(Vec<WordTransform>)>(
     let raw_transforms = match config.get_str_arr(field) {
         Err(err) => {
             return match err {
-                ConfigParseError::Ignore => Ok(()),
+                ConfigError::Ignored => Ok(()),
                 _ => Err(err),
             }
         }
@@ -214,10 +208,10 @@ fn parse_transforms<F: FnMut(Vec<WordTransform>)>(
             callback(word_transforms);
             Ok(())
         }
-        Err(err) => Err(ConfigParseError::InvalidConfig(
-            "transforms".to_string(),
-            err,
-        )),
+        Err(err) => Err(ConfigError::InvalidConfig {
+            field: "transforms".to_string(),
+            message: err,
+        }),
     }
 }
 
@@ -262,14 +256,14 @@ fn parse_number_config<F: FnMut(u64)>(
 }
 
 trait Getter {
-    fn get_str_arr<'a>(&'a self, field: &'a str) -> Result<Vec<&'a str>, ConfigParseError>;
+    fn get_str_arr<'a>(&'a self, field: &'a str) -> Result<Vec<&'a str>, ConfigError>;
     fn get_array<'a>(&'a self, field: &'a str) -> Option<&'a Vec<toml::Value>>;
     fn get_str<'a>(&'a self, field: &str) -> Option<&'a str>;
     fn get_number(&self, field: &str) -> Option<u64>;
 }
 
 impl Getter for toml::Value {
-    fn get_str_arr<'a>(&'a self, field: &'a str) -> Result<Vec<&'a str>, ConfigParseError> {
+    fn get_str_arr<'a>(&'a self, field: &'a str) -> Result<Vec<&'a str>, ConfigError> {
         match self.get_array(field) {
             Some(transforms) => {
                 let result: Result<Vec<&str>, String> = transforms
@@ -284,12 +278,13 @@ impl Getter for toml::Value {
 
                 match result {
                     Ok(values) => Ok(values),
-                    Err(message) => {
-                        Err(ConfigParseError::InvalidConfig(field.to_string(), message))
-                    }
+                    Err(message) => Err(ConfigError::InvalidConfig {
+                        field: field.to_string(),
+                        message,
+                    }),
                 }
             }
-            None => Err(ConfigParseError::Ignore),
+            None => Err(ConfigError::Ignored),
         }
     }
 
@@ -350,7 +345,7 @@ mod tests {
             panic!("shouldn't be invoked")
         });
 
-        if let ConfigParseError::InvalidConfig(field, message) = result.err().unwrap() {
+        if let ConfigError::InvalidConfig { field, message } = result.err().unwrap() {
             assert_eq!("preset", field);
             assert_eq!("invalid variant: apple_id", message);
         } else {
@@ -390,7 +385,7 @@ mod tests {
             panic!("shouldn't be invoked")
         });
 
-        if let ConfigParseError::InvalidConfig(field, message) = result.err().unwrap() {
+        if let ConfigError::InvalidConfig { field, message } = result.err().unwrap() {
             assert_eq!("padding", field);
             assert_eq!("invalid variant: fixed_padding", message);
         } else {
@@ -415,7 +410,7 @@ mod tests {
 
         let config: toml::Value = toml::from_str(r#"transforms = ["lowercase", false]"#).unwrap();
         let result = parse_transforms(false, &config, |_| panic!("shouldn't be invoked"));
-        if let ConfigParseError::InvalidConfig(field, message) = result.err().unwrap() {
+        if let ConfigError::InvalidConfig { field, message } = result.err().unwrap() {
             assert_eq!("transforms", field);
             assert_eq!("Invalid data type, expect string but got 'false'", message);
         } else {
@@ -425,7 +420,7 @@ mod tests {
         let config: toml::Value =
             toml::from_str(r#"transforms = ["lowercase", "inversed_titlecase"]"#).unwrap();
         let result = parse_transforms(false, &config, |_| panic!("shouldn't be invoked"));
-        if let ConfigParseError::InvalidConfig(field, message) = result.err().unwrap() {
+        if let ConfigError::InvalidConfig { field, message } = result.err().unwrap() {
             assert_eq!("transforms", field);
             assert_eq!("invalid variant: inversed_titlecase", message);
         } else {
