@@ -49,55 +49,48 @@ jobs:
           NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_AUTH_TOKEN }}
           NETLIFY_SITE_ID: ${{ secrets.NETLIFY_SITE_ID }}
         run: |
-          set -e
           npm install -g netlify-cli
           
-          # Debug: List available sites to find correct site name/ID
-          echo "Listing available Netlify sites..."
-          netlify sites:list --auth="$NETLIFY_AUTH_TOKEN" --json | jq -r '.[] | "\(.name) - \(.id)"' | head -10 || echo "Could not list sites"
+          # Debug: Get the actual site ID from sites:list
+          echo "Fetching site info..."
+          SITE_INFO=$(netlify sites:list --auth="$NETLIFY_AUTH_TOKEN" --json | jq -r '.[] | select(.name == "xkpasswd")')
+          ACTUAL_SITE_ID=$(echo "$SITE_INFO" | jq -r '.id')
+          SITE_URL=$(echo "$SITE_INFO" | jq -r '.ssl_url // .url')
           
+          echo "Found site: xkpasswd"
+          echo "Site ID: $ACTUAL_SITE_ID"
+          echo "Site URL: $SITE_URL"
+          echo "Secret site ID: $NETLIFY_SITE_ID"
           echo ""
-          echo "Attempting deploy to site ID from secret: $NETLIFY_SITE_ID"
           
-          # Try deploying - capture output and check for success
-          set +e
-          OUTPUT=$(netlify deploy \
-            --dir=www/dist \
-            --site="$NETLIFY_SITE_ID" \
-            --auth="$NETLIFY_AUTH_TOKEN" \
-            --message="PR #${{ github.event.number }}: ${{ github.event.pull_request.title }}" \
-            --json 2>&1)
-          DEPLOY_EXIT=$?
-          set -e
-          
-          echo "$OUTPUT" > deploy-output.json
-          
-          if [ $DEPLOY_EXIT -ne 0 ]; then
-            echo "Deploy failed with exit code $DEPLOY_EXIT"
-            echo "Output: $OUTPUT"
-            
-            # Try with site name instead
-            echo ""
-            echo "Trying with site name 'xkpasswd'..."
-            OUTPUT=$(netlify deploy \
-              --dir=www/dist \
-              --site=xkpasswd \
-              --auth="$NETLIFY_AUTH_TOKEN" \
-              --message="PR #${{ github.event.number }}: ${{ github.event.pull_request.title }}" \
-              --json 2>&1)
-            echo "$OUTPUT" > deploy-output.json
+          # Use the actual site ID from the API
+          DEPLOY_SITE="$ACTUAL_SITE_ID"
+          if [ -z "$DEPLOY_SITE" ] || [ "$DEPLOY_SITE" = "null" ]; then
+            echo "Could not find site, falling back to secret"
+            DEPLOY_SITE="$NETLIFY_SITE_ID"
           fi
           
+          echo "Deploying to: $DEPLOY_SITE"
+          
+          # Deploy with error handling
+          OUTPUT=$(netlify deploy \
+            --dir=www/dist \
+            --site="$DEPLOY_SITE" \
+            --auth="$NETLIFY_AUTH_TOKEN" \
+            --message="PR #${{ github.event.number }}: ${{ github.event.pull_request.title }}" \
+            --json 2>&1) || true
+          
+          echo "Deploy output: $OUTPUT"
+          
           # Extract deploy URL
-          DEPLOY_URL=$(echo "$OUTPUT" | jq -r '.deploy_url // empty')
+          DEPLOY_URL=$(echo "$OUTPUT" | jq -r '.deploy_url // empty' 2>/dev/null)
           if [ -z "$DEPLOY_URL" ]; then
-            echo "Warning: Could not extract deploy URL from output"
-            echo "Raw output: $OUTPUT"
-            DEPLOY_URL="https://xkpasswd.netlify.app (deploy may have failed)"
+            echo "Warning: Could not extract deploy URL, deployment may have failed"
+            DEPLOY_URL="$SITE_URL"
           fi
           
           echo "deploy_url=$DEPLOY_URL" >> $GITHUB_OUTPUT
-          echo "Deployed to: $DEPLOY_URL"
+          echo "Preview URL: $DEPLOY_URL"
         timeout-minutes: 5
 
       - name: Comment PR with preview URL
