@@ -32,7 +32,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 
 - Crate-level documentation with working doc test example
-- Code coverage measurement in CI with cargo-tarpaulin
+- Code coverage measurement in CI with cargo-llvm-cov and Codecov integration
+- Fast CI tool installation via cargo-binstall (wasm-pack) and taiki-e/install-action
 
 ## [1.0.1] - 2023-04-11
 
