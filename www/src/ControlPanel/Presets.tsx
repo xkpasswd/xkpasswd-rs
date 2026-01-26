@@ -1,4 +1,4 @@
-import { useState } from 'preact/hooks';
+import { useState, type Dispatch, type StateUpdater } from 'preact/hooks';
 import DropdownButton from 'src/DropdownButton';
 import xkpasswd from 'src/wasm';
 import './styles.css';
@@ -22,7 +22,7 @@ const PRESET_OPTIONS = [
 
 type Props = {
   preset?: xktypes.Preset;
-  onSelect: (preset?: xktypes.Preset) => void;
+  onSelect: Dispatch<StateUpdater<xktypes.Preset | undefined>>;
 };
 
 const Presets = ({ preset, onSelect }: Props) => {

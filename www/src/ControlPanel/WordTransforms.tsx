@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from 'preact/hooks';
+import { useCallback, useEffect, useState, type Dispatch, type StateUpdater } from 'preact/hooks';
 import DropdownButton from 'src/DropdownButton';
 import xkpasswd from 'src/wasm';
 import './styles.css';
@@ -43,7 +43,7 @@ const GROUP_WORD_TRANSFORMS = [
 
 type Props = {
   value: number;
-  onChange: (transforms: number) => void;
+  onChange: Dispatch<StateUpdater<number>>;
 };
 
 const WordTransforms = ({ value, onChange }: Props) => {

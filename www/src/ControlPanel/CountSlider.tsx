@@ -1,5 +1,5 @@
 import { ComponentChildren } from 'preact';
-import { useCallback } from 'preact/hooks';
+import { useCallback, type Dispatch, type StateUpdater } from 'preact/hooks';
 import { pluralize, STRINGIFIED_NUMBERS } from 'src/utils';
 import DropdownButton from 'src/DropdownButton';
 import './styles.css';
@@ -20,21 +20,21 @@ type RenderProps = {
 
 type Props = {
   value: number;
-  onChange: (count: number) => void;
+  onChange: Dispatch<StateUpdater<number>>;
 };
 
 type PaddingCountsProps = {
   before: number;
-  onChangeBefore: (value: number) => void;
+  onChangeBefore: Dispatch<StateUpdater<number>>;
   after: number;
-  onChangeAfter: (value: number) => void;
+  onChangeAfter: Dispatch<StateUpdater<number>>;
 };
 
 type PaddingStrategyProps = {
   adaptive: boolean;
   onToggleAdaptive: () => void;
   adaptiveCount: number;
-  onChangeAdaptiveCount: (value: number) => void;
+  onChangeAdaptiveCount: Dispatch<StateUpdater<number>>;
 };
 
 const CountSlider = ({

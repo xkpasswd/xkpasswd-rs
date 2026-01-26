@@ -4,6 +4,7 @@ import {
   useContext,
   useEffect,
   useState,
+  type Dispatch,
   type StateUpdater,
 } from 'preact/hooks';
 import xkpasswd from './wasm';
@@ -27,27 +28,27 @@ type SettingsContextType = {
 
 type SettingsBuilderType = {
   preset?: xktypes.Preset;
-  updatePreset: StateUpdater<xktypes.Preset | undefined>;
+  updatePreset: Dispatch<StateUpdater<xktypes.Preset | undefined>>;
   wordsCount: number;
-  updateWordsCount: StateUpdater<number>;
+  updateWordsCount: Dispatch<StateUpdater<number>>;
   wordTransforms: number;
-  updateWordTransforms: StateUpdater<number>;
+  updateWordTransforms: Dispatch<StateUpdater<number>>;
   separators: string;
-  updateSeparators: StateUpdater<string>;
+  updateSeparators: Dispatch<StateUpdater<string>>;
   digitsBefore: number;
-  updateDigitsBefore: StateUpdater<number>;
+  updateDigitsBefore: Dispatch<StateUpdater<number>>;
   digitsAfter: number;
-  updateDigitsAfter: StateUpdater<number>;
+  updateDigitsAfter: Dispatch<StateUpdater<number>>;
   symbolsBefore: number;
-  updateSymbolsBefore: StateUpdater<number>;
+  updateSymbolsBefore: Dispatch<StateUpdater<number>>;
   symbolsAfter: number;
-  updateSymbolsAfter: StateUpdater<number>;
+  updateSymbolsAfter: Dispatch<StateUpdater<number>>;
   paddingSymbols: string;
-  updatePaddingSymbols: StateUpdater<string>;
+  updatePaddingSymbols: Dispatch<StateUpdater<string>>;
   adaptivePadding: boolean;
   toggleAdaptivePadding: () => void;
   adaptiveCount: number;
-  updateAdaptiveCount: StateUpdater<number>;
+  updateAdaptiveCount: Dispatch<StateUpdater<number>>;
 };
 
 export type UseSettingsType = {

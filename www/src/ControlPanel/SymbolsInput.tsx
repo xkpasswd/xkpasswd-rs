@@ -1,5 +1,5 @@
 import { ComponentChildren } from 'preact';
-import { useCallback, useRef } from 'preact/hooks';
+import { useCallback, useRef, type Dispatch, type StateUpdater } from 'preact/hooks';
 import DropdownButton from 'src/DropdownButton';
 import './styles.css';
 
@@ -12,7 +12,7 @@ type RenderProps = {
 
 type Props = {
   value: string;
-  onChange: (symbols: string) => void;
+  onChange: Dispatch<StateUpdater<string>>;
 };
 
 const formatSymbols = (symbols: string): string => symbols.replaceAll(' ', '␣');
