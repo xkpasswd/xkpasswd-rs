@@ -97,3 +97,40 @@ fn test_build_settings_custom() {
 
     assert_eq!(expected_settings, cli.build_settings::<Settings>().unwrap());
 }
+
+#[test]
+fn test_language_value_enum() {
+    use clap::ValueEnum;
+
+    // Test value_variants returns all languages
+    let variants = Language::value_variants();
+    assert_eq!(5, variants.len());
+
+    // Test to_possible_value for each language
+    let test_cases = [
+        (Language::English, "en"),
+        (Language::French, "fr"),
+        (Language::German, "de"),
+        (Language::Portuguese, "pt"),
+        (Language::Spanish, "es"),
+    ];
+
+    for (language, expected_name) in test_cases {
+        let possible_value = language.to_possible_value().unwrap();
+        assert_eq!(expected_name, possible_value.get_name());
+    }
+}
+
+#[test]
+fn test_cli_language_default() {
+    // Test that language() returns English by default
+    let cli = DEFAULT_CLI;
+    assert_eq!(Language::English, cli.language());
+
+    // Test with explicit language
+    let cli = Cli {
+        language: Some(Language::French),
+        ..DEFAULT_CLI
+    };
+    assert_eq!(Language::French, cli.language());
+}

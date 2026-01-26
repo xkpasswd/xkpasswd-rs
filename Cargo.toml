@@ -50,6 +50,7 @@ web-sys = { version = "0.3.80", features = ["console"], optional = true }
 
 [dev-dependencies]
 wasm-bindgen-test = "0.3.45"
+tempfile = "3.17"
 
 # wasm-pack configuration for wasm-opt
 # Enable all features for newer Rust versions that generate bulk memory operations

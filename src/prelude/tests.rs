@@ -258,3 +258,114 @@ fn test_xkpasswd_gen_pass() {
         assert_eq!(expected, passwd);
     }
 }
+
+#[test]
+fn test_guess_time_display() {
+    // Test "more than a billion years"
+    let time = GuessTime {
+        years: 2_000_000_000,
+        months: 0,
+        days: 0,
+    };
+    assert_eq!("more than a billion years", time.to_string());
+
+    // Test "more than a million years"
+    let time = GuessTime {
+        years: 5_000_000,
+        months: 0,
+        days: 0,
+    };
+    assert_eq!("more than a million years", time.to_string());
+
+    // Test "more than a thousand years"
+    let time = GuessTime {
+        years: 5_000,
+        months: 0,
+        days: 0,
+    };
+    assert_eq!("more than a thousand years", time.to_string());
+
+    // Test years, months, days combination
+    let time = GuessTime {
+        years: 5,
+        months: 3,
+        days: 10,
+    };
+    assert_eq!("5 years 3 months 10 days", time.to_string());
+
+    // Test months and days only
+    let time = GuessTime {
+        years: 0,
+        months: 6,
+        days: 15,
+    };
+    assert_eq!("6 months 15 days", time.to_string());
+
+    // Test days only
+    let time = GuessTime {
+        years: 0,
+        months: 0,
+        days: 20,
+    };
+    assert_eq!("20 days", time.to_string());
+
+    // Test less than a day
+    let time = GuessTime {
+        years: 0,
+        months: 0,
+        days: 0,
+    };
+    assert_eq!("less than a day", time.to_string());
+}
+
+#[test]
+fn test_guess_time_for_entropy_edge_cases() {
+    // Test entropy > 64 (more than a billion years)
+    let time = GuessTime::for_entropy(65);
+    assert_eq!(1_000_000_001, time.years);
+
+    // Test entropy 55-64 (more than a million years)
+    let time = GuessTime::for_entropy(55);
+    assert_eq!(1_000_001, time.years);
+
+    // Test entropy 45-54 (more than a thousand years)
+    let time = GuessTime::for_entropy(45);
+    assert_eq!(1001, time.years);
+
+    // Test lower entropy values (actual calculation)
+    let time = GuessTime::for_entropy(30);
+    assert!(time.years < 1000);
+}
+
+#[test]
+fn test_entropy_display() {
+    // Test when blind_min == blind_max
+    let entropy = Entropy {
+        blind_min: 50,
+        blind_max: 50,
+        seen: 40,
+        guess_time: GuessTime {
+            years: 100,
+            months: 0,
+            days: 0,
+        },
+    };
+    let display = entropy.to_string();
+    assert!(display.contains("50 bits blind"));
+    assert!(display.contains("40 bits with full knowledge"));
+
+    // Test when blind_min != blind_max
+    let entropy = Entropy {
+        blind_min: 45,
+        blind_max: 55,
+        seen: 35,
+        guess_time: GuessTime {
+            years: 0,
+            months: 6,
+            days: 0,
+        },
+    };
+    let display = entropy.to_string();
+    assert!(display.contains("between 45 & 55 bits"));
+    assert!(display.contains("35 bits with full knowledge"));
+}

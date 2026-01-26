@@ -184,4 +184,35 @@ mod tests {
             transforms.to_flags()
         );
     }
+
+    #[test]
+    fn test_to_strings() {
+        // Test WordTransform::to_strings
+        let transforms = vec![WordTransform::Lowercase, WordTransform::Uppercase];
+        assert_eq!(
+            vec!["lowercase".to_string(), "UPPERCASE".to_string()],
+            WordTransform::to_strings(&transforms)
+        );
+
+        // Test BitFlags::to_strings via FieldSize
+        let flags = WordTransform::Titlecase | WordTransform::InversedTitlecase;
+        assert_eq!(
+            vec!["Titlecase".to_string(), "iNVERSED tITLECASE".to_string()],
+            flags.to_strings()
+        );
+
+        // Test all transforms
+        let all_transforms = vec![
+            WordTransform::Lowercase,
+            WordTransform::Titlecase,
+            WordTransform::Uppercase,
+            WordTransform::InversedTitlecase,
+            WordTransform::AltercaseLowerFirst,
+            WordTransform::AltercaseUpperFirst,
+        ];
+        let strings = WordTransform::to_strings(&all_transforms);
+        assert_eq!(6, strings.len());
+        assert_eq!("lowercase", strings[0]);
+        assert_eq!("ALTERCASE upper FIRST", strings[5]);
+    }
 }
