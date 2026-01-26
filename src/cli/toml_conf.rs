@@ -18,10 +18,7 @@ pub trait ConfigParser {
 
 impl ConfigParser for Cli {
     fn parse_config_file(&mut self) -> Result<(), ConfigParseError> {
-        let config = match read_config_file(&self.config_file) {
-            Err(err) => return Err(err),
-            Ok(config) => config,
-        };
+        let config = read_config_file(&self.config_file)?;
 
         parse_number_config(
             self.words_count.is_some(),
@@ -111,10 +108,7 @@ fn lookup_default_config_path() -> Option<String> {
         path.push(CONFIG_FILE_NAME);
 
         if path.exists() {
-            return match path.into_os_string().into_string() {
-                Ok(config_path) => Some(config_path),
-                Err(_) => None,
-            };
+            return path.into_os_string().into_string().ok();
         }
     }
 

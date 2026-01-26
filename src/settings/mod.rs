@@ -546,8 +546,8 @@ impl Settings {
                 let index: usize = word_indices.sample(&mut rng);
                 let word = pool[index];
 
-                if index_marker.get(&index).is_none() {
-                    index_marker.insert(index, true);
+                if let std::collections::hash_map::Entry::Vacant(e) = index_marker.entry(index) {
+                    e.insert(true);
                     break word;
                 }
             })

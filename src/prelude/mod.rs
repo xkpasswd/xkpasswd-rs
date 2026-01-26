@@ -282,7 +282,7 @@ impl Xkpasswd {
     }
 }
 
-fn load_dict(dict_bytes: &[u8]) -> Dict {
+fn load_dict(dict_bytes: &[u8]) -> Dict<'_> {
     let dict_str = from_utf8(dict_bytes).unwrap_or("").trim();
     let mut dict: Dict = HashMap::new();
 
