@@ -117,7 +117,7 @@ fn lookup_default_config_path() -> Option<String> {
 
 fn read_config_file(config_file: &Option<String>) -> Result<toml::Value, ConfigParseError> {
     let file_data = match config_file {
-        Some(config_file) => match fs::read(config_file) {
+        Some(config_file) => match fs::read_to_string(config_file) {
             Ok(data) => {
                 log::debug!("found config file at custom path {}", config_file);
                 Ok(data)
@@ -129,7 +129,7 @@ fn read_config_file(config_file: &Option<String>) -> Result<toml::Value, ConfigP
                 log::debug!("config file at default path not found, ignoring");
                 Err(ConfigParseError::Ignore)
             }
-            Some(config_path) => match fs::read(&config_path) {
+            Some(config_path) => match fs::read_to_string(&config_path) {
                 Ok(data) => {
                     log::debug!("found config file at default path {}", config_path);
                     Ok(data)
@@ -141,7 +141,7 @@ fn read_config_file(config_file: &Option<String>) -> Result<toml::Value, ConfigP
 
     match file_data {
         Err(err) => Err(err),
-        Ok(data) => match toml::from_slice::<toml::Value>(&data) {
+        Ok(data) => match toml::from_str::<toml::Value>(&data) {
             Err(parse_err) => Err(ConfigParseError::InvalidFile(parse_err.to_string())),
             Ok(parsed_data) => Ok(parsed_data),
         },
