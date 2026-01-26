@@ -35,7 +35,7 @@ jobs:
         uses: cargo-bins/cargo-binstall@main
 
       - name: Install wasm-pack
-        run: cargo binstall wasm-pack --version 0.14.0 --no-confirm
+        run: cargo binstall wasm-pack --version 0.14.0 --no-confirm --force
 
       - name: Install and Build
         run: |

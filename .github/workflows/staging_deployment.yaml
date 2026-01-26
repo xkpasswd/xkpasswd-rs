@@ -4,8 +4,11 @@ on: [pull_request]
 
 jobs:
   deploy:
-    name: Deploy
+    name: Deploy Preview
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: write
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -32,7 +35,7 @@ jobs:
         uses: cargo-bins/cargo-binstall@main
 
       - name: Install wasm-pack
-        run: cargo binstall wasm-pack --version 0.14.0 --no-confirm
+        run: cargo binstall wasm-pack --version 0.14.0 --no-confirm --force
 
       - name: Install and Build
         run: |
@@ -40,7 +43,17 @@ jobs:
           npm ci
           npm run build
 
-      - name: Deploy
-        run: |
-          npm install -g surge
-          surge www/dist ${{ secrets.SURGE_DOMAIN }} --token ${{ secrets.SURGE_TOKEN }}
+      - name: Deploy to Netlify
+        uses: nwtgck/actions-netlify@v3
+        with:
+          publish-dir: './www/dist'
+          production-deploy: false
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          deploy-message: "Deploy from PR #${{ github.event.number }}"
+          enable-pull-request-comment: true
+          enable-commit-comment: false
+          overwrites-pull-request-comment: true
+        env:
+          NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_AUTH_TOKEN }}
+          NETLIFY_SITE_ID: ${{ secrets.NETLIFY_SITE_ID }}
+        timeout-minutes: 5

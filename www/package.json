@@ -32,9 +32,7 @@
     "prebuild": "npm run wasm:prod",
     "build": "concurrently npm:lint npm:vite:prod",
     "preserve": "npm run build",
-    "serve": "vite preview",
-    "predeploy:staging": "npm run build",
-    "deploy:staging": "surge dist xkpasswd.surge.sh"
+    "serve": "vite preview"
   },
   "dependencies": {
     "@heroicons/react": "^2.2.0",

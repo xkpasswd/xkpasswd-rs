@@ -18,6 +18,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Added `Swatinem/rust-cache@v2` for dependency caching
   - Added Node.js caching with `npm ci` for deterministic builds
   - Pinned wasm-pack to 0.14.0 for reproducibility
+  - Replaced Surge.sh with Netlify for PR preview deployments (more reliable, auto PR comments)
 - **Frontend updates**: Updated npm dependencies
   - Vite 4 → 5, TypeScript 5, Preact 10.28, Tailwind 3.4
   - Fixed Preact TypeScript types for `useState` dispatch
