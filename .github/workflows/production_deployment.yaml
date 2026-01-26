@@ -11,15 +11,20 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
         with:
           persist-credentials: false
           lfs: true
 
-      - name: Setup Node.js
-        uses: actions/setup-node@v3.1.1
+      - name: Setup Rust
+        uses: dtolnay/rust-toolchain@stable
         with:
-          node-version: 18
+          targets: wasm32-unknown-unknown
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
 
       - name: Install wasm-pack
         run: curl https://rustwasm.github.io/wasm-pack/installer/init.sh -sSf | sh
@@ -31,7 +36,7 @@ jobs:
           npm run build
 
       - name: Deploy to GitHub Pages
-        uses: JamesIves/github-pages-deploy-action@v4.4.1
+        uses: JamesIves/github-pages-deploy-action@v4
         with:
           token: ${{ secrets.GHPAGES_TOKEN }}
           repository-name: xkpasswd/xkpasswd.github.io
