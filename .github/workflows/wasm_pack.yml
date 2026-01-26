@@ -16,7 +16,7 @@ jobs:
       - uses: Swatinem/rust-cache@v2
 
       - name: Install wasm-pack
-        run: curl https://rustwasm.github.io/wasm-pack/installer/init.sh -sSf | sh
+        run: cargo install wasm-pack --version 0.14.0 --locked
 
       - name: Test on Chrome
         run: wasm-pack test --headless --chrome --all-features
@@ -37,7 +37,7 @@ jobs:
       - uses: Swatinem/rust-cache@v2
 
       - name: Install wasm-pack
-        run: curl https://rustwasm.github.io/wasm-pack/installer/init.sh -sSf | sh
+        run: cargo install wasm-pack --version 0.14.0 --locked
 
       - name: Assert bundle size (gzipped)
         run: make test-wasm-size
