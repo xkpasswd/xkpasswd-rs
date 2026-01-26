@@ -1,3 +1,28 @@
+//! # xkpasswd
+//!
+//! XKCD-style password generator written in Rust with WASM support.
+//!
+//! Inspired by [XKCD #936](https://xkcd.com/936/) - "correct horse battery staple".
+//!
+//! ## Features
+//!
+//! - **CLI application** for generating secure, memorable passwords
+//! - **WASM module** for web integration
+//! - **Multiple language support**: English, German, Spanish, French, Portuguese
+//! - **Configurable presets**: AppleID, Web16, Web32, WiFi, XKCD, and more
+//! - **Entropy calculation** to help assess password strength
+//!
+//! ## Usage (Library)
+//!
+//! ```rust,ignore
+//! use xkpasswd::prelude::{Xkpasswd, L10n, Language};
+//! use xkpasswd::settings::Settings;
+//!
+//! let generator = Xkpasswd::for_language(Language::English);
+//! let settings = Settings::default();
+//! let (password, entropy) = generator.gen_pass(&settings);
+//! ```
+
 pub mod bit_flags;
 pub mod prelude;
 pub mod settings;
