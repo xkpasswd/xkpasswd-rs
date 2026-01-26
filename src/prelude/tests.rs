@@ -324,13 +324,25 @@ fn test_guess_time_for_entropy_edge_cases() {
     let time = GuessTime::for_entropy(65);
     assert_eq!(1_000_000_001, time.years);
 
+    // Test exact boundary at 64 (should still be > 64 branch)
+    let time = GuessTime::for_entropy(64);
+    assert_eq!(1_000_001, time.years); // Falls into > 54 branch, not > 64
+
     // Test entropy 55-64 (more than a million years)
     let time = GuessTime::for_entropy(55);
     assert_eq!(1_000_001, time.years);
 
+    // Test exact boundary at 54 (should fall into > 44 branch)
+    let time = GuessTime::for_entropy(54);
+    assert_eq!(1001, time.years);
+
     // Test entropy 45-54 (more than a thousand years)
     let time = GuessTime::for_entropy(45);
     assert_eq!(1001, time.years);
+
+    // Test exact boundary at 44 (should do actual calculation)
+    let time = GuessTime::for_entropy(44);
+    assert!(time.years < 1001);
 
     // Test lower entropy values (actual calculation)
     let time = GuessTime::for_entropy(30);

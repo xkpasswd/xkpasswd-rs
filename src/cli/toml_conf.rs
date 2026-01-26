@@ -608,7 +608,10 @@ transforms = ["lowercase", "uppercase"]
 
     #[test]
     fn test_parse_config_file_no_config() {
-        // No config file specified, and no default config exists
+        // No config file specified - behavior depends on whether user has a default config
+        // This test verifies that when no explicit config is given, we either:
+        // - Return Ignore if no default config exists
+        // - Return Ok if a default config exists and is valid
         let mut cli = Cli {
             config_file: None,
             words_count: None,
@@ -628,9 +631,51 @@ transforms = ["lowercase", "uppercase"]
             language: None,
         };
 
-        // This should return Ignore error since no config file is found
         let result = cli.parse_config_file();
-        assert!(matches!(result, Err(ConfigParseError::Ignore)));
+        // Either no config found (Ignore) or config found and parsed (Ok)
+        // We don't fail on InvalidFile/InvalidConfig here
+        assert!(matches!(result, Err(ConfigParseError::Ignore) | Ok(())));
+    }
+
+    #[test]
+    fn test_parse_config_file_type_mismatch() {
+        // Test that wrong types in config are handled gracefully
+        let mut temp_file = NamedTempFile::new().unwrap();
+        writeln!(
+            temp_file,
+            r#"
+words_count = "five"
+separators = 123
+"#
+        )
+        .unwrap();
+
+        let mut cli = Cli {
+            config_file: Some(temp_file.path().to_str().unwrap().to_string()),
+            words_count: None,
+            word_length_min: None,
+            word_length_max: None,
+            word_transforms: None,
+            separators: None,
+            padding_digits_before: None,
+            padding_digits_after: None,
+            padding_symbols: None,
+            padding_symbols_before: None,
+            padding_symbols_after: None,
+            padding: None,
+            adaptive_length: None,
+            preset: None,
+            verbosity: 0,
+            language: None,
+        };
+
+        // Should succeed - type mismatches are silently ignored (use defaults)
+        let result = cli.parse_config_file();
+        assert!(result.is_ok());
+
+        // Values should remain None since types didn't match
+        assert_eq!(None, cli.words_count);
+        assert_eq!(None, cli.separators);
     }
 
     #[test]
