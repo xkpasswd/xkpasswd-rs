@@ -76,10 +76,11 @@ fn test_load_dict_valid_data() {
 }
 
 #[test]
-#[should_panic]
 fn test_load_dict_invalid_data() {
-    let dict_bytes = "foo:3".as_bytes();
-    load_dict(dict_bytes);
+    // Invalid format (non-numeric length) should be gracefully skipped
+    let dict_bytes = "foo:bar,baz".as_bytes();
+    let dict = load_dict(dict_bytes);
+    assert!(dict.is_empty());
 }
 
 #[cfg(feature = "lang_en")]
