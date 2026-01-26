@@ -51,6 +51,15 @@ jobs:
         run: |
           npm install -g netlify-cli
           
+          # Debug: Check secret format (show length and first/last chars)
+          echo "Site ID length: ${#NETLIFY_SITE_ID}"
+          echo "Site ID format check: ${NETLIFY_SITE_ID:0:8}...${NETLIFY_SITE_ID: -4}"
+          
+          # Verify with API
+          ACTUAL_ID=$(netlify sites:list --auth="$NETLIFY_AUTH_TOKEN" --json | jq -r '.[0].id')
+          echo "API Site ID: $ACTUAL_ID"
+          echo "Match: $([ "$NETLIFY_SITE_ID" = "$ACTUAL_ID" ] && echo 'YES' || echo 'NO')"
+          
           OUTPUT=$(netlify deploy \
             --dir=www/dist \
             --site="$NETLIFY_SITE_ID" \
