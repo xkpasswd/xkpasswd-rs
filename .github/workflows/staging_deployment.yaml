@@ -28,8 +28,11 @@ jobs:
           cache: 'npm'
           cache-dependency-path: www/package-lock.json
 
+      - name: Install cargo-binstall
+        uses: cargo-bins/cargo-binstall@main
+
       - name: Install wasm-pack
-        run: cargo install wasm-pack --version 0.14.0 --locked
+        run: cargo binstall wasm-pack --version 0.14.0 --no-confirm
 
       - name: Install and Build
         run: |
