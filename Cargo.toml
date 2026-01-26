@@ -1,6 +1,6 @@
 [package]
 name = "xkpasswd-rs"
-version = "0.1.0"
+version = "1.1.0"
 edition = "2021"
 default-run = "xkpasswd"
 description = "XKCD password generator, written in Rust with supports for Wasm in mind"
