@@ -18,10 +18,15 @@ jobs:
         with:
           targets: wasm32-unknown-unknown
 
+      - name: Cache Rust dependencies
+        uses: Swatinem/rust-cache@v2
+
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: 22
+          cache: 'npm'
+          cache-dependency-path: www/package-lock.json
 
       - name: Install wasm-pack
         run: curl https://rustwasm.github.io/wasm-pack/installer/init.sh -sSf | sh
@@ -29,7 +34,7 @@ jobs:
       - name: Install and Build
         run: |
           cd www
-          npm install
+          npm ci
           npm run build
 
       - name: Deploy
