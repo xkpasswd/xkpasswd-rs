@@ -37,7 +37,7 @@ lang_fr = []
 lang_pt = []
 
 [dependencies]
-clap = { version = "4.0.26", features = ["derive"], optional = true }
+clap = { version = "4.5", features = ["derive"], optional = true }
 console_error_panic_hook = { version = "0.1.7", optional = true }
 dirs = { version = "4.0.0", optional = true }
 getrandom = { version = "0.2.8", features = ["js"], optional = true }
