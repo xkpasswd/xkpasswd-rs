@@ -86,7 +86,7 @@ fn test_load_dict_invalid_data() {
 #[test]
 fn test_xkpasswd_for_en() {
     let pass = Xkpasswd::for_language(Language::English);
-    assert_eq!(false, pass.dict.is_empty());
+    assert!(!pass.dict.is_empty());
 
     assert!(pass.dict.get(&2).is_none());
     assert!(pass.dict.get(&3).is_none());
@@ -106,7 +106,7 @@ fn test_xkpasswd_for_en() {
 #[test]
 fn test_xkpasswd_for_de() {
     let pass = Xkpasswd::for_language(Language::German);
-    assert_eq!(false, pass.dict.is_empty());
+    assert!(!pass.dict.is_empty());
 
     assert!(pass.dict.get(&2).is_none());
     assert!(pass.dict.get(&3).is_none());
@@ -126,7 +126,7 @@ fn test_xkpasswd_for_de() {
 #[test]
 fn test_xkpasswd_for_es() {
     let pass = Xkpasswd::for_language(Language::Spanish);
-    assert_eq!(false, pass.dict.is_empty());
+    assert!(!pass.dict.is_empty());
 
     assert!(pass.dict.get(&2).is_none());
     assert!(pass.dict.get(&3).is_none());
@@ -146,7 +146,7 @@ fn test_xkpasswd_for_es() {
 #[test]
 fn test_xkpasswd_for_fr() {
     let pass = Xkpasswd::for_language(Language::French);
-    assert_eq!(false, pass.dict.is_empty());
+    assert!(!pass.dict.is_empty());
 
     assert!(pass.dict.get(&2).is_none());
     assert!(pass.dict.get(&3).is_none());
@@ -166,7 +166,7 @@ fn test_xkpasswd_for_fr() {
 #[test]
 fn test_xkpasswd_for_pt() {
     let pass = Xkpasswd::for_language(Language::Portuguese);
-    assert_eq!(false, pass.dict.is_empty());
+    assert!(!pass.dict.is_empty());
 
     assert!(pass.dict.get(&2).is_none());
     assert!(pass.dict.get(&3).is_none());
