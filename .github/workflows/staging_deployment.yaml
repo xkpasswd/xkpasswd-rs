@@ -51,13 +51,27 @@ jobs:
         run: |
           npm install -g netlify-cli
           
-          # Deploy and capture output
+          # Debug: Check if we can list sites (verifies token works)
+          echo "Verifying Netlify authentication..."
+          netlify status --auth="$NETLIFY_AUTH_TOKEN" || echo "Status check failed, continuing..."
+          
+          # Deploy using site name 'xkpasswd' as fallback
+          # The --site flag accepts both site ID (UUID) and site name
+          echo "Deploying to site: $NETLIFY_SITE_ID"
           netlify deploy \
             --dir=www/dist \
             --site="$NETLIFY_SITE_ID" \
             --auth="$NETLIFY_AUTH_TOKEN" \
             --message="PR #${{ github.event.number }}: ${{ github.event.pull_request.title }}" \
-            --json | tee deploy-output.json
+            --json | tee deploy-output.json || {
+              echo "Deploy with site ID failed, trying with site name..."
+              netlify deploy \
+                --dir=www/dist \
+                --site=xkpasswd \
+                --auth="$NETLIFY_AUTH_TOKEN" \
+                --message="PR #${{ github.event.number }}: ${{ github.event.pull_request.title }}" \
+                --json | tee deploy-output.json
+            }
           
           # Extract deploy URL
           DEPLOY_URL=$(jq -r '.deploy_url' deploy-output.json)
