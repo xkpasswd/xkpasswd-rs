@@ -14,13 +14,14 @@
 //!
 //! ## Usage (Library)
 //!
-//! ```rust,ignore
+//! ```rust
 //! use xkpasswd::prelude::{Xkpasswd, L10n, Language};
 //! use xkpasswd::settings::Settings;
 //!
 //! let generator = Xkpasswd::for_language(Language::English);
 //! let settings = Settings::default();
 //! let (password, entropy) = generator.gen_pass(&settings);
+//! println!("Password: {}, Entropy: {:.2}-{:.2} bits", password, entropy.blind_min, entropy.blind_max);
 //! ```
 
 pub mod bit_flags;
