@@ -7,3 +7,6 @@
 **/*.rs.bk
 
 **/__pycache__/**
+
+**/.envrc
+**/.netlify/**
