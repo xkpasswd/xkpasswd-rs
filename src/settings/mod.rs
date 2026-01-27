@@ -485,7 +485,13 @@ impl Randomizer for Settings {
         let seen_symbols_entropy = if self.padding_symbols.is_empty() {
             0.0
         } else {
-            (self.padding_symbols.len() as f64).log2()
+            // Count independent symbol choices: prefix and suffix each pick a symbol separately
+            let symbol_choices = match self.padding_symbol_lengths {
+                (0, 0) => 0,
+                (_, 0) | (0, _) => 1, // prefix-only or suffix-only
+                (_, _) => 2,          // both sides = 2 independent choices
+            };
+            (symbol_choices as f64) * (self.padding_symbols.len() as f64).log2()
         };
 
         let seen = (seen_words_entropy
