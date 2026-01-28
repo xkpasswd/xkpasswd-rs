@@ -41,7 +41,7 @@ jobs:
         run: |
           cd www
           npm ci
-          npm run build
+          PATH="$HOME/.cargo/bin:$PATH" npm run build
 
       - name: Deploy to Netlify
         id: netlify
