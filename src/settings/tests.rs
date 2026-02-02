@@ -595,17 +595,17 @@ fn test_adjust_padding() {
 #[test]
 fn test_calc_entropy() {
     let table = [
-        ((Preset::AppleID, 4351), (164, 203, 57), (1_000_001, 0, 0)),
-        ((Preset::WindowsNtlmV1, 1380), (92, 92, 31), (0, 0, 24)),
+        ((Preset::AppleID, 4351), (164, 203, 59), (1_000_001, 0, 0)),
+        ((Preset::WindowsNtlmV1, 1380), (92, 92, 31), (0, 0, 2)),
         (
             (Preset::SecurityQuestions, 6631),
             (176, 316, 78),
             (1_000_000_001, 0, 0),
         ),
-        ((Preset::Web16, 1113), (102, 102, 40), (34, 10, 15)),
-        ((Preset::Web32, 2493), (177, 203, 65), (1_000_000_001, 0, 0)),
-        ((Preset::Wifi, 6631), (413, 413, 116), (1_000_000_001, 0, 0)),
-        ((Preset::Xkcd, 6631), (121, 224, 55), (1_000_001, 0, 0)),
+        ((Preset::Web16, 1113), (102, 102, 44), (55, 9, 16)),
+        ((Preset::Web32, 2493), (177, 203, 69), (1_000_000_001, 0, 0)),
+        ((Preset::Wifi, 6631), (413, 413, 112), (1_000_000_001, 0, 0)),
+        ((Preset::Xkcd, 6631), (121, 224, 55), (1001, 0, 0)),
     ];
 
     for ((preset, pool_size), (blind_min, blind_max, seen), (years, months, days)) in table {

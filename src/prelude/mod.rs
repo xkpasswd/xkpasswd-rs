@@ -78,13 +78,13 @@ impl fmt::Display for GuessTime {
 }
 
 impl GuessTime {
-    pub const GUESSES_PER_SEC: usize = 1_000;
+    pub const GUESSES_PER_SEC: usize = 10_000;
     const SECONDS_PER_DAY: f64 = 86_400.0;
     const DAYS_PER_MONTH: f64 = 30.0;
     const DAYS_PER_YEAR: f64 = 365.0;
 
     pub fn for_entropy(amount: usize) -> Self {
-        if amount > 64 {
+        if amount > 68 {
             return Self {
                 years: 1_000_000_001,
                 months: 0,
@@ -92,7 +92,7 @@ impl GuessTime {
             };
         }
 
-        if amount > 54 {
+        if amount > 58 {
             return Self {
                 years: 1_000_001,
                 months: 0,
@@ -100,7 +100,7 @@ impl GuessTime {
             };
         }
 
-        if amount > 44 {
+        if amount > 48 {
             return Self {
                 years: 1001,
                 months: 0,
