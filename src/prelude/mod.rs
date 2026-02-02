@@ -78,7 +78,7 @@ impl fmt::Display for GuessTime {
 }
 
 impl GuessTime {
-    pub const GUESSES_PER_SEC: usize = 1_000;
+    pub const GUESSES_PER_SEC: usize = 10_000;
     const SECONDS_PER_DAY: f64 = 86_400.0;
     const DAYS_PER_MONTH: f64 = 30.0;
     const DAYS_PER_YEAR: f64 = 365.0;

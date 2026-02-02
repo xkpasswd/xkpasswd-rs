@@ -91,7 +91,7 @@ const calcExceptionalTime = (years: number) => {
 
 const GuessTime = ({ value }: { value: xktypes.GuessTime }) => {
   const prefix = 'which takes computer ';
-  const suffix = ' to break at 1000 guesses/sec';
+  const suffix = ' to break at 10000 guesses/sec';
   const exceptionalTime = calcExceptionalTime(value.years);
 
   if (exceptionalTime) {
