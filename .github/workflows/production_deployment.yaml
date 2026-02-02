@@ -5,15 +5,26 @@ on:
     branches:
       - main
 
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
 jobs:
   deploy:
     name: Deploy
     runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
     steps:
       - name: Checkout
         uses: actions/checkout@v4
         with:
-          persist-credentials: false
           lfs: true
 
       - name: Setup Rust
@@ -43,11 +54,14 @@ jobs:
           npm ci
           PATH="$HOME/.cargo/bin:$PATH" npm run build
 
-      - name: Deploy to GitHub Pages
-        uses: JamesIves/github-pages-deploy-action@v4
+      - name: Setup Pages
+        uses: actions/configure-pages@v5
+
+      - name: Upload artifact
+        uses: actions/upload-pages-artifact@v4
         with:
-          token: ${{ secrets.GHPAGES_TOKEN }}
-          repository-name: xkpasswd/xkpasswd.github.io
-          branch: gh-pages
-          folder: www/dist
-          clean: true
+          path: www/dist
+
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
