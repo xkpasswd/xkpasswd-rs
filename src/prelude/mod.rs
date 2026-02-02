@@ -84,7 +84,7 @@ impl GuessTime {
     const DAYS_PER_YEAR: f64 = 365.0;
 
     pub fn for_entropy(amount: usize) -> Self {
-        if amount > 64 {
+        if amount > 68 {
             return Self {
                 years: 1_000_000_001,
                 months: 0,
@@ -92,7 +92,7 @@ impl GuessTime {
             };
         }
 
-        if amount > 54 {
+        if amount > 58 {
             return Self {
                 years: 1_000_001,
                 months: 0,
@@ -100,7 +100,7 @@ impl GuessTime {
             };
         }
 
-        if amount > 44 {
+        if amount > 48 {
             return Self {
                 years: 1001,
                 months: 0,

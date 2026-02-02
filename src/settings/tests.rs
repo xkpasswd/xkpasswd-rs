@@ -605,7 +605,7 @@ fn test_calc_entropy() {
         ((Preset::Web16, 1113), (102, 102, 44), (55, 9, 16)),
         ((Preset::Web32, 2493), (177, 203, 69), (1_000_000_001, 0, 0)),
         ((Preset::Wifi, 6631), (413, 413, 112), (1_000_000_001, 0, 0)),
-        ((Preset::Xkcd, 6631), (121, 224, 55), (1_000_001, 0, 0)),
+        ((Preset::Xkcd, 6631), (121, 224, 55), (1001, 0, 0)),
     ];
 
     for ((preset, pool_size), (blind_min, blind_max, seen), (years, months, days)) in table {
