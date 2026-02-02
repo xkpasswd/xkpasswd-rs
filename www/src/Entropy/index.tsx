@@ -7,8 +7,8 @@ import './styles.css';
 
 import type * as xktypes from 'src/types/xkpasswd';
 
-const NOT_BAD_ENTROPY_BLIND = 78;
-const NOT_BAD_ENTROPY_SEEN = 52;
+const NOT_BAD_ENTROPY_BLIND = 82;
+const NOT_BAD_ENTROPY_SEEN = 56;
 const GREAT_ENTROPY_BLIND = NOT_BAD_ENTROPY_BLIND * 1.5;
 const GREAT_ENTROPY_SEEN = NOT_BAD_ENTROPY_SEEN * 1.5;
 
