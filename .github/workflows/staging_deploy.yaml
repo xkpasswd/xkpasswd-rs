@@ -1,0 +1,109 @@
+name: Deploy Preview
+
+on:
+  workflow_run:
+    workflows: ["Staging deployment"]
+    types: [completed]
+
+jobs:
+  deploy:
+    name: Deploy to Netlify
+    runs-on: ubuntu-latest
+    if: github.event.workflow_run.conclusion == 'success'
+    permissions:
+      contents: read
+      pull-requests: write
+      actions: read
+    steps:
+      - name: Get PR details
+        id: pr
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const run = context.payload.workflow_run;
+            const prs = run.pull_requests;
+            
+            if (!prs || prs.length === 0) {
+              core.setFailed("No associated pull request found for this workflow run.");
+              return;
+            }
+            
+            const prNumber = prs[0].number;
+            const prSha = run.head_sha;
+            
+            const { data: prDetails } = await github.rest.pulls.get({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              pull_number: prNumber,
+            });
+            
+            core.setOutput("number", prNumber);
+            core.setOutput("title", prDetails.title);
+            core.setOutput("sha", prSha);
+
+      - name: Download build artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: preview-build
+          path: ./artifacts
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          run-id: ${{ github.event.workflow_run.id }}
+
+      - name: Deploy to Netlify
+        id: netlify
+        env:
+          NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_AUTH_TOKEN }}
+          NETLIFY_SITE_ID: ${{ secrets.NETLIFY_SITE_ID }}
+          PR_NUMBER: ${{ steps.pr.outputs.number }}
+          PR_TITLE: ${{ steps.pr.outputs.title }}
+        run: |
+          npm install -g netlify-cli
+          
+          OUTPUT=$(netlify deploy \
+            --dir=./artifacts \
+            --site="$NETLIFY_SITE_ID" \
+            --auth="$NETLIFY_AUTH_TOKEN" \
+            --message="PR #$PR_NUMBER: $PR_TITLE" \
+            --json)
+          
+          DEPLOY_URL=$(echo "$OUTPUT" | jq -r '.deploy_url')
+          echo "deploy_url=$DEPLOY_URL" >> $GITHUB_OUTPUT
+        timeout-minutes: 5
+
+      - name: Comment PR with preview URL
+        uses: actions/github-script@v7
+        env:
+          DEPLOY_URL: ${{ steps.netlify.outputs.deploy_url }}
+          PR_NUMBER: ${{ steps.pr.outputs.number }}
+          PR_SHA: ${{ steps.pr.outputs.sha }}
+        with:
+          script: |
+            const { DEPLOY_URL, PR_NUMBER, PR_SHA } = process.env;
+            const prNumber = parseInt(PR_NUMBER);
+            const body = `## 🚀 Deploy Preview\n\n**URL:** ${DEPLOY_URL}\n\n_Commit: ${PR_SHA}_`;
+            
+            const { data: comments } = await github.rest.issues.listComments({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: prNumber,
+            });
+            
+            const botComment = comments.find(c => 
+              c.user.type === 'Bot' && c.body.includes('Deploy Preview')
+            );
+            
+            if (botComment) {
+              await github.rest.issues.updateComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                comment_id: botComment.id,
+                body: body
+              });
+            } else {
+              await github.rest.issues.createComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: prNumber,
+                body: body
+              });
+            }
