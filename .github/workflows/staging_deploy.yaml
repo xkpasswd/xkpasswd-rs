@@ -58,6 +58,12 @@ jobs:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           run-id: ${{ github.event.workflow_run.id }}
 
+      - name: Sanitize artifacts
+        run: |
+          # Remove potentially malicious Netlify config files from untrusted artifacts
+          rm -f ./artifacts/_redirects ./artifacts/_headers
+          echo "Sanitized artifacts directory"
+
       - name: Deploy to Netlify
         id: netlify
         env:
