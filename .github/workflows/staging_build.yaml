@@ -1,4 +1,4 @@
-name: Staging deployment
+name: Build Preview
 
 on: [pull_request]
 
