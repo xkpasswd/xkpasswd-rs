@@ -17,6 +17,14 @@ jobs:
       pull-requests: write
       actions: read
     steps:
+      - name: Checkout config from main branch
+        uses: actions/checkout@v4
+        with:
+          ref: main
+          sparse-checkout: |
+            netlify.toml
+          sparse-checkout-cone-mode: false
+
       - name: Get PR details
         id: pr
         env:
