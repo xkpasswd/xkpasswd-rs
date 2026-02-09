@@ -19,29 +19,28 @@ jobs:
     steps:
       - name: Get PR details
         id: pr
-        uses: actions/github-script@v7
-        with:
-          script: |
-            const run = context.payload.workflow_run;
-            const prs = run.pull_requests;
-            
-            if (!prs || prs.length === 0) {
-              core.setFailed("No associated pull request found for this workflow run.");
-              return;
-            }
-            
-            const prNumber = prs[0].number;
-            const prSha = run.head_sha;
-            
-            const { data: prDetails } = await github.rest.pulls.get({
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              pull_number: prNumber,
-            });
-            
-            core.setOutput("number", prNumber);
-            core.setOutput("title", prDetails.title);
-            core.setOutput("sha", prSha);
+        env:
+          GH_TOKEN: ${{ github.token }}
+          PR_TARGET_REPO: ${{ github.repository }}
+          # For fork PRs: "owner:branch", for same-repo PRs: "branch"
+          PR_BRANCH: |-
+            ${{
+              (github.event.workflow_run.head_repository.owner.login != github.event.workflow_run.repository.owner.login)
+                && format('{0}:{1}', github.event.workflow_run.head_repository.owner.login, github.event.workflow_run.head_branch)
+                || github.event.workflow_run.head_branch
+            }}
+          PR_SHA: ${{ github.event.workflow_run.head_sha }}
+        run: |
+          # Query PR number and title by branch name
+          PR_DATA=$(gh pr view --repo "${PR_TARGET_REPO}" "${PR_BRANCH}" --json number,title)
+          PR_NUMBER=$(echo "$PR_DATA" | jq -r '.number')
+          PR_TITLE=$(echo "$PR_DATA" | jq -r '.title')
+          
+          echo "number=${PR_NUMBER}" >> $GITHUB_OUTPUT
+          echo "title=${PR_TITLE}" >> $GITHUB_OUTPUT
+          echo "sha=${PR_SHA}" >> $GITHUB_OUTPUT
+          
+          echo "Found PR #${PR_NUMBER}: ${PR_TITLE}"
 
       - name: Download build artifacts
         uses: actions/download-artifact@v4
