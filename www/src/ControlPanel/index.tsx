@@ -278,7 +278,9 @@ const ControlPanel = ({ onGenerate }: Props) => {
               {/* Cycle the transform name on click/Enter/Space */}
               <span
                 className="enum tok"
+                role="button"
                 tabIndex={0}
+                aria-label={`cycle transform: ${tfName}`}
                 onClick={handleCycleTransform}
                 onKeyDown={(e: KeyboardEvent) => {
                   if (e.key === 'Enter' || e.key === ' ') {
@@ -295,6 +297,7 @@ const ControlPanel = ({ onGenerate }: Props) => {
                   className="tfbtn rm"
                   tabIndex={0}
                   title="remove transform"
+                  aria-label="remove transform"
                   onClick={handleRemoveTransform}
                   onKeyDown={(e: KeyboardEvent) => {
                     if (e.key === 'Enter' || e.key === ' ') {
@@ -313,6 +316,7 @@ const ControlPanel = ({ onGenerate }: Props) => {
                 className="tfbtn add"
                 tabIndex={0}
                 title="add transform"
+                aria-label="add transform"
                 onClick={handleAddTransform}
                 onKeyDown={(e: KeyboardEvent) => {
                   if (e.key === 'Enter' || e.key === ' ') {
@@ -337,7 +341,9 @@ const ControlPanel = ({ onGenerate }: Props) => {
           <Flag name="padding" />
           <span
             className="enum tok"
+            role="button"
             tabIndex={0}
+            aria-label={`cycle padding: ${paddingValue}`}
             onClick={handlePaddingCycle}
             onKeyDown={(e: KeyboardEvent) => {
               if (e.key === 'Enter' || e.key === ' ') {

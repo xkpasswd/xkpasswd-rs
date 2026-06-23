@@ -45,3 +45,11 @@
 .stdout-copied {
   @apply text-green text-sm font-mono whitespace-nowrap;
 }
+
+/* ─── Reduced motion ─────────────────────────────────────────────────────── */
+@media (prefers-reduced-motion: reduce) {
+  /* Disable the icon colour transition so no motion is used for feedback */
+  .stdout-icon {
+    transition: none;
+  }
+}

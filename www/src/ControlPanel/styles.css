@@ -15,10 +15,11 @@
   @apply px-4 py-2 text-left w-20 text-white;
 }
 .preset-option:hover,
-.preset-option:focus,
+.preset-option:focus-visible,
 .language-option:hover,
-.language-option:focus {
+.language-option:focus-visible {
   @apply bg-blue text-white;
+  /* The global :focus-visible ring from main.css provides the outline ring */
 }
 
 /* ── Dark dropdown menu override (within .cmd context) ────────────────────── */
@@ -40,11 +41,17 @@
   color: inherit;
   display: inline;
   vertical-align: baseline;
+  border-radius: 2px; /* rounded corner so the focus ring looks clean */
 }
 .cmd .dropdown-container .btn:hover,
 .cmd .dropdown-container .btn:focus {
   color: inherit;
   text-decoration: none;
+}
+/* Keyboard focus ring on the dropdown trigger (wraps the .enum tok child) */
+.cmd .dropdown-container .btn:focus-visible {
+  outline: 2px solid #5af78e;
+  outline-offset: 2px;
 }
 
 /* ── Command-line renderer ─────────────────────────────────────────────────── */
@@ -92,11 +99,16 @@
   transition: all 0.1s;
   border-radius: 2px;
 }
+/* Both hover and keyboard focus show the brightened dotted underline */
 .cmd .tok:hover,
 .cmd .tok:focus-visible {
-  outline: none;
   border-bottom-color: currentColor;
   filter: brightness(1.15);
+}
+/* Keyboard focus: green ring on top of the underline indicator */
+.cmd .tok:focus-visible {
+  outline: 2px solid rgba(90, 247, 142, 0.55);
+  outline-offset: 2px;
 }
 
 /* Editable inputs inherit colour from .num / .str parent classes */
@@ -105,6 +117,11 @@
 }
 .cmd input.str:focus {
   background: rgba(243, 249, 157, 0.12);
+}
+/* Editable input keyboard focus ring (overrides outline-none from BASE_CLASSES) */
+.cmd input:focus-visible {
+  outline: 2px solid #5af78e;
+  outline-offset: 2px;
 }
 
 /* ── Transform buttons (× remove, + add) ─────────────────────────────────── */
@@ -116,14 +133,18 @@
   font: inherit;
   opacity: 0.55;
   vertical-align: baseline;
+  border-radius: 2px; /* rounded so the focus ring matches token corners */
 }
+/* Keyboard focus ring on transform buttons */
 .cmd .tfbtn:focus-visible {
-  outline: none;
+  outline: 2px solid #5af78e;
+  outline-offset: 2px;
 }
 .cmd .tfbtn.rm:hover,
 .cmd .tfbtn.rm:focus-visible {
   @apply text-red;
   opacity: 1;
+  outline-color: rgba(255, 92, 87, 0.7); /* tinted red ring to match rm colour */
 }
 .cmd .tfbtn.add:hover,
 .cmd .tfbtn.add:focus-visible {
@@ -144,10 +165,24 @@
   font: inherit;
   @apply text-muted bg-transparent border-0 p-0 cursor-pointer inline-flex items-center;
   gap: 6px;
+  border-radius: 2px; /* for the focus ring shape */
 }
 .cmdbar button:hover,
 .cmdbar button.done {
   @apply text-green;
+}
+/* Keyboard focus ring on command bar buttons */
+.cmdbar button:focus-visible {
+  outline: 2px solid #5af78e;
+  outline-offset: 3px;
+}
+
+/* ── Reduced motion ───────────────────────────────────────────────────────── */
+@media (prefers-reduced-motion: reduce) {
+  /* Token hover/focus transition (e.g. filter: brightness) */
+  .cmd .tok {
+    transition: none;
+  }
 }
 
 /* ── Responsive: coarse-pointer (touch) adjustments ──────────────────────── */

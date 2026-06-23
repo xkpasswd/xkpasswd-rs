@@ -14,11 +14,13 @@
 
 .btn {
   @apply font-bold text-left underline;
+  border-radius: 2px; /* rounded corner so the focus ring looks clean */
 }
 .btn:hover,
-.btn:focus {
+.btn:focus-visible {
   @apply text-blue decoration-double;
 }
+/* Global :focus-visible ring from main.css provides the outline ring */
 
 .settings {
   @apply flex items-center break-words;

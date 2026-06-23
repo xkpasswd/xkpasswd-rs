@@ -55,6 +55,13 @@
   @apply text-green;
 }
 
+/* Keyboard focus ring on the repo link */
+.path-link:focus-visible {
+  outline: 2px solid #5af78e;
+  outline-offset: 3px;
+  border-radius: 2px;
+}
+
 /* ── Brand (glyph only) ──────────────────────────── */
 .brand {
   /* Push to right edge */
