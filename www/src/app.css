@@ -7,6 +7,11 @@
   min-width: 320px;
 }
 
+/* Padded content region — the titlebar sits flush, the rest gets breathing room */
+.body {
+  padding: clamp(16px, 3.6vw, 24px);
+}
+
 .section {
   @apply mt-4;
 }

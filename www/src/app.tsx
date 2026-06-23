@@ -29,10 +29,13 @@ const App = () => {
   return (
     <>
       <Header />
-      <ControlPanel onGenerate={genPasswd} />
-      <PasswordBox passwd={passwd} />
-      <Entropy entropy={entropy} />
-      <Version />
+      {/* .body provides padding for content while the titlebar stays flush */}
+      <div class="body">
+        <ControlPanel onGenerate={genPasswd} />
+        <PasswordBox passwd={passwd} />
+        <Entropy entropy={entropy} />
+        <Version />
+      </div>
     </>
   );
 };
