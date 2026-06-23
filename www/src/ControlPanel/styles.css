@@ -1,3 +1,4 @@
+/* ── DropdownButton positioning helpers (keep intact) ─────────────────────── */
 .left-align {
   @apply left-0 origin-top-left;
 }
@@ -6,8 +7,12 @@
   @apply right-0 origin-top-right;
 }
 
+/* ── Preset & language dropdown options ───────────────────────────────────── */
 .preset-option {
-  @apply px-4 py-2 text-left w-44;
+  @apply px-4 py-2 text-left w-44 text-white;
+}
+.language-option {
+  @apply px-4 py-2 text-left w-20 text-white;
 }
 .preset-option:hover,
 .preset-option:focus,
@@ -16,51 +21,150 @@
   @apply bg-blue text-white;
 }
 
-.language-option {
-  @apply px-4 py-2 text-left w-32;
+/* ── Dark dropdown menu override (within .cmd context) ────────────────────── */
+.cmd .dropdown-menu {
+  @apply bg-surface;
+  border: 1px solid rgba(239, 240, 235, 0.09);
 }
 
-.btn-expand {
-  @apply text-left pl-1 pr-2;
-  @apply no-underline !important;
+/* Reset .btn inside .cmd so the DropdownButton trigger is visually inert
+   (the magenta .enum child provides all the visual affordance). */
+.cmd .dropdown-container .btn {
+  background: none;
+  border: none;
+  padding: 0;
+  font: inherit;
+  font-weight: inherit;
+  text-decoration: none;
+  cursor: default;
+  color: inherit;
+  display: inline;
+  vertical-align: baseline;
 }
-.btn-expand:hover svg {
-  @apply stroke-black;
-}
-.expand-icon {
-  @apply h-5 inline-block stroke-red;
-}
-
-.custom-section {
-  @apply px-2;
-}
-.custom-section::before {
-  content: '•';
-  @apply pr-1;
-}
-
-.count-slider-dropdown {
-  @apply h-8 p-4 pt-3 w-44;
-}
-.count-slider {
-  @apply appearance-none h-2 p-0 bg-blue cursor-pointer rounded-lg;
-}
-.words-count-slider:focus {
-  @apply ring-0 shadow-none;
+.cmd .dropdown-container .btn:hover,
+.cmd .dropdown-container .btn:focus {
+  color: inherit;
+  text-decoration: none;
 }
 
-.formatted-symbols {
-  @apply font-bold text-blue;
+/* ── Command-line renderer ─────────────────────────────────────────────────── */
+.cmd {
+  line-height: 1.9;
+}
+.cmd .argline {
+  padding-left: 4ch;
+  overflow-wrap: anywhere;
+}
+.cmd .argline.head {
+  padding-left: 0;
 }
 
-.separators-dropdown {
-  @apply w-32;
+/* Syntax-highlight colours */
+.cmd .prompt {
+  @apply text-green font-bold select-none;
 }
-.padding-symbols-dropdown {
-  @apply w-44;
+.cmd .bin {
+  @apply text-green font-semibold;
+}
+.cmd .flag {
+  @apply text-muted whitespace-nowrap;
+}
+.cmd .eq {
+  @apply text-muted;
+}
+.cmd .cont {
+  @apply text-faint select-none;
+}
+.cmd .num {
+  @apply text-blue whitespace-nowrap;
+}
+.cmd .enum {
+  @apply text-magenta whitespace-nowrap;
+}
+.cmd .str {
+  @apply text-yellow;
 }
 
-.separators-input,
-.padding-symbols-input {
-  @apply bg-white px-2 py-1 border border-blue rounded;
+/* Interactive tokens — dotted underline appears on hover/focus */
+.cmd .tok {
+  cursor: pointer;
+  border-bottom: 1px dotted transparent;
+  transition: all 0.1s;
+  border-radius: 2px;
+}
+.cmd .tok:hover,
+.cmd .tok:focus-visible {
+  outline: none;
+  border-bottom-color: currentColor;
+  filter: brightness(1.15);
+}
+
+/* Editable inputs inherit colour from .num / .str parent classes */
+.cmd input.num:focus {
+  background: rgba(87, 199, 255, 0.14);
+}
+.cmd input.str:focus {
+  background: rgba(243, 249, 157, 0.12);
+}
+
+/* ── Transform buttons (× remove, + add) ─────────────────────────────────── */
+.cmd .tfbtn {
+  @apply text-faint font-semibold cursor-pointer;
+  background: none;
+  border: none;
+  padding: 0 2px;
+  font: inherit;
+  opacity: 0.55;
+  vertical-align: baseline;
+}
+.cmd .tfbtn:focus-visible {
+  outline: none;
+}
+.cmd .tfbtn.rm:hover,
+.cmd .tfbtn.rm:focus-visible {
+  @apply text-red;
+  opacity: 1;
+}
+.cmd .tfbtn.add:hover,
+.cmd .tfbtn.add:focus-visible {
+  @apply text-green;
+  opacity: 1;
+}
+
+/* ── Command bar ──────────────────────────────────────────────────────────── */
+.cmdbar {
+  display: flex;
+  gap: 18px;
+  flex-wrap: wrap;
+  margin-top: 14px;
+  font-size: 12.5px;
+  @apply text-faint;
+}
+.cmdbar button {
+  font: inherit;
+  @apply text-muted bg-transparent border-0 p-0 cursor-pointer inline-flex items-center;
+  gap: 6px;
+}
+.cmdbar button:hover,
+.cmdbar button.done {
+  @apply text-green;
+}
+
+/* ── Responsive: coarse-pointer (touch) adjustments ──────────────────────── */
+@media (pointer: coarse) {
+  .cmd {
+    line-height: 2.4;
+  }
+  .cmd .tfbtn {
+    padding: 4px 8px;
+    font-size: 1.12em;
+  }
+  .cmd .tok {
+    padding-top: 3px;
+    padding-bottom: 3px;
+  }
+  .cmdbar {
+    gap: 24px;
+    font-size: 13.5px;
+  }
 }
