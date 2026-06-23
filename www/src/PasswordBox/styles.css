@@ -53,3 +53,12 @@
     transition: none;
   }
 }
+
+/* ─── Coarse-pointer (touch) adjustments ────────────────────────────────── */
+@media (pointer: coarse) {
+  /* Ensure the tap-to-copy row is finger-friendly (~44 px+) */
+  .stdout-row {
+    min-height: 56px;
+    padding: 18px 16px;
+  }
+}

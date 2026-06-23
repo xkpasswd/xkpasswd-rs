@@ -202,4 +202,15 @@
     gap: 24px;
     font-size: 13.5px;
   }
+  /* Command-bar buttons: comfortable tap height (~44 px) */
+  .cmdbar button {
+    min-height: 44px;
+    align-items: center;
+  }
+  /* Dropdown options: comfortable tap height (~44 px) */
+  .preset-option,
+  .language-option {
+    padding-top: 12px;
+    padding-bottom: 12px;
+  }
 }
