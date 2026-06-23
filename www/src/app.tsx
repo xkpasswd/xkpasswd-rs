@@ -2,7 +2,6 @@ import ControlPanel from './ControlPanel';
 import Entropy from './Entropy';
 import Header from './Header';
 import PasswordBox from './PasswordBox';
-import Version from './Version';
 import { SettingsProvider, useSettings } from './contexts';
 import './app.css';
 
@@ -17,7 +16,6 @@ const App = () => {
         <ControlPanel onGenerate={regenerate} />
         <PasswordBox passwd={passwd} />
         <Entropy entropy={entropy} />
-        <Version />
       </div>
     </>
   );

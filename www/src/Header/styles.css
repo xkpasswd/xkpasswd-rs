@@ -31,15 +31,28 @@
   border-radius: 50%;
 }
 
-/* ── ~/xkpasswd path ─────────────────────────────── */
+/* ── ~/xkpasswd-rs[@<hash>] path ─────────────────── */
 .path {
   @apply text-muted;
   font-size: 13px;
   white-space: nowrap;
 }
 
-.path b {
+/* Link wrapping the project name + hash — no underline, inherits muted */
+.path-link {
+  text-decoration: none;
+  color: inherit;
+}
+
+/* Project name: bold + white by default */
+.path-link b {
   @apply text-white font-semibold;
+}
+
+/* On hover: both name and hash turn green */
+.path-link:hover b,
+.path-link:hover .path-hash {
+  @apply text-green;
 }
 
 /* ── Brand (glyph + wordmark) ────────────────────── */
