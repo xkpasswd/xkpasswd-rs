@@ -1,3 +1,12 @@
+/**
+ * Version → footer `#`-comment (§5.6).
+ *
+ * Rendered only when VITE_GIT_SHA is set at build time.
+ * Format: `# Built with xkpasswd-rs@<sha>`
+ *   - Capital "B" in "Built" (intentional, per spec)
+ *   - xkpasswd-rs links to the repo; @<sha> links to the specific commit
+ *   - `faint` colour, top hairline border
+ */
 import packageInfo from 'package.json';
 import './styles.css';
 
@@ -11,17 +20,16 @@ const Version = () => {
   const repoUrl = packageInfo.repository.url.replace(/\.git$/i, '');
 
   return (
-    <div className="section version-container">
-      <span>
-        {'Built with '}
-        <a href={repoUrl} className="version-link repo">
-          {'xkpasswd-rs'}
-        </a>
-        <a className="version-link" href={`${repoUrl}/commit/${commitHash}`}>
-          {commitHash}
-        </a>
-      </span>
-    </div>
+    <p className="foot">
+      {'# Built with '}
+      <a className="foot-link" href={repoUrl}>
+        {'xkpasswd-rs'}
+      </a>
+      {'@'}
+      <a className="foot-link" href={`${repoUrl}/commit/${commitHash}`}>
+        {commitHash}
+      </a>
+    </p>
   );
 };
 
