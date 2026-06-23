@@ -3,6 +3,8 @@ import {
   useCallback,
   useContext,
   useEffect,
+  useMemo,
+  useRef,
   useState,
   type Dispatch,
   type StateUpdater,
@@ -11,6 +13,7 @@ import xkpasswd from './wasm';
 import './app.css';
 
 import type * as xktypes from 'src/types/xkpasswd';
+import { buildSegmentInputs, type SegmentInputs } from './PasswordBox/segment';
 
 const DEFAULT_WORDS_COUNT = 3;
 const DEFAULT_WORD_TRANSFORMS =
@@ -46,9 +49,26 @@ type SettingsBuilderType = {
   updateAdaptiveCount: Dispatch<StateUpdater<number>>;
 };
 
+/** Overrideable fields for live preview — a partial of the inline-typed fields. */
+export type PreviewOverrides = Partial<{
+  wordsCount: number;
+  separators: string;
+  digitsBefore: number;
+  digitsAfter: number;
+  symbolsBefore: number;
+  symbolsAfter: number;
+  paddingSymbols: string;
+  adaptiveCount: number;
+}>;
+
 export type UseSettingsType = {
   settings: xktypes.Settings;
   builder: SettingsBuilderType;
+  passwd: string;
+  entropy: xktypes.Entropy | undefined;
+  segmentInputs: SegmentInputs;
+  regenerate: () => void;
+  regeneratePreview: (overrides: PreviewOverrides) => void;
 };
 
 type SettingsContextType = UseSettingsType;
@@ -92,6 +112,8 @@ export const SettingsProvider = ({ children }: SettingsProviderProps) => {
   const [adaptivePadding, setAdaptivePadding] = useState(false);
   const [adaptiveCount, updateAdaptiveCount] = useState(DEFAULT_ADAPTIVE_COUNT);
 
+  // ── Settings rebuild (committed path) ──────────────────────────────────────
+
   useEffect(() => {
     if (preset != null) {
       updateSettings(xkpasswd.Settings.fromPreset(preset));
@@ -129,6 +151,150 @@ export const SettingsProvider = ({ children }: SettingsProviderProps) => {
     [setAdaptivePadding]
   );
 
+  // ── Password generation ─────────────────────────────────────────────────────
+
+  const generator = useMemo(() => new xkpasswd.Xkpasswd(), []);
+
+  const [passwd, setPasswd] = useState<string>('');
+  const [entropy, setEntropy] = useState<xktypes.Entropy | undefined>(
+    undefined
+  );
+  const [segmentInputs, setSegmentInputs] = useState<SegmentInputs>(
+    buildSegmentInputs({
+      preset: undefined,
+      wordsCount: DEFAULT_WORDS_COUNT,
+      wordTransforms: DEFAULT_WORD_TRANSFORMS,
+      separators: DEFAULT_SEPARATORS,
+      digitsBefore: 0,
+      digitsAfter: DEFAULT_DIGITS_AFTER,
+      symbolsBefore: 0,
+      symbolsAfter: DEFAULT_SYMBOLS_AFTER,
+      paddingSymbols: DEFAULT_PADDING_SYMBOLS,
+      adaptivePadding: false,
+      adaptiveCount: DEFAULT_ADAPTIVE_COUNT,
+    })
+  );
+
+  /**
+   * Track the current builder shape in a ref so effects and callbacks always
+   * read the latest committed values without stale closures.
+   * Updated synchronously at render time — always current when effects fire.
+   */
+  const builderShapeRef = useRef({
+    preset,
+    wordsCount,
+    wordTransforms,
+    separators,
+    digitsBefore,
+    digitsAfter,
+    symbolsBefore,
+    symbolsAfter,
+    paddingSymbols,
+    adaptivePadding,
+    adaptiveCount,
+  });
+  builderShapeRef.current = {
+    preset,
+    wordsCount,
+    wordTransforms,
+    separators,
+    digitsBefore,
+    digitsAfter,
+    symbolsBefore,
+    symbolsAfter,
+    paddingSymbols,
+    adaptivePadding,
+    adaptiveCount,
+  };
+
+  /**
+   * Core generation helper: produce a password from the given Settings.
+   * Reads builderShapeRef.current (stable ref, not a dep) for segmentInputs.
+   */
+  const genFromSettings = useCallback(
+    (s: xktypes.Settings) => {
+      const result = generator.genPass(s);
+      setPasswd(result.passwd);
+      setEntropy(result.entropy);
+      setSegmentInputs(buildSegmentInputs(builderShapeRef.current));
+    },
+    [generator]
+  );
+
+  /** Committed regen effect: re-generate whenever committed settings change. */
+  useEffect(() => {
+    genFromSettings(settings);
+  }, [settings, genFromSettings]);
+
+  /** Re-generate on demand (run button). */
+  const regenerate = useCallback(() => {
+    genFromSettings(settings);
+  }, [genFromSettings, settings]);
+
+  /**
+   * Live preview: generate a password from the committed builder fields with
+   * one field overridden, WITHOUT committing to the builder state.
+   *
+   * This is the caret-safe path: builder state is unchanged, so the editable
+   * inputs' `value` props do not change, and their `useEffect([value])` does
+   * NOT overwrite `el.value` → the caret survives.
+   *
+   * Only active in custom mode (preset != null → no-op).
+   * All builder fields are listed as deps so the callback always captures
+   * the latest committed values and is never stale.
+   */
+  const regeneratePreview = useCallback(
+    (overrides: PreviewOverrides) => {
+      if (preset != null) return;
+
+      const effective = {
+        wordsCount: overrides.wordsCount ?? wordsCount,
+        wordTransforms,
+        separators: overrides.separators ?? separators,
+        digitsBefore: overrides.digitsBefore ?? digitsBefore,
+        digitsAfter: overrides.digitsAfter ?? digitsAfter,
+        symbolsBefore: overrides.symbolsBefore ?? symbolsBefore,
+        symbolsAfter: overrides.symbolsAfter ?? symbolsAfter,
+        paddingSymbols: overrides.paddingSymbols ?? paddingSymbols,
+        adaptivePadding,
+        adaptiveCount: overrides.adaptiveCount ?? adaptiveCount,
+      };
+
+      const newSettings = new xkpasswd.Settings()
+        .withWordsCount(effective.wordsCount)
+        .withWordTransforms(effective.wordTransforms)
+        .withSeparators(effective.separators)
+        .withPaddingDigits(effective.digitsBefore, effective.digitsAfter)
+        .withPaddingSymbols(effective.paddingSymbols)
+        .withPaddingSymbolLengths(
+          effective.symbolsBefore,
+          effective.symbolsAfter
+        );
+      const previewSettings = effective.adaptivePadding
+        ? newSettings.withAdaptivePadding(effective.adaptiveCount)
+        : newSettings.withFixedPadding();
+
+      const { passwd: p, entropy: e } = generator.genPass(previewSettings);
+      setPasswd(p);
+      setEntropy(e);
+      setSegmentInputs(buildSegmentInputs({ preset: undefined, ...effective }));
+    },
+    [
+      generator,
+      preset,
+      wordsCount,
+      wordTransforms,
+      separators,
+      digitsBefore,
+      digitsAfter,
+      symbolsBefore,
+      symbolsAfter,
+      paddingSymbols,
+      adaptivePadding,
+      adaptiveCount,
+    ]
+  );
+
   const builder: SettingsBuilderType = {
     preset,
     updatePreset,
@@ -155,7 +321,17 @@ export const SettingsProvider = ({ children }: SettingsProviderProps) => {
   };
 
   return (
-    <SettingsContext.Provider value={{ settings, builder }}>
+    <SettingsContext.Provider
+      value={{
+        settings,
+        builder,
+        passwd,
+        entropy,
+        segmentInputs,
+        regenerate,
+        regeneratePreview,
+      }}
+    >
       {children}
     </SettingsContext.Provider>
   );

@@ -2,7 +2,7 @@ import { useCallback, useEffect, useRef, useState } from 'preact/hooks';
 import { CopyIcon } from 'src/Icons';
 import { useSettings } from 'src/contexts';
 import { copyToClipboard } from 'src/utils';
-import { buildSegmentInputs, segmentPassword, type Segment, type SegKind } from './segment';
+import { segmentPassword, type Segment, type SegKind } from './segment';
 import './styles.css';
 
 type Props = {
@@ -49,11 +49,13 @@ const ColorizedPassword = ({ segments }: ColorizedPasswordProps) => (
 const PasswordBox = ({ passwd }: Props) => {
   const [copied, setCopied] = useState(false);
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const { builder } = useSettings();
+  // segmentInputs from context reflects the effective inputs for the CURRENT
+  // displayed password (committed or preview), keeping colors in sync.
+  const { segmentInputs } = useSettings();
 
-  // Colorize the password into typed segments using the shared builder state.
+  // Colorize the password into typed segments using segmentInputs from context.
   const segments = passwd
-    ? segmentPassword(passwd, buildSegmentInputs(builder))
+    ? segmentPassword(passwd, segmentInputs)
     : [];
 
   const copyPasswd = useCallback(() => {
