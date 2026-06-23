@@ -8,6 +8,7 @@
   },
   "type": "module",
   "scripts": {
+    "test": "vitest run",
     "prewasm:dev": "rm -rf xkpasswd",
     "prewasm:prod": "rm -rf xkpasswd",
     "wasm:dev": "concurrently npm:wasm:dev:de npm:wasm:dev:en npm:wasm:dev:es npm:wasm:dev:fr npm:wasm:dev:pt",
@@ -54,6 +55,7 @@
     "vite": "^5.4.19",
     "vite-plugin-top-level-await": "^1.6.0",
     "vite-plugin-wasm": "^3.6.0",
-    "vite-tsconfig-paths": "^4.3.2"
+    "vite-tsconfig-paths": "^4.3.2",
+    "vitest": "^2.1.0"
   }
 }
