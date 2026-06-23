@@ -55,18 +55,11 @@
   @apply text-green;
 }
 
-/* ── Brand (glyph + wordmark) ────────────────────── */
+/* ── Brand (glyph only) ──────────────────────────── */
 .brand {
   /* Push to right edge */
   margin-left: auto;
   display: flex;
   align-items: center;
-  gap: 8px;
   flex-shrink: 0;
-}
-
-.wordmark {
-  @apply text-white font-semibold;
-  font-size: 13px;
-  white-space: nowrap;
 }

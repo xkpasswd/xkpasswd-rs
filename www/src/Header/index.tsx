@@ -4,7 +4,7 @@
  * Layout (left → right):
  *  .dots   — three 12 px traffic-light circles (aria-hidden)
  *  .path   — ~/xkpasswd-rs[@<commitHash>] path label; linked to repo
- *  .brand  — pushed right: inlined glyph SVG + "xkpasswd" wordmark
+ *  .brand  — pushed right: inlined glyph SVG (blinking caret only)
  *
  * The path link wraps both the project name and the commit hash (when
  * VITE_GIT_SHA is set at build time). Hovering turns both green.
@@ -39,12 +39,11 @@ const Header = () => {
         </a>
       </span>
 
-      {/* Brand: glyph (inlined) + wordmark — pushed to right edge */}
+      {/* Brand: glyph (inlined) — pushed to right edge */}
       <span className="brand">
         {/*
          * Inlined logo-glyph.svg so the caret <rect> is a real DOM element
-         * that can receive animate-blink. aria-hidden because the wordmark
-         * text ("xkpasswd") already conveys the name.
+         * that can receive animate-blink.
          */}
         <svg
           width="40"
@@ -68,7 +67,6 @@ const Header = () => {
             className="animate-blink motion-reduce:animate-none"
           />
         </svg>
-        <span className="wordmark">{'xkpasswd'}</span>
       </span>
     </header>
   );
