@@ -30,7 +30,7 @@ const App = () => {
     <>
       <Header />
       {/* .body provides padding for content while the titlebar stays flush */}
-      <div class="body">
+      <div className="body">
         <ControlPanel onGenerate={genPasswd} />
         <PasswordBox passwd={passwd} />
         <Entropy entropy={entropy} />
