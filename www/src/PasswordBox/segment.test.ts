@@ -1,6 +1,10 @@
 import { describe, it, expect } from 'vitest';
-import { segmentPassword, buildSegmentInputs } from './segment';
-import type { Segment, SegmentInputs } from './segment';
+import {
+  segmentPassword,
+  buildSegmentInputs,
+  type Segment,
+  type SegmentInputs,
+} from './segment';
 
 // ── helpers ────────────────────────────────────────────────────────────────
 
