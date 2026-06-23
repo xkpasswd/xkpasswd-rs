@@ -270,7 +270,7 @@ const ControlPanel = ({ onGenerate }: Props) => {
         builder.updateWordTransforms(addTransform(builder.wordTransforms));
 
       args.push({
-        key: `transforms-${i}`,
+        key: `transforms-${bit}`,
         node: (
           <span>
             <span className="whitespace-nowrap">
@@ -403,7 +403,7 @@ const ControlPanel = ({ onGenerate }: Props) => {
           <span className="str">&quot;</span>
           <EditableString
             value={builder.paddingSymbols}
-            fallback="~@$%^&*-_+=:|?/.;"
+            fallback="%"
             onChange={builder.updatePaddingSymbols}
             className="str"
           />
