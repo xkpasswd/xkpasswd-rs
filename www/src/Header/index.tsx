@@ -35,8 +35,15 @@ const Header = () => {
         {'~/'}
         <a className="path-link" href={repoUrl}>
           <b>{'xkpasswd-rs'}</b>
-          {commitHash && <span className="path-hash">{'@'}{commitHash}</span>}
         </a>
+        {commitHash && (
+          <>
+            {'@'}
+            <a className="path-link" href={`${repoUrl}/commit/${commitHash}`}>
+              <span className="path-hash">{commitHash}</span>
+            </a>
+          </>
+        )}
       </span>
 
       {/* Brand: glyph (inlined) — pushed to right edge */}
