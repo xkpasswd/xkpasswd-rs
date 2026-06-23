@@ -18,9 +18,9 @@ import { clampNumber, normalizeNumber, normalizePool } from './editing';
 // ── Width helper ──────────────────────────────────────────────────────────────
 
 /** Convert a character count to a `ch`-unit CSS width string.
- *  Always at least 1ch wide; the 0.5ch padding gives a comfortable feel. */
+ *  Always at least 1ch wide. */
 function chWidth(len: number): string {
-  return `${Math.max(len, 1) + 0.5}ch`;
+  return `${Math.max(len, 1)}ch`;
 }
 
 // ── Shared Tailwind classes ───────────────────────────────────────────────────

@@ -59,7 +59,7 @@
   line-height: 1.9;
 }
 .cmd .argline {
-  padding-left: 4ch;
+  padding-left: 2ch;
   overflow-wrap: anywhere;
 }
 .cmd .argline.head {

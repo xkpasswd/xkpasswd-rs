@@ -21,7 +21,7 @@ const DEFAULT_WORD_TRANSFORMS =
 const DEFAULT_SEPARATORS = '.';
 const DEFAULT_DIGITS_AFTER = 2;
 const DEFAULT_SYMBOLS_AFTER = 2;
-const DEFAULT_PADDING_SYMBOLS = '~@$%^&*-_+=:|?/.;';
+const DEFAULT_PADDING_SYMBOLS = '~@$%^&*-_+=:|?/;';
 const DEFAULT_ADAPTIVE_COUNT = 32;
 
 type SettingsBuilderType = {
