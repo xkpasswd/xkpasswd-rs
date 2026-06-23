@@ -2,8 +2,9 @@
  * ControlPanel — command-line renderer driven by the shared SettingsBuilder.
  *
  * Renders an `xkpasswd …` command line where every flag value is an inline
- * editable control.  Output regenerates on COMMIT (blur/Enter) — live per-
- * keystroke regeneration is wired in the next task (4c-2).
+ * editable control.  Output regenerates on COMMIT (blur/Enter) and also LIVE
+ * per-keystroke via `regeneratePreview` (caret-safe — builder state is never
+ * touched during typing, so token `value` props stay constant and caret survives).
  *
  * Layout rules (§5.3):
  *   - ≤2 args → single head line: `❯ xkpasswd <arg> <arg>`
@@ -82,7 +83,7 @@ type Props = {
 };
 
 const ControlPanel = ({ onGenerate }: Props) => {
-  const { builder } = useSettings();
+  const { builder, regeneratePreview } = useSettings();
   const [copied, setCopied] = useState(false);
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
@@ -226,6 +227,7 @@ const ControlPanel = ({ onGenerate }: Props) => {
             max={FIELD.wordsCount.max}
             emptyDefault={FIELD.wordsCount.default}
             onChange={builder.updateWordsCount}
+            onLiveChange={(v) => regeneratePreview({ wordsCount: v })}
             className="num"
             ariaLabel="words count"
           />
@@ -246,6 +248,7 @@ const ControlPanel = ({ onGenerate }: Props) => {
             value={builder.separators}
             fallback="."
             onChange={builder.updateSeparators}
+            onLiveChange={(v) => regeneratePreview({ separators: v })}
             className="str"
           />
           <span className="str">&quot;</span>
@@ -366,6 +369,7 @@ const ControlPanel = ({ onGenerate }: Props) => {
             max={FIELD.digitsBefore.max}
             emptyDefault={FIELD.digitsBefore.default}
             onChange={builder.updateDigitsBefore}
+            onLiveChange={(v) => regeneratePreview({ digitsBefore: v })}
             className="num"
             ariaLabel="digits before"
           />
@@ -385,6 +389,7 @@ const ControlPanel = ({ onGenerate }: Props) => {
             max={FIELD.digitsAfter.max}
             emptyDefault={FIELD.digitsAfter.default}
             onChange={builder.updateDigitsAfter}
+            onLiveChange={(v) => regeneratePreview({ digitsAfter: v })}
             className="num"
             ariaLabel="digits after"
           />
@@ -405,6 +410,7 @@ const ControlPanel = ({ onGenerate }: Props) => {
             value={builder.paddingSymbols}
             fallback="%"
             onChange={builder.updatePaddingSymbols}
+            onLiveChange={(v) => regeneratePreview({ paddingSymbols: v })}
             className="str"
           />
           <span className="str">&quot;</span>
@@ -425,6 +431,7 @@ const ControlPanel = ({ onGenerate }: Props) => {
               max={FIELD.symbolsBefore.max}
               emptyDefault={FIELD.symbolsBefore.default}
               onChange={builder.updateSymbolsBefore}
+              onLiveChange={(v) => regeneratePreview({ symbolsBefore: v })}
               className="num"
               ariaLabel="symbols before"
             />
@@ -444,6 +451,7 @@ const ControlPanel = ({ onGenerate }: Props) => {
               max={FIELD.symbolsAfter.max}
               emptyDefault={FIELD.symbolsAfter.default}
               onChange={builder.updateSymbolsAfter}
+              onLiveChange={(v) => regeneratePreview({ symbolsAfter: v })}
               className="num"
               ariaLabel="symbols after"
             />
@@ -463,6 +471,7 @@ const ControlPanel = ({ onGenerate }: Props) => {
               max={FIELD.adaptiveCount.max}
               emptyDefault={FIELD.adaptiveCount.default}
               onChange={builder.updateAdaptiveCount}
+              onLiveChange={(v) => regeneratePreview({ adaptiveCount: v })}
               className="num"
               ariaLabel="adaptive length"
             />
