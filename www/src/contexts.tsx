@@ -21,11 +21,6 @@ const DEFAULT_SYMBOLS_AFTER = 2;
 const DEFAULT_PADDING_SYMBOLS = '~@$%^&*-_+=:|?/.;';
 const DEFAULT_ADAPTIVE_COUNT = 32;
 
-type SettingsContextType = {
-  settings: xktypes.Settings;
-  updateSettings: (settings: xktypes.Settings) => void;
-};
-
 type SettingsBuilderType = {
   preset?: xktypes.Preset;
   updatePreset: Dispatch<StateUpdater<xktypes.Preset | undefined>>;
@@ -56,6 +51,8 @@ export type UseSettingsType = {
   builder: SettingsBuilderType;
 };
 
+type SettingsContextType = UseSettingsType;
+
 const SettingsContext = createContext<SettingsContextType | undefined>(
   undefined
 );
@@ -67,7 +64,18 @@ export const useSettings = (): UseSettingsType => {
     throw new Error(`SettingsContext wasn't initialised!`);
   }
 
-  const { settings, updateSettings } = context;
+  return context;
+};
+
+type SettingsProviderProps = {
+  children: ComponentChildren;
+};
+
+export const SettingsProvider = ({ children }: SettingsProviderProps) => {
+  const [settings, updateSettings] = useState<xktypes.Settings>(
+    xkpasswd.Settings.fromPreset(xkpasswd.Preset.Default)
+  );
+
   const [preset, updatePreset] = useState<number | undefined>(undefined);
   const [wordsCount, updateWordsCount] = useState(DEFAULT_WORDS_COUNT);
   const [wordTransforms, updateWordTransforms] = useState(
@@ -121,46 +129,33 @@ export const useSettings = (): UseSettingsType => {
     [setAdaptivePadding]
   );
 
-  return {
-    settings,
-    builder: {
-      preset,
-      updatePreset,
-      wordsCount,
-      updateWordsCount,
-      wordTransforms,
-      updateWordTransforms,
-      separators,
-      updateSeparators,
-      digitsBefore,
-      updateDigitsBefore,
-      digitsAfter,
-      updateDigitsAfter,
-      symbolsBefore,
-      updateSymbolsBefore,
-      symbolsAfter,
-      updateSymbolsAfter,
-      paddingSymbols,
-      updatePaddingSymbols,
-      adaptivePadding,
-      toggleAdaptivePadding,
-      adaptiveCount,
-      updateAdaptiveCount,
-    },
+  const builder: SettingsBuilderType = {
+    preset,
+    updatePreset,
+    wordsCount,
+    updateWordsCount,
+    wordTransforms,
+    updateWordTransforms,
+    separators,
+    updateSeparators,
+    digitsBefore,
+    updateDigitsBefore,
+    digitsAfter,
+    updateDigitsAfter,
+    symbolsBefore,
+    updateSymbolsBefore,
+    symbolsAfter,
+    updateSymbolsAfter,
+    paddingSymbols,
+    updatePaddingSymbols,
+    adaptivePadding,
+    toggleAdaptivePadding,
+    adaptiveCount,
+    updateAdaptiveCount,
   };
-};
-
-type SettingsProviderProps = {
-  children: ComponentChildren;
-};
-
-export const SettingsProvider = ({ children }: SettingsProviderProps) => {
-  const [settings, updateSettings] = useState<xktypes.Settings>(
-    xkpasswd.Settings.fromPreset(xkpasswd.Preset.Default)
-  );
 
   return (
-    <SettingsContext.Provider value={{ settings, updateSettings }}>
+    <SettingsContext.Provider value={{ settings, builder }}>
       {children}
     </SettingsContext.Provider>
   );
