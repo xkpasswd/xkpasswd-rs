@@ -1,16 +1,47 @@
-.password-box {
-  @apply break-words text-center;
+/* ─── stdout row ─────────────────────────────────────────────────────────── */
+
+/**
+ * The whole row is an interactive element: stdout bg, 3 px green left border
+ * (signals "output"), hairline elsewhere, rounded, tap-to-copy.
+ */
+.stdout-row {
+  @apply flex items-center gap-3 bg-stdout cursor-pointer rounded-lg mt-3;
+  padding: 14px 16px;
+  border: 1px solid rgba(239, 240, 235, 0.09);
+  border-left: 3px solid #5af78e; /* green */
+  outline: none;
 }
 
-.btn-password {
-  @apply font-bold font-mono bg-red text-white select-none;
-  @apply mx-auto p-2 w-full break-words cursor-pointer rounded;
-}
-.btn-password:hover,
-.btn-password:focus {
-  @apply bg-transparent text-red;
+.stdout-row:focus-visible {
+  outline: 2px solid #5af78e;
+  outline-offset: 2px;
 }
 
-.password-tooltips {
-  @apply italic text-sm text-black/50;
+/* ─── password text ──────────────────────────────────────────────────────── */
+
+/**
+ * The password fills the available width.  `select-all` lets a single click
+ * select everything on desktop; `break-all` prevents overflow on narrow
+ * screens.  Font-size is fluid between 16 px and 21 px.
+ */
+.stdout-password {
+  @apply flex-1 font-mono font-semibold break-all select-all;
+  font-size: clamp(16px, 3.6vw, 21px);
+}
+
+/* ─── copy icon / feedback ───────────────────────────────────────────────── */
+
+.stdout-icon {
+  @apply flex-shrink-0 text-muted;
+  transition: color 0.15s ease;
+}
+
+.stdout-row:hover .stdout-icon,
+.stdout-row:focus-visible .stdout-icon {
+  @apply text-green;
+}
+
+/* Transient "✓ copied" confirmation shown for ~1.1 s after a successful copy. */
+.stdout-copied {
+  @apply text-green text-sm font-mono whitespace-nowrap;
 }
