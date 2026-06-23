@@ -282,6 +282,14 @@ describe('char-class fallback', () => {
       { text: 'banana', kind: 'word' },
     ]);
   });
+
+  it('non-alphanumeric char in neither pool classifies as symbol', () => {
+    // ',' is not in separators ('.') or default paddingSymbols
+    const inputs = fixedInputs({ wordsCount: 0 });
+    // ',' is absent from both '.' (separators) and '~@$%^&*-_+=:|?/.;' (paddingSymbols)
+    const segs = seg(',', inputs);
+    expect(segs).toEqual([{ text: ',', kind: 'symbol' }]);
+  });
 });
 
 // ── buildSegmentInputs ─────────────────────────────────────────────────────
@@ -321,16 +329,29 @@ describe('buildSegmentInputs', () => {
     expect(inputs.adaptivePadding).toBe(true);
   });
 
-  it('named preset returns zeroed inputs that trigger char-class fallback', () => {
+  it('named preset uses default pools so fallback can color common chars', () => {
     const presetBuilder = { ...builder, preset: 0 };
     const inputs = buildSegmentInputs(presetBuilder, 0);
-    // With zeroed inputs, segmentPassword falls back to char-class
+    // Counts are zeroed → char-class fallback is used
     expect(inputs.wordsCount).toBe(0);
-    expect(inputs.separators).toBe('');
     expect(inputs.digitsBefore).toBe(0);
     expect(inputs.digitsAfter).toBe(0);
-    // Verify fallback still satisfies concat for a real password
+    // Default pools are set so common preset chars get colored
+    expect(inputs.separators).toBe('.-_~');
+    expect(inputs.paddingSymbols).toBe('~@$%^&*-_+=:|?/.;');
+    // Concat invariant still holds
     const testPasswd = 'apple.banana';
     assertConcat(testPasswd, segmentPassword(testPasswd, inputs));
+  });
+
+  it('named preset mode segments apple-37-banana!@ into multiple colored segments', () => {
+    const presetBuilder = { ...builder, preset: 0 };
+    const inputs = buildSegmentInputs(presetBuilder, 0);
+    const passwd = 'apple-37-banana!@';
+    const segs = seg(passwd, inputs);
+    // Must produce multiple segments (not a single white 'word' blob)
+    expect(segs.length).toBeGreaterThan(1);
+    // At least one segment must be non-word (sep, digit, or symbol)
+    expect(segs.some((s) => s.kind !== 'word')).toBe(true);
   });
 });

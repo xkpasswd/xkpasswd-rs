@@ -74,7 +74,7 @@ function isHomogeneous(text: string, pool: string): boolean {
  *   in separators AND symbols  → sep
  *   in separators only         → sep
  *   in symbols only            → symbol
- *   anything else              → word   (guarantees exact concat)
+ *   anything else              → symbol  (non-alnum not in either pool)
  */
 function charClassFallback(
   text: string,
@@ -100,7 +100,7 @@ function charClassFallback(
     } else if (symbols.includes(ch)) {
       kind = 'symbol';
     } else {
-      kind = 'word';
+      kind = 'symbol'; // non-alnum not in either pool → symbol, not word
     }
 
     if (i === 0) {
@@ -401,12 +401,17 @@ export function segmentPassword(passwd: string, s: SegmentInputs): Segment[] {
     : segmentFixed(passwd, s);
 }
 
+// Default character pools (mirror Rust DEFAULT_SEPARATORS / DEFAULT_SYMBOLS)
+// Used by the preset fallback so charClassFallback can color common chars.
+const DEFAULT_SEPARATORS = '.-_~';
+const DEFAULT_SYMBOLS = '~@$%^&*-_+=:|?/.;';
+
 /**
  * Build SegmentInputs from the shared settings builder.
  *
- * When a named preset is active, returns zeroed inputs that cause
- * `segmentPassword` to fall back to the char-class algorithm, which still
- * satisfies the concat invariant.
+ * When a named preset is active, returns zeroed *counts* (so the
+ * char-class fallback is used) but keeps the default character pools
+ * so that common preset separator/symbol chars are colored correctly.
  */
 export function buildSegmentInputs(
   builder: BuilderShape,
@@ -417,12 +422,12 @@ export function buildSegmentInputs(
   if (preset != null) {
     return {
       wordsCount: 0,
-      separators: '',
+      separators: DEFAULT_SEPARATORS,
       digitsBefore: 0,
       digitsAfter: 0,
       symbolsBefore: 0,
       symbolsAfter: 0,
-      paddingSymbols: '',
+      paddingSymbols: DEFAULT_SYMBOLS,
       adaptivePadding: false,
       adaptiveCount: 0,
     };
