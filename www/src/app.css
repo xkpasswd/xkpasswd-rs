@@ -1,7 +1,10 @@
 #app {
-  @apply flex-col items-center text-black;
-  @apply mx-auto p-3 sm:p-6 max-w-2xl;
-  @apply sm:bg-white sm:rounded-lg;
+  @apply bg-surface overflow-hidden mx-auto;
+  border: 1px solid rgba(239,240,235,.09);
+  border-radius: 12px;
+  box-shadow: 0 8px 32px rgba(0,0,0,.4);
+  max-width: 660px;
+  min-width: 320px;
 }
 
 .section {

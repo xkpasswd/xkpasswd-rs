@@ -35,6 +35,7 @@
     "serve": "vite preview"
   },
   "dependencies": {
+    "@fontsource/source-code-pro": "^5.2.7",
     "@heroicons/react": "^2.2.0",
     "preact": "^10.29.2"
   },
