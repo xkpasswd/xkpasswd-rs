@@ -33,7 +33,11 @@
     "prebuild": "npm run wasm:prod",
     "build": "concurrently npm:lint npm:vite:prod",
     "preserve": "npm run build",
-    "serve": "vite preview"
+    "serve": "vite preview",
+    "cloudflared-dev": "cloudflared tunnel --config cloudflared/dev.yml run localhost",
+    "dev:cloudflared": "concurrently npm:dev npm:cloudflared-dev",
+    "cloudflared-dist": "cloudflared tunnel --config cloudflared/serve.yml run localhost",
+    "serve:cloudflared": "concurrently npm:serve npm:cloudflared-dist"
   },
   "dependencies": {
     "@fontsource/source-code-pro": "^5.2.7",

@@ -7,6 +7,12 @@ import tsconfigPaths from 'vite-tsconfig-paths';
 import { VitePWA } from 'vite-plugin-pwa';
 
 export default defineConfig({
+  preview: {
+    allowedHosts: ['localhost', '127.0.0.1', '::1', 'localhost.ethanify.me'],
+  },
+  server: {
+    allowedHosts: ['localhost', '127.0.0.1', '::1', 'localhost.ethanify.me'],
+  },
   plugins: [
     preact(),
     wasm(),
