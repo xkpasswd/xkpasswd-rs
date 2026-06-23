@@ -1,29 +1,59 @@
-.entropy {
-  @apply font-mono font-bold px-1;
-  @apply border rounded;
+/* ─── stderr comment block ──────────────────────────────────────────────── */
+
+/**
+ * The whole entropy section looks like a `#`-commented block in a terminal
+ * session.  Muted text, mono, comfortable line-height.
+ */
+.stderr {
+  @apply text-muted font-mono mt-3;
+  line-height: 1.85;
 }
 
-.entropy-good {
-  @apply border-blue text-blue;
-}
-.entropy-bad {
-  @apply border-red text-red;
-}
-
-.entropy-img {
-  @apply inline-block h-6 mb-1;
-}
-.entropy-img.feels-good,
-.entropy-img.rage-face {
-  @apply ml-0.5;
-}
-.entropy-img.not-bad {
-  @apply ml-1;
+/**
+ * Each comment line gets a hanging indent: padding pushes all lines 2ch right,
+ * text-indent pulls the first line 2ch left → the `# ` prefix hangs at 0 while
+ * wrapped continuations align at 2ch.
+ */
+.stderr .c {
+  margin: 0;
+  padding-left: 2ch;
+  text-indent: -2ch;
 }
 
-.entropy-recommendation {
-  @apply block mt-2 text-sm;
+/** Gap between the two comment lines. */
+.stderr .gap {
+  margin-top: 0.5em;
 }
-.entropy-recommendation .information-icon {
-  @apply h-5 mb-1 mr-1 inline-block stroke-black;
+
+/** Faint `# ` comment hash. */
+.stderr .h {
+  @apply text-faint;
+}
+
+/** Bold text inside comments → primary text colour + weight 600. */
+.stderr b {
+  @apply text-white font-semibold;
+}
+
+/* ─── entropy chips (coloured value badges) ─────────────────────────────── */
+
+.chip {
+  @apply font-mono font-semibold rounded;
+  border: 1px solid;
+  padding: 0 0.25em;
+  font-size: 0.9em;
+}
+
+/** Green chip — entropy value meets or exceeds the threshold. */
+.chip-good {
+  color: #5af78e;
+  border-color: #5af78e;
+  background-color: color-mix(in srgb, #5af78e 12%, transparent);
+}
+
+/** Red chip — entropy value is below the threshold. */
+.chip-bad {
+  color: #ff5c57;
+  border-color: #ff5c57;
+  background-color: color-mix(in srgb, #ff5c57 12%, transparent);
 }
