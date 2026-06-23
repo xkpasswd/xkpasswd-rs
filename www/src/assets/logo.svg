@@ -1,0 +1,12 @@
+<svg width="512" height="512" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="xkpasswd">
+  <!-- terminal keycap / masked password field -->
+  <rect x="3" y="3" width="58" height="58" rx="14" fill="#2f3240"/>
+  <rect x="3.5" y="3.5" width="57" height="57" rx="13.5" stroke="#eff0eb" stroke-opacity="0.10"/>
+  <path d="M17 4 H47 A13 13 0 0 1 60 17" stroke="#eff0eb" stroke-opacity="0.06" stroke-width="1" fill="none"/>
+  <!-- masked characters, coloured as an entropy nod -->
+  <circle cx="18" cy="32" r="3" fill="#9aedfe"/>
+  <circle cx="27" cy="32" r="3" fill="#ff6ac1"/>
+  <circle cx="36" cy="32" r="3" fill="#f3f99d"/>
+  <!-- blinking block caret -->
+  <rect x="43" y="24" width="7" height="16" rx="1.5" fill="#5af78e"/>
+</svg>
