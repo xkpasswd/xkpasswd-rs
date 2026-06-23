@@ -52,9 +52,8 @@ const PRESET_OPTIONS: ReadonlyArray<{
 ];
 
 /** Language codes sorted alphabetically, derived from WASM LANGUAGE_MAPPING. */
-const LANGUAGE_OPTIONS: ReadonlyArray<string> = Object.keys(
-  LANGUAGE_MAPPING
-).sort();
+const LANGUAGE_OPTIONS: ReadonlyArray<string> =
+  Object.keys(LANGUAGE_MAPPING).sort();
 
 // ── Fragment type ─────────────────────────────────────────────────────────────
 
@@ -262,12 +261,10 @@ const ControlPanel = ({ onGenerate }: Props) => {
       const isLast = i === transforms.length - 1;
 
       const handleCycleTransform = () =>
-        builder.updateWordTransforms(
-          cycleTransform(builder.wordTransforms, i)
-        );
+        builder.updateWordTransforms(cycleTransform(builder.wordTransforms, i));
       const handleRemoveTransform = () =>
         builder.updateWordTransforms(
-          removeTransform(builder.wordTransforms, i)
+          removeTransform(builder.wordTransforms, i),
         );
       const handleAddTransform = () =>
         builder.updateWordTransforms(addTransform(builder.wordTransforms));
@@ -306,8 +303,7 @@ const ControlPanel = ({ onGenerate }: Props) => {
                     }
                   }}
                 >
-                  {/* U+00D7 MULTIPLICATION SIGN — never ✕ */}
-                  ×
+                  {/* U+00D7 MULTIPLICATION SIGN — never ✕ */}×
                 </button>
               )}
             </span>
@@ -325,8 +321,7 @@ const ControlPanel = ({ onGenerate }: Props) => {
                   }
                 }}
               >
-                {/* U+002B PLUS SIGN — never ＋ */}
-                +
+                {/* U+002B PLUS SIGN — never ＋ */}+
               </button>
             )}
           </span>
@@ -485,7 +480,7 @@ const ControlPanel = ({ onGenerate }: Props) => {
   const isMultiLine = args.length > 2;
 
   return (
-    <div className="section">
+    <>
       <div className="cmd">
         {isMultiLine ? (
           <>
@@ -530,7 +525,7 @@ const ControlPanel = ({ onGenerate }: Props) => {
           <span>{copied ? 'copied' : 'copy command'}</span>
         </button>
       </div>
-    </div>
+    </>
   );
 };
 

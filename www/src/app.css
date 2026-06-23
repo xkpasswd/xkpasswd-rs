@@ -12,10 +12,6 @@
   padding: clamp(16px, 3.6vw, 24px);
 }
 
-.section {
-  @apply mt-4;
-}
-
 .btn {
   @apply font-bold text-left underline;
 }
