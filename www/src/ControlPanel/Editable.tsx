@@ -147,6 +147,14 @@ type EditableStringProps = {
   /** Called on each keystroke with the trimmed value, when non-empty (optional). */
   onLiveChange?: (v: string) => void;
   className?: string;
+  /**
+   * When true, wraps the `<input>` in a `<span className="str-quote">` whose
+   * `::before`/`::after` pseudo-elements render the surrounding quote glyphs.
+   * Use this instead of literal `<span>&quot;</span>` siblings — it keeps the
+   * icon footprint identical in both quoted and unquoted states and avoids
+   * layout shift caused by the different widths.
+   */
+  quoted?: boolean;
 };
 
 /**
@@ -161,6 +169,7 @@ export const EditableString = ({
   onChange,
   onLiveChange,
   className,
+  quoted,
 }: EditableStringProps) => {
   const inputRef = useRef<HTMLInputElement>(null);
   const committedValueRef = useRef(value);
@@ -214,7 +223,7 @@ export const EditableString = ({
 
   const initialWidth = chWidth(value.length);
 
-  return (
+  const input = (
     <input
       type="text"
       defaultValue={value}
@@ -226,4 +235,10 @@ export const EditableString = ({
       onKeyDown={handleKeyDown}
     />
   );
+
+  if (quoted) {
+    return <span className="str-quote">{input}</span>;
+  }
+
+  return input;
 };

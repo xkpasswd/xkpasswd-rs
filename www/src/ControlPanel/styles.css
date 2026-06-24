@@ -86,6 +86,13 @@
   @apply text-yellow;
 }
 
+/* Quote glyphs rendered via pseudo-elements so they don't widen the row. */
+.cmd .str-quote::before,
+.cmd .str-quote::after {
+  content: '"';
+  @apply text-yellow;
+}
+
 /* Interactive tokens — dotted underline appears on hover/focus */
 .cmd .tok {
   cursor: pointer;

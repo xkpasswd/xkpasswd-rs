@@ -242,15 +242,14 @@ const ControlPanel = ({ onGenerate }: Props) => {
           <span className="whitespace-nowrap">
             <Flag name="separators" />
           </span>
-          <span className="str">&quot;</span>
           <EditableString
             value={builder.separators}
             fallback="."
             onChange={builder.updateSeparators}
             onLiveChange={(v) => regeneratePreview({ separators: v })}
             className="str"
+            quoted
           />
-          <span className="str">&quot;</span>
         </span>
       ),
     });
@@ -406,15 +405,14 @@ const ControlPanel = ({ onGenerate }: Props) => {
           <span className="whitespace-nowrap">
             <Flag name="symbols" />
           </span>
-          <span className="str">&quot;</span>
           <EditableString
             value={builder.paddingSymbols}
             fallback="%"
             onChange={builder.updatePaddingSymbols}
             onLiveChange={(v) => regeneratePreview({ paddingSymbols: v })}
             className="str"
+            quoted
           />
-          <span className="str">&quot;</span>
         </span>
       ),
     });
