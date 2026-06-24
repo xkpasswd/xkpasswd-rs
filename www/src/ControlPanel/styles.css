@@ -189,11 +189,13 @@
 /* ── Responsive: coarse-pointer (touch) adjustments ──────────────────────── */
 @media (pointer: coarse) {
   .cmd {
-    line-height: 2.4;
+    line-height: 2.0;
   }
   .cmd .tfbtn {
-    padding: 4px 8px;
-    font-size: 1.12em;
+    /* Match the surrounding line-height box so transform rows stay the same
+       height as every other row (no vertical-padding inflating the line box). */
+    padding: 0 8px;
+    font-size: 1em;
   }
   .cmd .tok {
     padding-top: 3px;
