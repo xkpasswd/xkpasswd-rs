@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'preact/hooks';
-import { CopyIcon } from 'src/Icons';
+import { CheckIcon, CopyIcon } from 'src/Icons';
 import { useSettings } from 'src/contexts';
 import { copyToClipboard } from 'src/utils';
 import { segmentPassword, type Segment, type SegKind } from './segment';
@@ -93,7 +93,7 @@ const PasswordBox = ({ passwd }: Props) => {
       className="stdout-row"
       role="button"
       tabIndex={0}
-      aria-label="Copy password"
+      aria-label={copied ? 'Password copied' : 'Copy password'}
       onClick={copyPasswd}
       onKeyDown={handleKeyDown}
     >
@@ -104,7 +104,7 @@ const PasswordBox = ({ passwd }: Props) => {
           aria-label on the row is sufficient for screen readers. */}
       <span className="stdout-icon" aria-hidden="true">
         {copied ? (
-          <span className="stdout-copied">✓ copied</span>
+          <CheckIcon className="w-5 h-5 text-green" />
         ) : (
           <CopyIcon className="w-5 h-5" />
         )}

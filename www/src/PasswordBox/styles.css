@@ -41,11 +41,6 @@
   @apply text-green;
 }
 
-/* Transient "✓ copied" confirmation shown for ~1.1 s after a successful copy. */
-.stdout-copied {
-  @apply text-green text-sm font-mono whitespace-nowrap;
-}
-
 /* ─── Reduced motion ─────────────────────────────────────────────────────── */
 @media (prefers-reduced-motion: reduce) {
   /* Disable the icon colour transition so no motion is used for feedback */
