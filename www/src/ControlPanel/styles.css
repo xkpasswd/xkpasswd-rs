@@ -1,10 +1,10 @@
-/* ── DropdownButton positioning helpers (keep intact) ─────────────────────── */
+/* ── DropdownButton alignment origin hints (menu is now fixed-position portal) */
 .left-align {
-  @apply left-0 origin-top-left;
+  @apply origin-top-left;
 }
 .presets-dropdown.right-align,
 .languages-dropdown.right-align {
-  @apply right-0 origin-top-right;
+  @apply origin-top-right;
 }
 
 /* ── Preset & language dropdown options ───────────────────────────────────── */
@@ -20,12 +20,6 @@
 .language-option:focus-visible {
   @apply bg-blue text-white;
   /* The global :focus-visible ring from main.css provides the outline ring */
-}
-
-/* ── Dark dropdown menu override (within .cmd context) ────────────────────── */
-.cmd .dropdown-menu {
-  @apply bg-surface;
-  border: 1px solid rgba(239, 240, 235, 0.09);
 }
 
 /* Reset .btn inside .cmd so the DropdownButton trigger is visually inert

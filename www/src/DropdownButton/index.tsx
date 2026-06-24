@@ -1,10 +1,7 @@
 import { ComponentChildren } from 'preact';
+import { createPortal } from 'preact/compat';
 import { useCallback, useEffect, useRef, useState } from 'preact/hooks';
 import './styles.css';
-
-const isVisible = (elem: HTMLElement | null) =>
-  !!elem &&
-  !!(elem.offsetWidth || elem.offsetHeight || elem.getClientRects().length);
 
 type ChildrenProps = {
   dismiss: () => void;
@@ -19,6 +16,12 @@ type Props = {
   children: (props: ChildrenProps) => ComponentChildren;
 };
 
+type MenuPosition = {
+  top: number;
+  left?: number;
+  right?: number;
+};
+
 const DropdownButton = ({
   name,
   title,
@@ -29,18 +32,30 @@ const DropdownButton = ({
 }: Props) => {
   const [visible, setVisible] = useState(false);
   const [isRightAlign, setIsRightAlign] = useState(false);
+  const [menuPos, setMenuPos] = useState<MenuPosition>({ top: 0, left: 0 });
 
-  const ref = useRef<HTMLDivElement>(null);
+  /** Ref on the trigger button — used to compute the portal's fixed coords. */
+  const buttonRef = useRef<HTMLButtonElement>(null);
+  /** Ref on the portaled menu div — used for click-outside detection. */
+  const menuRef = useRef<HTMLDivElement>(null);
 
-  const setDropdownAlignment = useCallback(() => {
-    const selfRef = ref.current;
-    if (!selfRef) {
-      return;
+  /** Compute fixed position and alignment from the button's current rect. */
+  const computePositionAndAlignment = useCallback(() => {
+    const btn = buttonRef.current;
+    if (!btn) return null;
+
+    const rect = btn.getBoundingClientRect();
+    const rightAligned = rect.x + rect.width / 2 > window.innerWidth / 2;
+
+    const pos: MenuPosition = { top: rect.bottom + 8 };
+    if (rightAligned) {
+      pos.right = window.innerWidth - rect.right;
+    } else {
+      pos.left = rect.left;
     }
 
-    const { x, width } = selfRef.getBoundingClientRect();
-    setIsRightAlign(x + width / 2 > window.screen.width / 2);
-  }, [setIsRightAlign]);
+    return { pos, rightAligned };
+  }, []);
 
   const toggleDropdown = useCallback(() => {
     if (visible) {
@@ -48,23 +63,50 @@ const DropdownButton = ({
       return;
     }
 
-    setDropdownAlignment();
+    const result = computePositionAndAlignment();
+    if (result) {
+      setMenuPos(result.pos);
+      setIsRightAlign(result.rightAligned);
+    }
     setVisible(true);
-  }, [visible, setVisible, setDropdownAlignment]);
+  }, [visible, computePositionAndAlignment]);
 
+  /** When the menu is open, wire up dismiss events. */
   useEffect(() => {
-    const outsideClickListener = (event: MouseEvent) => {
+    if (!visible) return;
+
+    const handlePointerDown = (e: MouseEvent) => {
+      const target = e.target as Node;
       if (
-        !ref.current?.contains(event.target as HTMLElement) &&
-        isVisible(ref.current)
+        !buttonRef.current?.contains(target) &&
+        !menuRef.current?.contains(target)
       ) {
         setVisible(false);
       }
     };
 
-    document.addEventListener('click', outsideClickListener);
-    return () => document.removeEventListener('click', outsideClickListener);
-  }, []);
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') setVisible(false);
+    };
+
+    // Close (and don't reposition) when the page scrolls or the window resizes,
+    // since a fixed menu won't follow the button after those events.
+    const handleScrollOrResize = () => setVisible(false);
+
+    document.addEventListener('pointerdown', handlePointerDown);
+    document.addEventListener('keydown', handleKeyDown);
+    window.addEventListener('scroll', handleScrollOrResize, { capture: true });
+    window.addEventListener('resize', handleScrollOrResize);
+
+    return () => {
+      document.removeEventListener('pointerdown', handlePointerDown);
+      document.removeEventListener('keydown', handleKeyDown);
+      window.removeEventListener('scroll', handleScrollOrResize, {
+        capture: true,
+      });
+      window.removeEventListener('resize', handleScrollOrResize);
+    };
+  }, [visible]);
 
   useEffect(() => onToggle && onToggle(visible), [onToggle, visible]);
 
@@ -79,22 +121,42 @@ const DropdownButton = ({
     .filter(Boolean)
     .join(' ');
 
+  const menuStyle: Record<string, string | number> = {
+    position: 'fixed',
+    top: menuPos.top,
+    zIndex: 50,
+  };
+  if (menuPos.right !== undefined) {
+    menuStyle.right = menuPos.right;
+  } else {
+    menuStyle.left = menuPos.left ?? 0;
+  }
+
   return (
-    <div className={containerClassNames} ref={ref}>
-      <button id={`${name}-button`} className="btn" onClick={toggleDropdown}>
+    <div className={containerClassNames}>
+      <button
+        id={`${name}-button`}
+        className="btn"
+        ref={buttonRef}
+        onClick={toggleDropdown}
+      >
         {title}
       </button>
-      {visible && (
-        <div
-          aria-labelledby={`${name}-button`}
-          aria-orientation="vertical"
-          className={dropdownClassNames}
-          role="menu"
-          tabIndex={-1}
-        >
-          {children({ dismiss: () => setVisible(false) })}
-        </div>
-      )}
+      {visible &&
+        createPortal(
+          <div
+            ref={menuRef}
+            aria-labelledby={`${name}-button`}
+            aria-orientation="vertical"
+            className={dropdownClassNames}
+            role="menu"
+            tabIndex={-1}
+            style={menuStyle}
+          >
+            {children({ dismiss: () => setVisible(false) })}
+          </div>,
+          document.body
+        )}
     </div>
   );
 };

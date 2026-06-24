@@ -3,7 +3,8 @@
 }
 
 .dropdown-menu {
-  @apply absolute z-10 mt-2;
+  @apply z-50;
   @apply flex flex-col items-stretch;
-  @apply rounded overflow-hidden bg-white shadow-lg;
+  @apply rounded overflow-hidden bg-surface shadow-lg;
+  border: 1px solid rgba(239, 240, 235, 0.09);
 }
