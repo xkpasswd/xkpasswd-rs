@@ -20,13 +20,8 @@ import { useCallback, useEffect, useRef, useState } from 'preact/hooks';
 import { useSettings } from 'src/contexts';
 import xkpasswd, { LANGUAGE_MAPPING, language } from 'src/wasm';
 import { PRESET_CLI_NAME, TRANSFORM_CLI_NAME } from './cliNames';
-import {
-  FIELD,
-  activeTransforms,
-  addTransform,
-  cycleTransform,
-  removeTransform,
-} from './editing';
+import { FIELD, canonicalTransforms } from './editing';
+import { WordTransformsPopover } from './WordTransformsMenu';
 import { EditableNumber, EditableString } from './Editable';
 import { cmdString } from './cmdString';
 import { CopyIcon, RunIcon } from 'src/Icons';
@@ -84,6 +79,7 @@ type Props = {
 const ControlPanel = ({ onGenerate }: Props) => {
   const { builder, regeneratePreview } = useSettings();
   const [copied, setCopied] = useState(false);
+  const [tfAnchor, setTfAnchor] = useState<HTMLElement | null>(null);
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   // ── Derived state ──────────────────────────────────────────────────────────
@@ -94,11 +90,8 @@ const ControlPanel = ({ onGenerate }: Props) => {
       : 'custom';
   const paddingValue = builder.adaptivePadding ? 'adaptive' : 'fixed';
 
-  // Active transform bits in canonical order [1, 2, 4, 8, 64, 128].
-  const transforms = activeTransforms(builder.wordTransforms);
-  // Whether a new single transform can still be added.
-  const canAddTransform =
-    addTransform(builder.wordTransforms) !== builder.wordTransforms;
+  // Canonical transform tokens for display: case mode → N tokens; altercase → 1 token.
+  const transformTokens = canonicalTransforms(builder.wordTransforms);
 
   // ── Callbacks ──────────────────────────────────────────────────────────────
 
@@ -145,6 +138,23 @@ const ControlPanel = ({ onGenerate }: Props) => {
     return () => {
       if (timerRef.current) clearTimeout(timerRef.current);
     };
+  }, []);
+
+  /**
+   * Shared handler for opening / toggling the transforms popover.
+   * Clicking the same token again closes it (toggle semantics).
+   */
+  const handleTfOpen = useCallback((e: MouseEvent) => {
+    const target = e.currentTarget as HTMLElement;
+    setTfAnchor((prev) => (prev === target ? null : target));
+  }, []);
+
+  const handleTfKeyDown = useCallback((e: KeyboardEvent) => {
+    if (e.key === 'Enter' || e.key === ' ') {
+      e.preventDefault();
+      const target = e.currentTarget as HTMLElement;
+      setTfAnchor((prev) => (prev === target ? null : target));
+    }
   }, []);
 
   // ── Build ordered arg list ─────────────────────────────────────────────────
@@ -254,79 +264,26 @@ const ControlPanel = ({ onGenerate }: Props) => {
       ),
     });
 
-    // ── 5. --transforms (one per active bit) ─────────────────────────────────
-    transforms.forEach((bit, i) => {
+    // ── 5. --transforms (one token per canonical bit; shared popover) ───────
+    transformTokens.forEach((bit, i) => {
       const tfName = TRANSFORM_CLI_NAME[bit] ?? 'lowercase';
-      const isLast = i === transforms.length - 1;
-
-      const handleCycleTransform = () =>
-        builder.updateWordTransforms(cycleTransform(builder.wordTransforms, i));
-      const handleRemoveTransform = () =>
-        builder.updateWordTransforms(
-          removeTransform(builder.wordTransforms, i),
-        );
-      const handleAddTransform = () =>
-        builder.updateWordTransforms(addTransform(builder.wordTransforms));
 
       args.push({
-        key: `transforms-${bit}`,
+        key: `transforms-${i}`,
         node: (
-          <span>
-            <span className="whitespace-nowrap">
-              <Flag name="transforms" />
-              {/* Cycle the transform name on click/Enter/Space */}
-              <span
-                className="enum tok"
-                role="button"
-                tabIndex={0}
-                aria-label={`cycle transform: ${tfName}`}
-                onClick={handleCycleTransform}
-                onKeyDown={(e: KeyboardEvent) => {
-                  if (e.key === 'Enter' || e.key === ' ') {
-                    e.preventDefault();
-                    handleCycleTransform();
-                  }
-                }}
-              >
-                {tfName}
-              </span>
-              {/* × remove: shown when more than one transform is active */}
-              {transforms.length > 1 && (
-                <button
-                  className="tfbtn rm"
-                  tabIndex={0}
-                  title="remove transform"
-                  aria-label="remove transform"
-                  onClick={handleRemoveTransform}
-                  onKeyDown={(e: KeyboardEvent) => {
-                    if (e.key === 'Enter' || e.key === ' ') {
-                      e.preventDefault();
-                      handleRemoveTransform();
-                    }
-                  }}
-                >
-                  {/* U+00D7 MULTIPLICATION SIGN — never ✕ */}×
-                </button>
-              )}
+          <span className="whitespace-nowrap">
+            <Flag name="transforms" />
+            <span
+              className="enum tok"
+              role="button"
+              tabIndex={0}
+              aria-haspopup="menu"
+              aria-expanded={tfAnchor !== null}
+              onClick={handleTfOpen}
+              onKeyDown={handleTfKeyDown}
+            >
+              {tfName}
             </span>
-            {/* + add: shown after the LAST transform, only when more can be added */}
-            {isLast && canAddTransform && (
-              <button
-                className="tfbtn add"
-                tabIndex={0}
-                title="add transform"
-                aria-label="add transform"
-                onClick={handleAddTransform}
-                onKeyDown={(e: KeyboardEvent) => {
-                  if (e.key === 'Enter' || e.key === ' ') {
-                    e.preventDefault();
-                    handleAddTransform();
-                  }
-                }}
-              >
-                {/* U+002B PLUS SIGN — never ＋ */}+
-              </button>
-            )}
           </span>
         ),
       });
@@ -529,6 +486,16 @@ const ControlPanel = ({ onGenerate }: Props) => {
           <span>{copied ? 'copied' : 'copy command'}</span>
         </button>
       </div>
+
+      {/* ── Shared transforms popover (portal to document.body) ──────────── */}
+      {tfAnchor && (
+        <WordTransformsPopover
+          anchor={tfAnchor}
+          bits={builder.wordTransforms}
+          onChange={builder.updateWordTransforms}
+          onClose={() => setTfAnchor(null)}
+        />
+      )}
     </>
   );
 };

@@ -125,32 +125,135 @@
   outline-offset: 2px;
 }
 
-/* ── Transform buttons (× remove, + add) ─────────────────────────────────── */
-.cmd .tfbtn {
-  @apply text-faint font-semibold cursor-pointer;
-  background: none;
-  border: none;
-  padding: 0 2px;
-  font: inherit;
-  opacity: 0.55;
-  vertical-align: baseline;
-  border-radius: 2px; /* rounded so the focus ring matches token corners */
+/* ── Word-transforms popover ─────────────────────────────────────────────── */
+
+/* Container: override .dropdown-menu's rounded/overflow/shadow/border. */
+.tf-menu {
+  overflow: visible;
+  border-radius: 11px;
+  padding: 8px;
+  border: 1px solid rgba(239, 240, 235, 0.10);
+  box-shadow: 0 20px 44px -18px rgba(0, 0, 0, 0.6);
+  min-width: 17rem;
+  max-width: 20rem;
+  /* bg-surface (#30323e) is inherited from .dropdown-menu; no override needed. */
 }
-/* Keyboard focus ring on transform buttons */
-.cmd .tfbtn:focus-visible {
+
+/* Helper comments (the two `#` lines). */
+.tf-cmt {
+  font-size: 11.5px;
+  color: #5d6173; /* faint */
+  padding: 8px 10px 5px;
+  line-height: 1.4;
+  /* font-family inherited from .cmd / app mono stack */
+}
+/* First comment: slightly less top padding (matches prototype .cmt.top). */
+.tf-cmt.top {
+  padding-top: 5px;
+}
+/* Altercase comment: visual divider above it. */
+.tf-cmt.alt {
+  border-top: 1px solid rgba(239, 240, 235, 0.10);
+  margin-top: 5px;
+}
+
+/* Option rows (both checkbox and radio). */
+.tf-opt {
+  display: flex;
+  gap: 11px;
+  align-items: center;
+  padding: 9px 10px;
+  border-radius: 7px;
+  cursor: pointer;
+  user-select: none;
+}
+.tf-opt:hover {
+  background: #3a3d4a; /* overlay */
+}
+.tf-opt:active {
+  transform: translateY(0.5px);
+}
+/* Greyed when case rows are overridden by active altercase. */
+.tf-opt.dis {
+  opacity: 0.34;
+}
+/* Locked sole-case row: no pointer, no hover highlight. */
+.tf-opt.locked {
+  cursor: default;
+}
+.tf-opt.locked:hover {
+  background: none;
+}
+/* Keyboard focus ring (consistent with app focus style). */
+.tf-opt:focus-visible {
   outline: 2px solid #5af78e;
   outline-offset: 2px;
 }
-.cmd .tfbtn.rm:hover,
-.cmd .tfbtn.rm:focus-visible {
-  @apply text-red;
-  opacity: 1;
-  outline-color: rgba(255, 92, 87, 0.7); /* tinted red ring to match rm colour */
+
+/* Option label text. */
+.tf-lab {
+  font-size: 14px;
+  white-space: nowrap;
 }
-.cmd .tfbtn.add:hover,
-.cmd .tfbtn.add:focus-visible {
-  @apply text-green;
-  opacity: 1;
+
+/* Checkbox indicator. */
+.tf-box {
+  width: 18px;
+  height: 18px;
+  border-radius: 4px;
+  border: 1.6px solid #5d6173; /* faint */
+  display: grid;
+  place-items: center;
+  flex: none;
+  transition: background 0.12s, border-color 0.12s;
+}
+.tf-box.on {
+  background: #5af78e; /* green */
+  border-color: #5af78e;
+}
+/* Locked sole-case checkbox: uses faint fill instead of green. */
+.tf-box.locked {
+  background: #5d6173; /* faint */
+  border-color: #5d6173;
+}
+/* Checkmark child (hidden by default, shown when .on). */
+.tf-chk {
+  width: 10px;
+  height: 6px;
+  border-left: 2px solid #282a36; /* black */
+  border-bottom: 2px solid #282a36;
+  transform: rotate(-45deg);
+  margin-top: -2px;
+  display: none;
+}
+.tf-box.on .tf-chk {
+  display: block;
+}
+
+/* Radio indicator. */
+.tf-radio {
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  border: 1.6px solid #5d6173; /* faint */
+  display: grid;
+  place-items: center;
+  flex: none;
+  transition: border-color 0.12s;
+}
+.tf-radio.on {
+  border-color: #5af78e; /* green */
+}
+/* Inner dot (hidden by default, shown when .on). */
+.tf-dot {
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  background: #5af78e; /* green */
+  display: none;
+}
+.tf-radio.on .tf-dot {
+  display: block;
 }
 
 /* ── Command bar ──────────────────────────────────────────────────────────── */
@@ -190,12 +293,6 @@
 @media (pointer: coarse) {
   .cmd {
     line-height: 2.0;
-  }
-  .cmd .tfbtn {
-    /* Match the surrounding line-height box so transform rows stay the same
-       height as every other row (no vertical-padding inflating the line box). */
-    padding: 0 8px;
-    font-size: 1em;
   }
   .cmd .tok {
     padding-top: 3px;

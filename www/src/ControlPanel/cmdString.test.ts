@@ -203,3 +203,23 @@ describe('cmdString – all transform flags', () => {
     expect(cmd).toContain('--transforms=altercase-upper-first');
   });
 });
+
+// ── canonicalization: altercase wins over case bits ────────────────────────
+
+describe('cmdString – altercase canonicalization', () => {
+  it('1|4|64 (lowercase+uppercase+altercase-lower): emits only altercase-lower-first', () => {
+    // wordTransforms stores both case bits (preserved) and the altercase bit.
+    // canonicalTransforms must collapse to [64] → single flag.
+    const cmd = cmdString({ ...BASE_BUILDER, wordTransforms: 1 | 4 | 64 }, 'en');
+    expect(cmd).toContain('--transforms=altercase-lower-first');
+    expect(cmd).not.toContain('--transforms=lowercase');
+    expect(cmd).not.toContain('--transforms=uppercase');
+  });
+
+  it('1|4|128 (lowercase+uppercase+altercase-upper): emits only altercase-upper-first', () => {
+    const cmd = cmdString({ ...BASE_BUILDER, wordTransforms: 1 | 4 | 128 }, 'en');
+    expect(cmd).toContain('--transforms=altercase-upper-first');
+    expect(cmd).not.toContain('--transforms=lowercase');
+    expect(cmd).not.toContain('--transforms=uppercase');
+  });
+});

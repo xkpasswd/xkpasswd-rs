@@ -5,6 +5,7 @@
  * Custom       → full flag list (no --preset flag).
  */
 import { PRESET_CLI_NAME, TRANSFORM_CLI_NAME } from './cliNames';
+import { canonicalTransforms } from './editing';
 
 /**
  * Minimal builder shape — structurally compatible with SettingsBuilderType
@@ -26,12 +27,15 @@ type BuilderShape = Readonly<{
 
 /**
  * Build the active WordTransform CLI flags from a bitfield.
- * Returns one `--transforms=<name>` token per set bit.
+ *
+ * Uses `canonicalTransforms` so altercase mode emits a single flag (e.g.
+ * `--transforms=altercase-lower-first`) and never alongside a case flag —
+ * even when case bits are transiently stored alongside the altercase bit.
  */
 function transformFlags(wordTransforms: number): string[] {
-  return Object.entries(TRANSFORM_CLI_NAME)
-    .filter(([bit]) => (wordTransforms & Number(bit)) !== 0)
-    .map(([, name]) => `--transforms=${name}`);
+  return canonicalTransforms(wordTransforms).map(
+    (bit) => `--transforms=${TRANSFORM_CLI_NAME[bit]}`
+  );
 }
 
 /**

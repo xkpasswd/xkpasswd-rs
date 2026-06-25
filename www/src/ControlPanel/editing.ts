@@ -73,77 +73,86 @@ export function normalizePool(raw: string, fallback: string): string {
 
 // ── Word-transform bitflag helpers ────────────────────────────────────────────
 
-// Canonical SINGLE transforms in order (lowercase, titlecase, uppercase, inversed-titlecase).
-const SINGLE_TRANSFORMS = [1, 2, 4, 8] as const;
-// ALTERCASE transforms (mutually exclusive with singles in practice).
-const ALTERCASE_TRANSFORMS = [64, 128] as const;
-// Canonical iteration order for activeTransforms output.
-const ALL_TRANSFORMS = [
-  ...SINGLE_TRANSFORMS,
-  ...ALTERCASE_TRANSFORMS,
-] as const;
+/** Case transforms in display order: lowercase, Titlecase, UPPERCASE, iNVERSED TITLECASE. */
+export const CASE_TRANSFORMS = [1, 2, 4, 8] as const;
+
+/** Altercase transforms (deterministic word-level alternation; mutually exclusive with cases). */
+export const ALTERCASE_LOWER = 64;
+export const ALTERCASE_UPPER = 128;
+
+/** Mask covering both altercase bits. */
+const ALTERCASE_MASK = ALTERCASE_LOWER | ALTERCASE_UPPER;
 
 /**
- * Returns the active transform flags from `bits` in canonical order
- * [1, 2, 4, 8, 64, 128].  No duplicates are possible (it's a bitflag set).
- */
-export function activeTransforms(bits: number): number[] {
-  return ALL_TRANSFORMS.filter((t) => (bits & t) !== 0);
-}
-
-/**
- * Replace the active transform at `index` (into `activeTransforms(bits)`) with
- * the "next" unused transform of the same kind:
+ * Returns the canonical active altercase bit: `64` wins if both bits are set
+ * (mirrors the Rust engine's `with_word_transforms` early-return logic).
  *
- * - ALTERCASE flag → toggle to the OTHER altercase flag; result is that flag only.
- * - SINGLE → advance to the next SINGLE not currently in the set (wrapping around
- *   the 4 singles). No-op when all 4 singles are already active.
+ * Returns `0` when no altercase bit is active.
  */
-export function cycleTransform(bits: number, index: number): number {
-  const active = activeTransforms(bits);
-  const current = active[index];
+export function activeAltercase(bits: number): number {
+  if (bits & ALTERCASE_LOWER) return ALTERCASE_LOWER;
+  if (bits & ALTERCASE_UPPER) return ALTERCASE_UPPER;
+  return 0;
+}
 
-  // ALTERCASE toggle: result is just the other altercase flag.
-  if (current === 64) return 128;
-  if (current === 128) return 64;
+/**
+ * Canonical projection of `wordTransforms` bits → ordered array of active flags.
+ *
+ * - Altercase mode (any altercase bit set): `[altBit]` only — case bits are
+ *   suppressed because the engine ignores them when an altercase bit is present.
+ * - Case mode: `CASE_TRANSFORMS` entries that are set, in display order.
+ *
+ * Used by the command-string builder and token display.
+ */
+export function canonicalTransforms(bits: number): number[] {
+  const alt = activeAltercase(bits);
+  if (alt !== 0) return [alt];
+  return CASE_TRANSFORMS.filter((b) => (bits & b) !== 0);
+}
 
-  // SINGLE: find next single (after current, wrapping) not in bits.
-  const pos = SINGLE_TRANSFORMS.indexOf(current as 1 | 2 | 4 | 8);
-  for (let i = 1; i <= SINGLE_TRANSFORMS.length; i++) {
-    const next = SINGLE_TRANSFORMS[(pos + i) % SINGLE_TRANSFORMS.length];
-    if ((bits & next) === 0) {
-      return (bits & ~current) | next;
-    }
+/**
+ * Returns the currently-selected case bits in canonical display order.
+ * Altercase bits are always ignored — the result is the preserved case
+ * selection regardless of whether altercase mode is currently active.
+ */
+export function selectedCases(bits: number): number[] {
+  return CASE_TRANSFORMS.filter((b) => (bits & b) !== 0);
+}
+
+/**
+ * Popover handler: toggle one case checkbox. Returns new `wordTransforms` bits.
+ *
+ * - **Altercase active:** exit altercase AND ensure `caseBit` is set.
+ *   `(bits & ~ALTERCASE_MASK) | caseBit` — NEVER removes a case bit.
+ * - **Case mode, `caseBit` already set:** remove it, unless it's the sole
+ *   selected case (lock-last rule enforces ≥1 case).
+ * - **Case mode, `caseBit` not set:** add it.
+ */
+export function toggleCase(bits: number, caseBit: number): number {
+  if (activeAltercase(bits)) {
+    // Exit altercase and ensure this case bit is set (never removes).
+    return (bits & ~ALTERCASE_MASK) | caseBit;
   }
-
-  // All 4 singles are already set — no-op.
-  return bits;
+  if (bits & caseBit) {
+    // Lock-last: no-op when this would remove the only remaining case.
+    if (selectedCases(bits).length <= 1) return bits;
+    return bits & ~caseBit;
+  }
+  return bits | caseBit;
 }
 
 /**
- * Add the first unused SINGLE transform (in order 1, 2, 4, 8).
- * No-op when:
- *   - any ALTERCASE flag is active (altercase and singles are exclusive modes), or
- *   - all 4 singles are already present.
+ * Popover handler: click one altercase radio. Returns new `wordTransforms` bits.
+ *
+ * - **That altercase bit already active:** exit → `bits & ~ALTERCASE_MASK`.
+ *   If that yields `0` (no case bits were preserved), fall back to `1` (lowercase).
+ * - **Other (inactive) radio clicked:** set this altercase bit, clear the other,
+ *   and PRESERVE existing case bits → `(bits & ~ALTERCASE_MASK) | altBit`.
  */
-export function addTransform(bits: number): number {
-  // No-op in altercase mode.
-  if (ALTERCASE_TRANSFORMS.some((t) => (bits & t) !== 0)) return bits;
-
-  const unused = SINGLE_TRANSFORMS.find((t) => (bits & t) === 0);
-  if (unused === undefined) return bits; // all 4 singles present
-
-  return bits | unused;
-}
-
-/**
- * Clear the active flag at `index` (into `activeTransforms(bits)`).
- * Enforces a minimum of 1 active transform — no-op when only one is active.
- */
-export function removeTransform(bits: number, index: number): number {
-  const active = activeTransforms(bits);
-  if (active.length <= 1) return bits; // enforce min 1
-
-  const current = active[index];
-  return bits & ~current;
+export function toggleAltercase(bits: number, altBit: number): number {
+  if (activeAltercase(bits) === altBit) {
+    const caseOnly = bits & ~ALTERCASE_MASK;
+    return caseOnly === 0 ? 1 : caseOnly;
+  }
+  return (bits & ~ALTERCASE_MASK) | altBit;
 }

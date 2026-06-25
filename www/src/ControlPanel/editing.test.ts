@@ -4,10 +4,11 @@ import {
   clampNumber,
   normalizeNumber,
   normalizePool,
-  activeTransforms,
-  cycleTransform,
-  addTransform,
-  removeTransform,
+  activeAltercase,
+  canonicalTransforms,
+  selectedCases,
+  toggleCase,
+  toggleAltercase,
 } from './editing';
 
 // ── FIELD constants ──────────────────────────────────────────────────────────
@@ -164,177 +165,183 @@ describe('normalizePool', () => {
   });
 });
 
-// ── activeTransforms ─────────────────────────────────────────────────────────
+// ── activeAltercase ───────────────────────────────────────────────────────────
 
-describe('activeTransforms', () => {
-  it('0 → empty array', () => {
-    expect(activeTransforms(0)).toEqual([]);
+describe('activeAltercase', () => {
+  it('0 → 0 (no transforms)', () => {
+    expect(activeAltercase(0)).toBe(0);
   });
 
-  it('single SINGLE flag → [flag]', () => {
-    expect(activeTransforms(1)).toEqual([1]);   // lowercase
-    expect(activeTransforms(2)).toEqual([2]);   // titlecase
-    expect(activeTransforms(4)).toEqual([4]);   // uppercase
-    expect(activeTransforms(8)).toEqual([8]);   // inversed-titlecase
+  it('64 → 64 (altercase-lower-first)', () => {
+    expect(activeAltercase(64)).toBe(64);
   });
 
-  it('single ALTERCASE flag → [flag]', () => {
-    expect(activeTransforms(64)).toEqual([64]);   // altercase-lower-first
-    expect(activeTransforms(128)).toEqual([128]); // altercase-upper-first
+  it('128 → 128 (altercase-upper-first)', () => {
+    expect(activeAltercase(128)).toBe(128);
   });
 
-  it('multiple singles in canonical order [1,2,4,8]', () => {
-    expect(activeTransforms(1 | 2)).toEqual([1, 2]);
-    expect(activeTransforms(1 | 4)).toEqual([1, 4]);
-    expect(activeTransforms(2 | 8)).toEqual([2, 8]);
-    expect(activeTransforms(1 | 2 | 4 | 8)).toEqual([1, 2, 4, 8]);
+  it('64|128 → 64 (64 wins when both bits set, mirrors engine)', () => {
+    expect(activeAltercase(64 | 128)).toBe(64);
   });
 
-  it('bits in any order → canonical order always', () => {
-    // 8 | 1 = 9, should still return [1, 8]
-    expect(activeTransforms(8 | 1)).toEqual([1, 8]);
-    expect(activeTransforms(4 | 2 | 1)).toEqual([1, 2, 4]);
+  it('1|4 → 0 (case-only bits, no altercase)', () => {
+    expect(activeAltercase(1 | 4)).toBe(0);
+  });
+
+  it('1|4|64 → 64 (altercase bit present alongside case bits)', () => {
+    expect(activeAltercase(1 | 4 | 64)).toBe(64);
   });
 });
 
-// ── cycleTransform ────────────────────────────────────────────────────────────
+// ── canonicalTransforms ───────────────────────────────────────────────────────
 
-describe('cycleTransform', () => {
-  // ALTERCASE toggle
-  it('ALTERCASE-lower (64) at index 0 → toggle to ALTERCASE-upper (128 only)', () => {
-    expect(cycleTransform(64, 0)).toBe(128);
+describe('canonicalTransforms', () => {
+  it('5 (1|4=lowercase|uppercase) → [1, 4] in display order', () => {
+    expect(canonicalTransforms(5)).toEqual([1, 4]);
   });
 
-  it('ALTERCASE-upper (128) at index 0 → toggle to ALTERCASE-lower (64 only)', () => {
-    expect(cycleTransform(128, 0)).toBe(64);
+  it('1|2|4|8 → [1, 2, 4, 8] (all cases in order)', () => {
+    expect(canonicalTransforms(1 | 2 | 4 | 8)).toEqual([1, 2, 4, 8]);
   });
 
-  // SINGLE cycling
-  it('single lowercase (1): cycle index 0 → next unused single = 2 (titlecase)', () => {
-    expect(cycleTransform(1, 0)).toBe(2);
+  it('64 → [64] (altercase-lower-first only)', () => {
+    expect(canonicalTransforms(64)).toEqual([64]);
   });
 
-  it('single titlecase (2): cycle index 0 → next unused = 4 (uppercase)', () => {
-    expect(cycleTransform(2, 0)).toBe(4);
+  it('128 → [128] (altercase-upper-first only)', () => {
+    expect(canonicalTransforms(128)).toEqual([128]);
   });
 
-  it('single uppercase (4): cycle index 0 → next unused = 8 (inversed-titlecase)', () => {
-    expect(cycleTransform(4, 0)).toBe(8);
+  it('1|4|64 → [64] (altercase wins; case bits suppressed)', () => {
+    expect(canonicalTransforms(1 | 4 | 64)).toEqual([64]);
   });
 
-  it('single inversed-titlecase (8): cycle index 0 → wraps to 1 (lowercase)', () => {
-    expect(cycleTransform(8, 0)).toBe(1);
+  it('bitfield input order is irrelevant → canonical order always out', () => {
+    // 8|1 = 9, same as 1|8
+    expect(canonicalTransforms(8 | 1)).toEqual([1, 8]);
+    expect(canonicalTransforms(4 | 2 | 1)).toEqual([1, 2, 4]);
   });
 
-  it('lowercase+titlecase (1|2): cycle index 0 (bit 1) → replace 1 with 4 (next unused)', () => {
-    // active = [1,2], cycle index 0 → find next after 1 not in {2}: 4
-    expect(cycleTransform(1 | 2, 0)).toBe((2 | 4));
-  });
-
-  it('lowercase+titlecase (1|2): cycle index 1 (bit 2) → replace 2 with 4 (next unused)', () => {
-    // active = [1,2], cycle index 1 → find next after 2 not in {1}: 4
-    expect(cycleTransform(1 | 2, 1)).toBe((1 | 4));
-  });
-
-  it('lowercase+uppercase (1|4): cycle index 1 (bit 4) → next after 4 not in {1}: 8', () => {
-    // active = [1,4], cycle index 1 → find next after 4 not in {1}: 8
-    expect(cycleTransform(1 | 4, 1)).toBe((1 | 8));
-  });
-
-  it('wrap: uppercase+inversed (4|8): cycle index 1 (bit 8) → wraps to 1 (not in {4})', () => {
-    // active = [4,8], cycle index 1 → find next after 8 wrapping: 1 not in {4}
-    expect(cycleTransform(4 | 8, 1)).toBe((4 | 1));
-  });
-
-  it('no-op when all 4 singles set: cycle returns unchanged bits', () => {
-    const all4 = 1 | 2 | 4 | 8; // 15
-    expect(cycleTransform(all4, 0)).toBe(all4);
-    expect(cycleTransform(all4, 1)).toBe(all4);
-    expect(cycleTransform(all4, 2)).toBe(all4);
-    expect(cycleTransform(all4, 3)).toBe(all4);
-  });
-
-  it('cycle index 2 in a 3-single set: replaces that specific flag', () => {
-    // bits=1|2|4, active=[1,2,4], cycle index 2 (bit 4) → next after 4 not in {1,2}: 8
-    expect(cycleTransform(1 | 2 | 4, 2)).toBe((1 | 2 | 8));
+  it('2|8 → [2, 8] (titlecase + inversed-titlecase)', () => {
+    expect(canonicalTransforms(2 | 8)).toEqual([2, 8]);
   });
 });
 
-// ── addTransform ──────────────────────────────────────────────────────────────
+// ── selectedCases ─────────────────────────────────────────────────────────────
 
-describe('addTransform', () => {
-  it('bits=0 → add first SINGLE (1=lowercase)', () => {
-    expect(addTransform(0)).toBe(1);
+describe('selectedCases', () => {
+  it('0 → [] (no bits set)', () => {
+    expect(selectedCases(0)).toEqual([]);
   });
 
-  it('bits=1 (lowercase) → add next unused: 2 (titlecase)', () => {
-    expect(addTransform(1)).toBe(1 | 2);
+  it('1 → [1] (lowercase only)', () => {
+    expect(selectedCases(1)).toEqual([1]);
   });
 
-  it('bits=1|2 → add next unused: 4 (uppercase)', () => {
-    expect(addTransform(1 | 2)).toBe(1 | 2 | 4);
+  it('5 (1|4) → [1, 4] (lowercase + uppercase)', () => {
+    expect(selectedCases(5)).toEqual([1, 4]);
   });
 
-  it('bits=1|2|4 → add next unused: 8 (inversed-titlecase)', () => {
-    expect(addTransform(1 | 2 | 4)).toBe(1 | 2 | 4 | 8);
+  it('64 → [] (altercase bits ignored)', () => {
+    expect(selectedCases(64)).toEqual([]);
   });
 
-  it('no-op when all 4 singles present (1|2|4|8)', () => {
-    const all4 = 1 | 2 | 4 | 8;
-    expect(addTransform(all4)).toBe(all4);
+  it('128 → [] (altercase bits ignored)', () => {
+    expect(selectedCases(128)).toEqual([]);
   });
 
-  it('no-op in altercase mode (bit 64)', () => {
-    expect(addTransform(64)).toBe(64);
+  it('1|4|64 → [1, 4] (ignores altercase bit)', () => {
+    expect(selectedCases(1 | 4 | 64)).toEqual([1, 4]);
   });
 
-  it('no-op in altercase mode (bit 128)', () => {
-    expect(addTransform(128)).toBe(128);
-  });
-
-  it('adds first gap in a non-contiguous set', () => {
-    // bits=1|4 → first unused is 2 (titlecase)
-    expect(addTransform(1 | 4)).toBe(1 | 2 | 4);
+  it('1|2|4|8 → [1, 2, 4, 8] (all cases)', () => {
+    expect(selectedCases(1 | 2 | 4 | 8)).toEqual([1, 2, 4, 8]);
   });
 });
 
-// ── removeTransform ──────────────────────────────────────────────────────────
+// ── toggleCase ────────────────────────────────────────────────────────────────
 
-describe('removeTransform', () => {
-  it('no-op if only one active (single): stays unchanged', () => {
-    expect(removeTransform(1, 0)).toBe(1);
-    expect(removeTransform(2, 0)).toBe(2);
-    expect(removeTransform(8, 0)).toBe(8);
+describe('toggleCase', () => {
+  // Case mode: add a missing case bit
+  it('case mode: adds a missing case bit', () => {
+    expect(toggleCase(1, 4)).toBe(1 | 4);  // add uppercase
+    expect(toggleCase(4, 2)).toBe(4 | 2);  // add titlecase
   });
 
-  it('no-op if only one active (altercase): stays unchanged', () => {
-    expect(removeTransform(64, 0)).toBe(64);
-    expect(removeTransform(128, 0)).toBe(128);
+  // Case mode: remove a present case bit (not sole)
+  it('case mode: removes a present case bit when not sole', () => {
+    expect(toggleCase(1 | 4, 4)).toBe(1);  // remove uppercase
+    expect(toggleCase(1 | 4, 1)).toBe(4);  // remove lowercase
+    expect(toggleCase(1 | 2 | 4, 2)).toBe(1 | 4); // remove middle
   });
 
-  it('two singles: remove index 0 (first)', () => {
-    // active=[1,2], remove index 0 → remove bit 1 → result=2
-    expect(removeTransform(1 | 2, 0)).toBe(2);
+  // Case mode: lock-last — sole remaining case is a no-op
+  it('case mode: lock-last — cannot remove sole remaining case', () => {
+    expect(toggleCase(1, 1)).toBe(1);   // only lowercase, cannot remove
+    expect(toggleCase(4, 4)).toBe(4);   // only uppercase, cannot remove
+    expect(toggleCase(8, 8)).toBe(8);   // only inversed-titlecase, cannot remove
   });
 
-  it('two singles: remove index 1 (second)', () => {
-    // active=[1,2], remove index 1 → remove bit 2 → result=1
-    expect(removeTransform(1 | 2, 1)).toBe(1);
+  // Altercase mode: click a case that IS already set → exit altercase, never removes
+  it('altercase mode: click case already set → exit altercase, keep all case bits (never removes)', () => {
+    // bits=1|4|64; click lowercase (already in case bits) → exit alt, keep 1|4
+    expect(toggleCase(1 | 4 | 64, 1)).toBe(1 | 4);
+    // bits=1|4|64; click uppercase (already in case bits) → exit alt, keep 1|4
+    expect(toggleCase(1 | 4 | 64, 4)).toBe(1 | 4);
   });
 
-  it('three singles: remove middle (index 1)', () => {
-    // active=[1,2,4], remove index 1 → remove bit 2 → result=1|4=5
-    expect(removeTransform(1 | 2 | 4, 1)).toBe(1 | 4);
+  // Altercase mode: click a case that is NOT set → exit altercase and ensure that case is added
+  it('altercase mode: click case not in case bits → exit altercase + add case bit', () => {
+    // bits=1|4|64; click titlecase (not in case bits) → exit alt + add 2
+    expect(toggleCase(1 | 4 | 64, 2)).toBe(1 | 4 | 2);
+    // bits=1|4|128; click titlecase → exit alt + add 2
+    expect(toggleCase(1 | 4 | 128, 2)).toBe(1 | 4 | 2);
   });
 
-  it('three singles: remove last (index 2)', () => {
-    // active=[1,2,4], remove index 2 → remove bit 4 → result=1|2=3
-    expect(removeTransform(1 | 2 | 4, 2)).toBe(1 | 2);
+  // Altercase mode: click case when only altercase bit set (no case bits preserved)
+  it('altercase mode: no preserved cases → exit altercase + ensure caseBit is set', () => {
+    expect(toggleCase(64, 1)).toBe(1);   // exit + ensure lowercase
+    expect(toggleCase(64, 4)).toBe(4);   // exit + ensure uppercase
+    expect(toggleCase(128, 2)).toBe(2);  // exit + ensure titlecase
+  });
+});
+
+// ── toggleAltercase ───────────────────────────────────────────────────────────
+
+describe('toggleAltercase', () => {
+  // Enter altercase from case mode: preserves case bits
+  it('entering altercase from case mode preserves existing case bits', () => {
+    expect(toggleAltercase(1 | 4, 64)).toBe(1 | 4 | 64);
+    expect(toggleAltercase(1 | 4, 128)).toBe(1 | 4 | 128);
+    expect(toggleAltercase(1 | 2 | 4, 64)).toBe(1 | 2 | 4 | 64);
   });
 
-  it('four singles: remove any → 3 remain', () => {
-    const all4 = 1 | 2 | 4 | 8;
-    expect(removeTransform(all4, 0)).toBe(2 | 4 | 8);
-    expect(removeTransform(all4, 3)).toBe(1 | 2 | 4);
+  // Click active radio → exit altercase, restore case bits
+  it('clicking active altercase radio exits → bits & ~ALTERCASE_MASK', () => {
+    expect(toggleAltercase(1 | 4 | 64, 64)).toBe(1 | 4);
+    expect(toggleAltercase(1 | 4 | 128, 128)).toBe(1 | 4);
+    expect(toggleAltercase(2 | 64, 64)).toBe(2);
+  });
+
+  // Switch between altercase radios
+  it('switching altercase radio preserves case bits', () => {
+    // from 64 to 128
+    expect(toggleAltercase(1 | 4 | 64, 128)).toBe(1 | 4 | 128);
+    // from 128 to 64
+    expect(toggleAltercase(1 | 4 | 128, 64)).toBe(1 | 4 | 64);
+  });
+
+  // Exit with zero preserved cases → fall back to 1 (lowercase)
+  it('exiting altercase with no preserved cases falls back to 1 (lowercase)', () => {
+    expect(toggleAltercase(64, 64)).toBe(1);    // bits=64, exit → 0 → fallback to 1
+    expect(toggleAltercase(128, 128)).toBe(1);  // bits=128, exit → 0 → fallback to 1
+  });
+
+  // Enter altercase when only altercase bit was set (no case bits)
+  it('entering different altercase when no case bits are set', () => {
+    // bits=64 (no cases), enter 128 → 128 (no case bits preserved)
+    expect(toggleAltercase(64, 128)).toBe(128);
+    // bits=128 (no cases), enter 64 → 64
+    expect(toggleAltercase(128, 64)).toBe(64);
   });
 });
