@@ -112,6 +112,15 @@
   outline-offset: 2px;
 }
 
+/* Strip iOS/WebKit's native text-field chrome (rounded border + inset shadow);
+   the intended look is the dotted underline from BASE_CLASSES (border-b). */
+.cmd input {
+  -webkit-appearance: none;
+  appearance: none;
+  border-radius: 0;
+  box-shadow: none;
+}
+
 /* Editable inputs inherit colour from .num / .str parent classes */
 .cmd input.num:focus {
   background: rgba(87, 199, 255, 0.14);
