@@ -134,8 +134,9 @@
   padding: 8px;
   border: 1px solid rgba(239, 240, 235, 0.10);
   box-shadow: 0 20px 44px -18px rgba(0, 0, 0, 0.6);
-  min-width: 17rem;
-  max-width: 20rem;
+  box-sizing: border-box;
+  min-width: min(17rem, calc(100vw - 16px));
+  max-width: min(20rem, calc(100vw - 16px));
   /* bg-surface (#30323e) is inherited from .dropdown-menu; no override needed. */
 }
 

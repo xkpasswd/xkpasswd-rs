@@ -8,12 +8,14 @@
  *   - Select one of the mutually-exclusive altercase transforms
  *     (altercase LOWER first / ALTERCASE upper FIRST)
  *
- * Position is computed ONCE on mount from the anchor's getBoundingClientRect
- * (mirrors DropdownButton's strategy).  The menu stays in place while the
- * user edits — even when the canonical token set changes due to mode switches.
+ * Positioning strategy: left-align under the trigger token, then clamp into
+ * the viewport with an 8px gutter so the menu never overflows off either
+ * edge.  Position is computed (and re-measured) once per anchor change via
+ * useLayoutEffect, before the first visible paint, so there is no jitter
+ * while the user toggles rows or the canonical token set changes.
  */
 import { createPortal } from 'preact/compat';
-import { useEffect, useRef, useState } from 'preact/hooks';
+import { useEffect, useLayoutEffect, useRef, useState } from 'preact/hooks';
 import {
   ALTERCASE_LOWER,
   ALTERCASE_UPPER,
@@ -23,6 +25,7 @@ import {
   toggleAltercase,
   toggleCase,
 } from './editing';
+import { clampPopoverLeft } from './positioning';
 
 /**
  * Display labels (self-demonstrating, distinct from kebab CLI flag values).
@@ -51,29 +54,34 @@ type Props = {
 
 /**
  * Positioned popover for selecting word transforms.
- * Mirrors DropdownButton's portal/position/dismiss logic.
+ *
+ * Left-aligns under the trigger token, then clamps horizontally into the
+ * viewport (8px gutter) so the menu never clips off either edge.
  */
 const WordTransformsPopover = ({ anchor, bits, onChange, onClose }: Props) => {
   const menuRef = useRef<HTMLDivElement>(null);
 
-  // Compute position ONCE on mount from the anchor rect (same approach as
-  // DropdownButton's computePositionAndAlignment).  Never re-positions so
-  // the menu stays put while the user edits.
-  const [pos] = useState<{ top: number; left?: number; right?: number }>(
-    () => {
-      const rect = anchor.getBoundingClientRect();
-      const rightAligned = rect.x + rect.width / 2 > window.innerWidth / 2;
-      const p: { top: number; left?: number; right?: number } = {
-        top: rect.bottom + 8,
-      };
-      if (rightAligned) {
-        p.right = window.innerWidth - rect.right;
-      } else {
-        p.left = rect.left;
-      }
-      return p;
-    }
-  );
+  // Initial position approximation: left-align under the trigger.  The
+  // useLayoutEffect below re-measures and clamps before the first paint.
+  const [pos, setPos] = useState<{ top: number; left: number }>(() => {
+    const rect = anchor.getBoundingClientRect();
+    return { top: rect.bottom + 8, left: rect.left };
+  });
+
+  // After the menu is in the DOM (but before the browser paints), measure
+  // its rendered width and apply horizontal clamping so it stays within the
+  // viewport with an 8px gutter on both sides.  Keyed on [anchor] so it
+  // re-runs only when a different trigger opens the popover, not on every
+  // transform toggle.
+  useLayoutEffect(() => {
+    if (!menuRef.current) return;
+    const rect = anchor.getBoundingClientRect();
+    const width = menuRef.current.offsetWidth;
+    setPos({
+      top: rect.bottom + 8,
+      left: clampPopoverLeft(rect.left, width, window.innerWidth),
+    });
+  }, [anchor]);
 
   // Keep a stable ref to onClose so the dismiss effect (below) only
   // re-registers when the anchor changes, not on every render.
@@ -121,13 +129,9 @@ const WordTransformsPopover = ({ anchor, bits, onChange, onClose }: Props) => {
   const menuStyle: Record<string, string | number> = {
     position: 'fixed',
     top: pos.top,
+    left: pos.left,
     zIndex: 50,
   };
-  if (pos.right !== undefined) {
-    menuStyle.right = pos.right;
-  } else {
-    menuStyle.left = pos.left ?? 0;
-  }
 
   return createPortal(
     <div
