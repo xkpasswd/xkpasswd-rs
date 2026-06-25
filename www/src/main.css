@@ -2,11 +2,33 @@
 @tailwind components;
 @tailwind utilities;
 
-*:focus {
-  @apply outline-none;
+/* ── Focus management ────────────────────────────────────────────────────────
+ *
+ * Suppress the browser's default focus ring for mouse/touch interactions so
+ * clicks don't leave stray rings, but KEEP it for keyboard navigation.
+ *
+ * :focus:not(:focus-visible) matches when the element gained focus via
+ * pointer (mouse/touch) rather than keyboard — no ring needed there.
+ *
+ * :focus-visible provides a consistent green ring (matching the terminal
+ * theme) for keyboard users.  Individual components may override the ring
+ * style (e.g. tokens use a subtle semi-transparent ring to complement the
+ * dotted-underline affordance).
+ */
+:focus:not(:focus-visible) {
+  outline: none;
+}
+
+:focus-visible {
+  outline: 2px solid #5af78e; /* --green */
+  outline-offset: 2px;
 }
 
 body {
-  @apply bg-white sm:bg-transparent;
+  @apply bg-black text-white font-mono;
+  font-size: 15px;
+  line-height: 1.6;
+  display: block;
+  overflow-x: auto;
   @apply p-4;
 }

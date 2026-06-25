@@ -1,66 +1,326 @@
+/* ── DropdownButton alignment origin hints (menu is now fixed-position portal) */
 .left-align {
-  @apply left-0 origin-top-left;
+  @apply origin-top-left;
 }
 .presets-dropdown.right-align,
 .languages-dropdown.right-align {
-  @apply right-0 origin-top-right;
+  @apply origin-top-right;
 }
 
+/* ── Preset & language dropdown options ───────────────────────────────────── */
 .preset-option {
-  @apply px-4 py-2 text-left w-44;
+  @apply px-4 py-2 text-left w-44 text-white;
+}
+.language-option {
+  @apply px-4 py-2 text-left w-20 text-white;
 }
 .preset-option:hover,
-.preset-option:focus,
+.preset-option:focus-visible,
 .language-option:hover,
-.language-option:focus {
+.language-option:focus-visible {
   @apply bg-blue text-white;
+  /* The global :focus-visible ring from main.css provides the outline ring */
 }
 
-.language-option {
-  @apply px-4 py-2 text-left w-32;
+/* Reset .btn inside .cmd so the DropdownButton trigger is visually inert
+   (the magenta .enum child provides all the visual affordance). */
+.cmd .dropdown-container .btn {
+  background: none;
+  border: none;
+  padding: 0;
+  font: inherit;
+  font-weight: inherit;
+  text-decoration: none;
+  cursor: default;
+  color: inherit;
+  display: inline;
+  vertical-align: baseline;
+  border-radius: 2px; /* rounded corner so the focus ring looks clean */
+}
+.cmd .dropdown-container .btn:hover,
+.cmd .dropdown-container .btn:focus {
+  color: inherit;
+  text-decoration: none;
+}
+/* Keyboard focus ring on the dropdown trigger (wraps the .enum tok child) */
+.cmd .dropdown-container .btn:focus-visible {
+  outline: 2px solid #5af78e;
+  outline-offset: 2px;
 }
 
-.btn-expand {
-  @apply text-left pl-1 pr-2;
-  @apply no-underline !important;
+/* ── Command-line renderer ─────────────────────────────────────────────────── */
+.cmd {
+  line-height: 1.9;
 }
-.btn-expand:hover svg {
-  @apply stroke-black;
+.cmd .argline {
+  padding-left: 2ch;
+  overflow-wrap: anywhere;
 }
-.expand-icon {
-  @apply h-5 inline-block stroke-red;
-}
-
-.custom-section {
-  @apply px-2;
-}
-.custom-section::before {
-  content: '•';
-  @apply pr-1;
+.cmd .argline.head {
+  padding-left: 0;
 }
 
-.count-slider-dropdown {
-  @apply h-8 p-4 pt-3 w-44;
+/* Syntax-highlight colours */
+.cmd .prompt {
+  @apply text-green font-bold select-none;
 }
-.count-slider {
-  @apply appearance-none h-2 p-0 bg-blue cursor-pointer rounded-lg;
+.cmd .bin {
+  @apply text-green font-semibold;
 }
-.words-count-slider:focus {
-  @apply ring-0 shadow-none;
+.cmd .flag {
+  @apply text-muted whitespace-nowrap;
+}
+.cmd .eq {
+  @apply text-muted;
+}
+.cmd .cont {
+  @apply text-faint select-none;
+}
+.cmd .num {
+  @apply text-blue whitespace-nowrap;
+}
+.cmd .enum {
+  @apply text-magenta whitespace-nowrap;
+}
+.cmd .str {
+  @apply text-yellow;
 }
 
-.formatted-symbols {
-  @apply font-bold text-blue;
+/* Quote glyphs rendered via pseudo-elements so they don't widen the row. */
+.cmd .str-quote::before,
+.cmd .str-quote::after {
+  content: '"';
+  @apply text-yellow;
 }
 
-.separators-dropdown {
-  @apply w-32;
+/* Interactive tokens — dotted underline appears on hover/focus */
+.cmd .tok {
+  cursor: pointer;
+  border-bottom: 1px dotted transparent;
+  transition: all 0.1s;
+  border-radius: 2px;
 }
-.padding-symbols-dropdown {
-  @apply w-44;
+/* Both hover and keyboard focus show the brightened dotted underline */
+.cmd .tok:hover,
+.cmd .tok:focus-visible {
+  border-bottom-color: currentColor;
+  filter: brightness(1.15);
+}
+/* Keyboard focus: green ring on top of the underline indicator */
+.cmd .tok:focus-visible {
+  outline: 2px solid rgba(90, 247, 142, 0.55);
+  outline-offset: 2px;
 }
 
-.separators-input,
-.padding-symbols-input {
-  @apply bg-white px-2 py-1 border border-blue rounded;
+/* Strip iOS/WebKit's native text-field chrome (rounded border + inset shadow);
+   the intended look is the dotted underline from BASE_CLASSES (border-b). */
+.cmd input {
+  -webkit-appearance: none;
+  appearance: none;
+  border-radius: 0;
+  box-shadow: none;
+}
+
+/* Editable inputs inherit colour from .num / .str parent classes */
+.cmd input.num:focus {
+  background: rgba(87, 199, 255, 0.14);
+}
+.cmd input.str:focus {
+  background: rgba(243, 249, 157, 0.12);
+}
+/* Editable input keyboard focus ring (overrides outline-none from BASE_CLASSES) */
+.cmd input:focus-visible {
+  outline: 2px solid #5af78e;
+  outline-offset: 2px;
+}
+
+/* ── Word-transforms popover ─────────────────────────────────────────────── */
+
+/* Container: override .dropdown-menu's rounded/overflow/shadow/border. */
+.tf-menu {
+  overflow: visible;
+  border-radius: 11px;
+  padding: 8px;
+  border: 1px solid rgba(239, 240, 235, 0.10);
+  box-shadow: 0 20px 44px -18px rgba(0, 0, 0, 0.6);
+  box-sizing: border-box;
+  min-width: min(17rem, calc(100vw - 16px));
+  max-width: min(20rem, calc(100vw - 16px));
+  /* bg-surface (#30323e) is inherited from .dropdown-menu; no override needed. */
+}
+
+/* Helper comments (the two `#` lines). */
+.tf-cmt {
+  font-size: 11.5px;
+  color: #5d6173; /* faint */
+  padding: 8px 10px 5px;
+  line-height: 1.4;
+  /* font-family inherited from .cmd / app mono stack */
+}
+/* First comment: slightly less top padding (matches prototype .cmt.top). */
+.tf-cmt.top {
+  padding-top: 5px;
+}
+/* Altercase comment: visual divider above it. */
+.tf-cmt.alt {
+  border-top: 1px solid rgba(239, 240, 235, 0.10);
+  margin-top: 5px;
+}
+
+/* Option rows (both checkbox and radio). */
+.tf-opt {
+  display: flex;
+  gap: 11px;
+  align-items: center;
+  padding: 9px 10px;
+  border-radius: 7px;
+  cursor: pointer;
+  user-select: none;
+}
+.tf-opt:hover {
+  background: #3a3d4a; /* overlay */
+}
+.tf-opt:active {
+  transform: translateY(0.5px);
+}
+/* Greyed when case rows are overridden by active altercase. */
+.tf-opt.dis {
+  opacity: 0.34;
+}
+/* Locked sole-case row: no pointer, no hover highlight. */
+.tf-opt.locked {
+  cursor: default;
+}
+.tf-opt.locked:hover {
+  background: none;
+}
+/* Keyboard focus ring (consistent with app focus style). */
+.tf-opt:focus-visible {
+  outline: 2px solid #5af78e;
+  outline-offset: 2px;
+}
+
+/* Option label text. */
+.tf-lab {
+  font-size: 14px;
+  white-space: nowrap;
+}
+
+/* Checkbox indicator. */
+.tf-box {
+  width: 18px;
+  height: 18px;
+  border-radius: 4px;
+  border: 1.6px solid #5d6173; /* faint */
+  display: grid;
+  place-items: center;
+  flex: none;
+  transition: background 0.12s, border-color 0.12s;
+}
+.tf-box.on {
+  background: #5af78e; /* green */
+  border-color: #5af78e;
+}
+/* Locked sole-case checkbox: uses faint fill instead of green. */
+.tf-box.locked {
+  background: #5d6173; /* faint */
+  border-color: #5d6173;
+}
+/* Checkmark child (hidden by default, shown when .on). */
+.tf-chk {
+  width: 10px;
+  height: 6px;
+  border-left: 2px solid #282a36; /* black */
+  border-bottom: 2px solid #282a36;
+  transform: rotate(-45deg);
+  margin-top: -2px;
+  display: none;
+}
+.tf-box.on .tf-chk {
+  display: block;
+}
+
+/* Radio indicator. */
+.tf-radio {
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  border: 1.6px solid #5d6173; /* faint */
+  display: grid;
+  place-items: center;
+  flex: none;
+  transition: border-color 0.12s;
+}
+.tf-radio.on {
+  border-color: #5af78e; /* green */
+}
+/* Inner dot (hidden by default, shown when .on). */
+.tf-dot {
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  background: #5af78e; /* green */
+  display: none;
+}
+.tf-radio.on .tf-dot {
+  display: block;
+}
+
+/* ── Command bar ──────────────────────────────────────────────────────────── */
+.cmdbar {
+  display: flex;
+  gap: 18px;
+  flex-wrap: wrap;
+  margin-top: 14px;
+  font-size: 12.5px;
+  @apply text-faint;
+}
+.cmdbar button {
+  font: inherit;
+  @apply text-muted bg-transparent border-0 p-0 cursor-pointer inline-flex items-center;
+  gap: 6px;
+  border-radius: 2px; /* for the focus ring shape */
+}
+.cmdbar button:hover,
+.cmdbar button.done {
+  @apply text-green;
+}
+/* Keyboard focus ring on command bar buttons */
+.cmdbar button:focus-visible {
+  outline: 2px solid #5af78e;
+  outline-offset: 3px;
+}
+
+/* ── Reduced motion ───────────────────────────────────────────────────────── */
+@media (prefers-reduced-motion: reduce) {
+  /* Token hover/focus transition (e.g. filter: brightness) */
+  .cmd .tok {
+    transition: none;
+  }
+}
+
+/* ── Responsive: coarse-pointer (touch) adjustments ──────────────────────── */
+@media (pointer: coarse) {
+  .cmd {
+    line-height: 2.0;
+  }
+  .cmd .tok {
+    padding-top: 3px;
+    padding-bottom: 3px;
+  }
+  .cmdbar {
+    gap: 24px;
+    font-size: 13.5px;
+  }
+  /* Command-bar buttons: comfortable tap height (~44 px) */
+  .cmdbar button {
+    min-height: 44px;
+    align-items: center;
+  }
+  /* Dropdown options: comfortable tap height (~44 px) */
+  .preset-option,
+  .language-option {
+    padding-top: 12px;
+    padding-bottom: 12px;
+  }
 }

@@ -1,20 +1,26 @@
 #app {
-  @apply flex-col items-center text-black;
-  @apply mx-auto p-3 sm:p-6 max-w-2xl;
-  @apply sm:bg-white sm:rounded-lg;
+  @apply bg-surface overflow-hidden mx-auto;
+  border: 1px solid rgba(239,240,235,.09);
+  border-radius: 12px;
+  box-shadow: 0 8px 32px rgba(0,0,0,.4);
+  max-width: 660px;
+  min-width: 320px;
 }
 
-.section {
-  @apply mt-4;
+/* Padded content region — the titlebar sits flush, the rest gets breathing room */
+.body {
+  padding: clamp(16px, 3.6vw, 24px);
 }
 
 .btn {
   @apply font-bold text-left underline;
+  border-radius: 2px; /* rounded corner so the focus ring looks clean */
 }
 .btn:hover,
-.btn:focus {
+.btn:focus-visible {
   @apply text-blue decoration-double;
 }
+/* Global :focus-visible ring from main.css provides the outline ring */
 
 .settings {
   @apply flex items-center break-words;

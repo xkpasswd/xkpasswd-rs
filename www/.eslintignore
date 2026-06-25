@@ -1,0 +1,4 @@
+# Generated WASM bindings (wasm-pack output — not hand-written JS)
+xkpasswd/
+# Vite build output
+dist/

@@ -1,11 +1,72 @@
-.header-container {
-  @apply flex items-center justify-between -my-2;
+.titlebar {
+  /* Flex row: dots — path — brand (right edge) */
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 11px 16px;
+
+  /* Bottom hairline separator (matches border token) */
+  border-bottom: 1px solid rgba(239, 240, 235, 0.09);
+
+  /* Subtle gradient so the titlebar reads slightly lighter than the card */
+  background: linear-gradient(
+    to bottom,
+    rgba(255, 255, 255, 0.04) 0%,
+    transparent 100%
+  );
 }
 
-.header-logo {
-  @apply w-16 h-16 -mt-3 sm:-mt-1;
+/* ── Traffic-light dots ──────────────────────────── */
+.dots {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-shrink: 0;
 }
 
-.header-title {
-  @apply font-bold text-lg text-red text-right;
+.dot {
+  display: block;
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+}
+
+/* ── ~/xkpasswd-rs[@<hash>] path ─────────────────── */
+.path {
+  @apply text-muted;
+  font-size: 13px;
+  white-space: nowrap;
+}
+
+/* Link wrapping the project name + hash — no underline, inherits muted */
+.path-link {
+  text-decoration: none;
+  color: inherit;
+}
+
+/* Project name: bold + white by default */
+.path-link b {
+  @apply text-white font-semibold;
+}
+
+/* On hover: both name and hash turn green */
+.path-link:hover b,
+.path-link:hover .path-hash {
+  @apply text-green;
+}
+
+/* Keyboard focus ring on the repo link */
+.path-link:focus-visible {
+  outline: 2px solid #5af78e;
+  outline-offset: 3px;
+  border-radius: 2px;
+}
+
+/* ── Brand (glyph only) ──────────────────────────── */
+.brand {
+  /* Push to right edge */
+  margin-left: auto;
+  display: flex;
+  align-items: center;
+  flex-shrink: 0;
 }

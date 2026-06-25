@@ -7,3 +7,5 @@
 **/*.rs.bk
 
 **/__pycache__/**
+.plans
+.superpowers

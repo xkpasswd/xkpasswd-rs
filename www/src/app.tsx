@@ -1,38 +1,22 @@
-import { useCallback, useEffect, useState } from 'preact/hooks';
 import ControlPanel from './ControlPanel';
 import Entropy from './Entropy';
 import Header from './Header';
 import PasswordBox from './PasswordBox';
-import Version from './Version';
 import { SettingsProvider, useSettings } from './contexts';
-import xkpasswd from './wasm';
 import './app.css';
 
-import type * as xktypes from 'src/types/xkpasswd';
-
 const App = () => {
-  const { settings } = useSettings();
-  const [passGenerator] = useState(new xkpasswd.Xkpasswd());
-  const [entropy, setEntropy] = useState<xktypes.Entropy | undefined>(
-    undefined
-  );
-  const [passwd, setPasswd] = useState<string>('');
-
-  const genPasswd = useCallback(() => {
-    const { passwd, entropy } = passGenerator.genPass(settings);
-    setPasswd(passwd);
-    setEntropy(entropy);
-  }, [passGenerator, settings]);
-
-  useEffect(genPasswd, [genPasswd, passGenerator, settings]);
+  const { passwd, entropy, regenerate } = useSettings();
 
   return (
     <>
       <Header />
-      <ControlPanel onGenerate={genPasswd} />
-      <PasswordBox passwd={passwd} />
-      <Entropy entropy={entropy} />
-      <Version />
+      {/* .body provides padding for content while the titlebar stays flush */}
+      <div className="body">
+        <ControlPanel onGenerate={regenerate} />
+        <PasswordBox passwd={passwd} />
+        <Entropy entropy={entropy} />
+      </div>
     </>
   );
 };
